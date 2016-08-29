@@ -441,6 +441,11 @@ function main() {
     	console.log("total points: " + pointCount);
     	console.log("first point: " + firstPoint);
     	console.log("***********************");
+
+        var useScaleAndOffset = true;
+        var globalScale = new THREE.Vector3(0.01, 0.01, 0.01);
+        var globalOffset = new THREE.Vector3(0, 0, 0);
+
 	    var sg = "{" + "\n";
 	    sg += "    \"creator\": \"webvr\"," + "\n";
 	    sg += "    \"grease_pencil\": [" + "\n";
@@ -469,26 +474,29 @@ function main() {
 	                    var x = 0.0;
 	                    var y = 0.0;
 	                    var z = 0.0;
+
+                        var point = new THREE.Vector3(frames[currentFrame][i].geometry.attributes.position.array[j], frames[currentFrame][i].geometry.attributes.position.array[j+1], frames[currentFrame][i].geometry.attributes.position.array[j+2]);
+
 	                    //~
 	                    //var point = frames[currentFrame][i].geometry.attributes.position[j]; //layer.frames[currentFrame].strokes[i].points[j].co // TODO implement layers
-	                    //if (useScaleAndOffset) {
-	                        //x = (point.x * globalScale.x) + globalOffset.x
-	                        //y = (point.z * globalScale.y) + globalOffset.y
-	                        //z = (point.y * globalScale.z) + globalOffset.z
-	                    //} else {
-	                        x = frames[currentFrame][i].geometry.attributes.position.array[j];//point[0]
-	                        y = frames[currentFrame][i].geometry.attributes.position.array[j+1];//point[1]
-	                        z = frames[currentFrame][i].geometry.attributes.position.array[j+2];//point[2]
+	                    if (useScaleAndOffset) {
+	                        x = (point.x * globalScale.x) + globalOffset.x
+	                        y = (point.z * globalScale.y) + globalOffset.y
+	                        z = (point.y * globalScale.z) + globalOffset.z
+	                    } else {
+	                        x = point.x;
+	                        y = point.y;
+	                        z = point.z;
 	                        //console.log(x + " " + y + " " + z);
-	                    //}
+	                    }
 	                    //~
 	                    //if (roundValues) {
 	                        //sb += "                                        {\"co\": [" + roundVal(x, numPlaces) + ", " + roundVal(y, numPlaces) + ", " + roundVal(z, numPlaces) + "]"
 	                    //} else {
-	                        sb += "                                        {\"co\": [" + x + ", " + y + ", " + z + "]";                  
+	                        sb += "                                        {\"co\": [" + x + ", " + z + ", " + y + "]";                  
 	                    //}
 	                    //~
-	                    if (j == frames[currentFrame][i].geometry.attributes.position.count - 1) {  //layer.frames[currentFrame].strokes[i].points.length - 1) { // TODO implement layers
+	                    if (j >= frames[currentFrame][i].geometry.attributes.position.count - 3) {  //layer.frames[currentFrame].strokes[i].points.length - 1) { // TODO implement layers
 	                        sb += "}" + "\n";
 	                        sb += "                                    ]" + "\n";
 	                        if (i == frames[currentFrame].length - 1) { //layer.frames[currentFrame].strokes.length - 1) { // TODO implement layers

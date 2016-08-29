@@ -83,7 +83,7 @@ function main() {
 
     var useAudioSync = false;
     var soundPath = "../sounds/avlt.ogg";
-    var animationPath = "../animations/current.json";
+    var animationPath = "../animations/new_test.json";
     var brushPath = "../images/brush_vive.png";
 
     var player = new Tone.Player({
@@ -137,25 +137,25 @@ function main() {
     var special_mtl;
 
     loadJSON(animationPath, function(response) {
-        lightningArtistData = JSON.parse(response);
+        lightningArtistData = JSON.parse(response).grease_pencil[0].layers[0];
 
-        for (var i=0; i<lightningArtistData.brushstrokes.length; i++) { // frame
+        for (var i=0; i<lightningArtistData.frames.length; i++) { // frame
             strokeX = [];
             strokeY = [];
             strokeZ = [];
-            for (var j=0; j<lightningArtistData.brushstrokes[i].length; j++) { // stroke 
-                var bufferX = new ArrayBuffer(lightningArtistData.brushstrokes[i][j].length * 4);
-                var bufferY = new ArrayBuffer(lightningArtistData.brushstrokes[i][j].length * 4);
-                var bufferZ = new ArrayBuffer(lightningArtistData.brushstrokes[i][j].length * 4);
+            for (var j=0; j<lightningArtistData.frames[i].strokes.length; j++) { // stroke 
+                var bufferX = new ArrayBuffer(lightningArtistData.frames[i].strokes[j].points.length * 4);
+                var bufferY = new ArrayBuffer(lightningArtistData.frames[i].strokes[j].points.length * 4);
+                var bufferZ = new ArrayBuffer(lightningArtistData.frames[i].strokes[j].points.length * 4);
                 
                 var bufferXf = new Float32Array(bufferX);
                 var bufferYf = new Float32Array(bufferY);
                 var bufferZf = new Float32Array(bufferZ);
                 
-                for (var l=0; l<lightningArtistData.brushstrokes[i][j].length; l++) { // point
-                    bufferXf[l] = (lightningArtistData.brushstrokes[i][j][l].x * laScale) + laOffset.x;
-                    bufferYf[l] = (lightningArtistData.brushstrokes[i][j][l].y * laScale) + laOffset.y;
-                    bufferZf[l] = (lightningArtistData.brushstrokes[i][j][l].z * laScale) + laOffset.z;
+                for (var l=0; l<lightningArtistData.frames[i].strokes[j].points.length; l++) { // point
+                    bufferXf[l] = (lightningArtistData.frames[i].strokes[j].points[l].co[0] * laScale) + laOffset.x;
+                    bufferYf[l] = (lightningArtistData.frames[i].strokes[j].points[l].co[1] * laScale) + laOffset.y;
+                    bufferZf[l] = (lightningArtistData.frames[i].strokes[j].points[l].co[2] * laScale) + laOffset.z;
                 }
 
                 strokeX.push(bufferXf);
@@ -499,6 +499,12 @@ function main() {
 		}
 			
         updateControllers();
+
+        if (armSaveJson) {
+            armSaveJson = false;
+            writeJson();
+        }   
+        
         render();
         requestAnimationFrame(animate);
     }
@@ -629,6 +635,117 @@ function main() {
         doSubtitle(801);
         doSubtitle(822);
         */
+    }
+
+    function writeJson() {
+        var frameCount = frames.length;
+        var strokeCount = 0;
+        var pointCount = 0;
+        // http://stackoverflow.com/questions/35370483/geometries-on-vertex-of-buffergeometry-in-three-js
+        var firstPoint = frames[0][0].geometry.attributes.position.array[0];
+        for (var i=0; i<frames.length; i++) {
+            strokeCount += frames[i].length;
+            for (var j=0; j<frames[i].length; j++) {
+                pointCount += frames[i][j].geometry.attributes.position.count;
+            }
+        }
+        console.log("***********************");
+        console.log("total frames: " + frameCount);
+        console.log("total strokes: " + strokeCount);
+        console.log("total points: " + pointCount);
+        console.log("first point: " + firstPoint);
+        console.log("***********************");
+        var sg = "{" + "\n";
+        sg += "    \"creator\": \"webvr\"," + "\n";
+        sg += "    \"grease_pencil\": [" + "\n";
+        sg += "        {" + "\n";
+        sg += "            \"layers\": [" + "\n";
+        var sl = "";
+        for (var f=0; f<1; f++) {// gp.layers.length, f++) { // TODO implement layers
+            var sb = "";
+            var layer = 0; //gp.layers[f] // TODO implement layers
+            for (var h=0; h<frames.length; h++) { //layer.frames.length, h++) { // TODO implement layers
+                var currentFrame = h;
+                sb += "                        {" + "\n"; // one frame
+                sb += "                            \"strokes\": [" + "\n";
+                sb += "                                {" + "\n"; // one stroke
+                for (var i=0; i<frames[currentFrame].length; i++) { //layer.frames[currentFrame].strokes.length) { // TODO implement layers
+                    // TODO implement color
+                    //var color = (0,0,0);
+                    //try {
+                       //color = frames[currentFrame].strokes[i].color.color; //layer.frames[currentFrame].strokes[i].color.color // TODO implement layers
+                    //} catch (e) {
+                        //
+                    //}
+                    //sb += "                                    \"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "]," + "\n";
+                    sb += "                                    \"points\": [" + "\n";
+                    for (var j=0; j<frames[currentFrame][i].geometry.attributes.position.count; j+=3) { //layer.frames[currentFrame].strokes[i].points.length) { // TODO implement layers
+                        var x = 0.0;
+                        var y = 0.0;
+                        var z = 0.0;
+                        //~
+                        //var point = frames[currentFrame][i].geometry.attributes.position[j]; //layer.frames[currentFrame].strokes[i].points[j].co // TODO implement layers
+                        //if (useScaleAndOffset) {
+                            //x = (point.x * globalScale.x) + globalOffset.x
+                            //y = (point.z * globalScale.y) + globalOffset.y
+                            //z = (point.y * globalScale.z) + globalOffset.z
+                        //} else {
+                            x = frames[currentFrame][i].geometry.attributes.position.array[j];//point[0]
+                            y = frames[currentFrame][i].geometry.attributes.position.array[j+1];//point[1]
+                            z = frames[currentFrame][i].geometry.attributes.position.array[j+2];//point[2]
+                            //console.log(x + " " + y + " " + z);
+                        //}
+                        //~
+                        //if (roundValues) {
+                            //sb += "                                        {\"co\": [" + roundVal(x, numPlaces) + ", " + roundVal(y, numPlaces) + ", " + roundVal(z, numPlaces) + "]"
+                        //} else {
+                            sb += "                                        {\"co\": [" + x + ", " + y + ", " + z + "]";                  
+                        //}
+                        //~
+                        if (j == frames[currentFrame][i].geometry.attributes.position.count - 1) {  //layer.frames[currentFrame].strokes[i].points.length - 1) { // TODO implement layers
+                            sb += "}" + "\n";
+                            sb += "                                    ]" + "\n";
+                            if (i == frames[currentFrame].length - 1) { //layer.frames[currentFrame].strokes.length - 1) { // TODO implement layers
+                                sb += "                                }" + "\n"; // last stroke for this frame
+                            } else {
+                                sb += "                                }," + "\n"; // end stroke
+                                sb += "                                {" + "\n"; // begin stroke
+                            }
+                        } else {
+                            sb += "}," + "\n";
+                        }
+                    }
+                    if (i == frames[currentFrame].length - 1) { //layer.frames[currentFrame].strokes.length - 1) { // TODO implement layers
+                        sb += "                            ]" + "\n";
+                    }
+                }
+                if (h == frames.length - 1) { //layer.frames.length - 1) { // TODO implement layers
+                    sb += "                        }" + "\n";
+                } else {
+                    sb += "                        }," + "\n";
+                }
+            }
+            //~
+            var sf = "                {" + "\n";
+            sf += "                    \"name\": \"" + "WebVR Layer" + "\"," + "\n"; //layer.info + "\"," + "\n" // TODO implement layers
+            sf += "                    \"frames\": [" + "\n" + sb + "                    ]" + "\n";
+            if (f == 0) { //gp.layers.length-1) { // TODO implement layers
+                sf += "                }" + "\n";
+            } else {
+                sf += "                }," + "\n";
+            }
+            sl += sf;
+            //~
+        }
+        sg += sl;
+        sg += "            ]" + "\n";
+        sg += "        }"+ "\n";
+        sg += "    ]"+ "\n";
+        sg += "}"+ "\n";
+
+        var uriContent = "data:text/plain;charset=utf-8," + encodeURIComponent(sg);
+        console.log("opened window.");
+        window.open(uriContent);
     }
 
 }

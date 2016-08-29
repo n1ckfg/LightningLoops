@@ -18,7 +18,7 @@ var gravity = 0.01;
 var cameraGaze;
 var room;
 
-var armSaveText = false;
+var armSaveJson = false;
 
 function init() {
     renderer = new THREE.WebGLRenderer({antialias: false});
@@ -97,17 +97,12 @@ function setupControls() {
 
     window.addEventListener("keydown", function(event) {
         if (getKeyCode() == 'w') isWalking = true;
-        if (getKeyCode() == 's') armSaveText = true;
+        if (getKeyCode() == 's') armSaveJson = true;
     });
 
     window.addEventListener("keyup", function(event) {
         if (getKeyCode() == 'w') isWalking = false;
     });
-}
-
-function saveText(target) {
-  var uriContent = "data:text/plain;charset=utf-8," + encodeURIComponent(target);
-  window.open(uriContent);
 }
 
 function getKeyCode() {

@@ -22,6 +22,8 @@ var floor = 0;
 var gravity = 0.01;
 var cameraGaze;
 
+var armSaveJson = false;
+
 function init() {
     if (WEBVR.isLatestAvailable() === false) {
         document.body.appendChild(WEBVR.getMessage());
@@ -108,7 +110,7 @@ function init() {
 
     //setupComposer();
 
-    //setupPlayer();
+    setupPlayer();
 }
 
 function onWindowResize() {
@@ -180,8 +182,9 @@ function updateComposer() {
         composer.render();
     //}
 }
-
+*/
 function setupControls() {
+    /*
     window.addEventListener("touchstart", function(event) {
         isWalking = true;
     });
@@ -189,13 +192,15 @@ function setupControls() {
     window.addEventListener("touchend", function(event) {
         isWalking = false;
     })
+    */
 
     window.addEventListener("keydown", function(event) {
-        if (getKeyCode() == 'w') isWalking = true;
+        //if (getKeyCode() == 'w') isWalking = true;
+        if (getKeyCode() == 's') armSaveJson = true;
     });
 
     window.addEventListener("keyup", function(event) {
-        if (getKeyCode() == 'w') isWalking = false;
+        //if (getKeyCode() == 'w') isWalking = false;
     });
 }
 
@@ -206,13 +211,14 @@ function getKeyCode() {
 }
 
 function setupPlayer() {
-    cameraGaze = new THREE.Object3D();
-    cameraGaze.position.set(0, 0.1, -60);
-    camera.add(cameraGaze);
+    //cameraGaze = new THREE.Object3D();
+    //cameraGaze.position.set(0, 0.1, -60);
+    //camera.add(cameraGaze);
 
     setupControls();
 }
 
+/*
 function updatePlayer() {
     if (camera.rotation.x > flyingThreshold) {
         isFlying = true;

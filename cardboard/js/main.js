@@ -39,6 +39,7 @@ function main() {
     var frameDelta = 0;
     var time = 0;
     var pTime = 0;
+    var pauseAnimation = false;
 
     // ~ ~ ~ 
     var line_mtl, red_mtl, text_mtl;
@@ -261,43 +262,46 @@ function main() {
     });
 
     function animate(timestamp) {
-        if (!useAudioSync && !hidden) {
-            pTime = time;
-            time = new Date().getTime() / 1000;
-            frameDelta += time - pTime;
-        } else if (useAudioSync && !hidden) {
-            if (textMesh) textMesh.lookAt(camera);
-        }
+    	if (!pauseAnimation) {
+	        if (!useAudioSync && !hidden) {
+	            pTime = time;
+	            time = new Date().getTime() / 1000;
+	            frameDelta += time - pTime;
+	        } else if (useAudioSync && !hidden) {
+	            if (textMesh) textMesh.lookAt(camera);
+	        }
 
-        if (frameDelta >= frameInterval) {
-            frameDelta = 0;
+	        if (frameDelta >= frameInterval) {
+	            frameDelta = 0;
 
-            for (var i=scene.children.length; i>=0; i--) {
-                if (scene.children[i] !== camera && scene.children[i] !== textMesh  && scene.children[i] !== room) {
-                    scene.remove(scene.children[i]);
-                }
-            }
+	            for (var i=scene.children.length; i>=0; i--) {
+	                if (scene.children[i] !== camera && scene.children[i] !== textMesh  && scene.children[i] !== room) {
+	                    scene.remove(scene.children[i]);
+	                }
+	            }
 
-            for (var i=0; i<frames[counter].length; i++) {
-                scene.add(frames[counter][i]);
-            }
+	            for (var i=0; i<frames[counter].length; i++) {
+	                scene.add(frames[counter][i]);
+	            }
 
-            counter++;
-            if (counter > frames.length - 1) {
-                counter = 0;
-                loopCounter++;
-                subsCounter = 0;
-                scheduleSubtitles();
-            }
-        }
+	            counter++;
+	            if (counter > frames.length - 1) {
+	                counter = 0;
+	                loopCounter++;
+	                subsCounter = 0;
+	                scheduleSubtitles();
+	            }
+	        }
 
-        if (armSaveJson) {
+	        render(timestamp);
+	        requestAnimationFrame(animate);
+    	}
+
+	    if (armSaveJson) {
         	armSaveJson = false;
+        	pauseAnimation = true;
         	writeJson();
-        }
-        
-        render(timestamp);
-        requestAnimationFrame(animate);
+        } 	
     }
 
     function loadJSON(filepath, callback) { 
@@ -538,6 +542,7 @@ function main() {
 	    sg += "}"+ "\n";
 
 	    var uriContent = "data:text/plain;charset=utf-8," + encodeURIComponent(sg);
+	    pauseAnimation = false;
   		window.open(uriContent);
 	}
 

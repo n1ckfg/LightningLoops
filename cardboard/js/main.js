@@ -135,6 +135,24 @@ function main() {
 
     loadJSON(animationPath, function(response) {
         lightningArtistData = JSON.parse(response).grease_pencil[0].layers[0];
+        var frameCount = lightningArtistData.frames.length;
+        var strokeCount = 0;
+        var pointCount = 0;
+        for (var i=0; i<lightningArtistData.frames.length; i++) {
+            strokeCount += lightningArtistData.frames[i].strokes.length;
+            for (var j=0; j<lightningArtistData.frames[i].strokes.length; j++) {
+                pointCount += lightningArtistData.frames[i].strokes[j].points.length;
+            }
+        }
+        var firstPoint = lightningArtistData.frames[0].strokes[0].points[0].co[0] * 100;
+
+        console.log("***********************");
+        console.log("~INPUT~")
+        console.log("total frames: " + frameCount);
+        console.log("total strokes: " + strokeCount);
+        console.log("total points: " + pointCount);
+        console.log("first point: " + firstPoint);
+        console.log("***********************");
 
         for (var i=0; i<lightningArtistData.frames.length; i++) { // frame
             strokeX = [];
@@ -440,6 +458,7 @@ function main() {
     		}
     	}
     	console.log("***********************");
+        console.log("~OUTPUT~")
     	console.log("total frames: " + frameCount);
     	console.log("total strokes: " + strokeCount);
     	console.log("total points: " + pointCount);

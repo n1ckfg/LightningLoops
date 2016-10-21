@@ -88,6 +88,9 @@ function main() {
     var frameZ = [];
     var frames = [];
     var minDistance = 0.01;
+    var useMinDistance = false;
+    var roundValues = true;
+    var numPlaces = 7;
 
     var useAudioSync = false;
     var soundPath = "../sounds/avlt.mp3";
@@ -135,6 +138,7 @@ function main() {
 
     loadJSON(animationPath, function(response) {
         lightningArtistData = JSON.parse(response).grease_pencil[0].layers[0];
+        
         var frameCount = lightningArtistData.frames.length;
         var strokeCount = 0;
         var pointCount = 0;
@@ -234,7 +238,7 @@ function main() {
                 for (var l=0; l<frameX[i][j].length; l++) {
                     origVerts.push(new THREE.Vector3(frameX[i][j][l],frameY[i][j][l], frameZ[i][j][l]));
 
-                    if (l === 0 || origVerts[l].distanceTo(origVerts[l-1]) > minDistance) {
+                    if (l === 0 || !useMinDistance || (useMinDistance && origVerts[l].distanceTo(origVerts[l-1]) > minDistance)) {
 
                 //for (var l=0; l<frameX[i][j].length; l++) {
                     //geometry.vertices.push(new THREE.Vector3(frameX[i][j][l],frameY[i][j][l], frameZ[i][j][l]));
@@ -445,6 +449,10 @@ function main() {
         */
     }
 
+    function roundVal(value, decimals) {
+        return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+    } 
+
     function writeJson() {
     	var frameCount = frames.length;
     	var strokeCount = 0;
@@ -454,7 +462,10 @@ function main() {
     	for (var i=0; i<frames.length; i++) {
     		strokeCount += frames[i].length;
     		for (var j=0; j<frames[i].length; j++) {
-    			pointCount += frames[i][j].geometry.attributes.position.count;
+    			//pointCount += frames[i][j].geometry.attributes.position.count;
+                for (var l=0; l<frames[i][j].geometry.attributes.position.array.length; l += 6) {//l += 2) {
+                    pointCount++;
+                }
     		}
     	}
     	console.log("***********************");
@@ -485,15 +496,15 @@ function main() {
 	            sb += "                                {" + "\n"; // one stroke
 	            for (var i=0; i<frames[currentFrame].length; i++) { //layer.frames[currentFrame].strokes.length) { // TODO implement layers
 	                // TODO implement color
-	                //var color = (0,0,0);
+	                var color = [0,0,0];
 	                //try {
 	                   //color = frames[currentFrame].strokes[i].color.color; //layer.frames[currentFrame].strokes[i].color.color // TODO implement layers
 	                //} catch (e) {
 	                	//
 	                //}
-	                //sb += "                                    \"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "]," + "\n";
+	                sb += "                                    \"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "]," + "\n";
 	                sb += "                                    \"points\": [" + "\n";
-	                for (var j=0; j<frames[currentFrame][i].geometry.attributes.position.count; j+=3) { //layer.frames[currentFrame].strokes[i].points.length) { // TODO implement layers
+	                for (var j=0; j<frames[currentFrame][i].geometry.attributes.position.array.length; j += 6 ) { //layer.frames[currentFrame].strokes[i].points.length) { // TODO implement layers
 	                    var x = 0.0;
 	                    var y = 0.0;
 	                    var z = 0.0;
@@ -504,8 +515,8 @@ function main() {
 	                    //var point = frames[currentFrame][i].geometry.attributes.position[j]; //layer.frames[currentFrame].strokes[i].points[j].co // TODO implement layers
 	                    if (useScaleAndOffset) {
 	                        x = (point.x * globalScale.x) + globalOffset.x
-	                        y = (point.z * globalScale.y) + globalOffset.y
-	                        z = (point.y * globalScale.z) + globalOffset.z
+	                        y = (point.y * globalScale.y) + globalOffset.y
+	                        z = (point.z * globalScale.z) + globalOffset.z
 	                    } else {
 	                        x = point.x;
 	                        y = point.y;
@@ -513,13 +524,13 @@ function main() {
 	                        //console.log(x + " " + y + " " + z);
 	                    }
 	                    //~
-	                    //if (roundValues) {
-	                        //sb += "                                        {\"co\": [" + roundVal(x, numPlaces) + ", " + roundVal(y, numPlaces) + ", " + roundVal(z, numPlaces) + "]"
-	                    //} else {
+	                    if (roundValues) {
+	                        sb += "                                        {\"co\": [" + roundVal(x, numPlaces) + ", " + roundVal(y, numPlaces) + ", " + roundVal(z, numPlaces) + "]";
+	                    } else {
 	                        sb += "                                        {\"co\": [" + x + ", " + z + ", " + y + "]";                  
-	                    //}
+	                    }
 	                    //~
-	                    if (j >= frames[currentFrame][i].geometry.attributes.position.count - 3) {  //layer.frames[currentFrame].strokes[i].points.length - 1) { // TODO implement layers
+	                    if (j >= frames[currentFrame][i].geometry.attributes.position.array.length - 6) {  //layer.frames[currentFrame].strokes[i].points.length - 1) { // TODO implement layers
 	                        sb += "}" + "\n";
 	                        sb += "                                    ]" + "\n";
 	                        if (i == frames[currentFrame].length - 1) { //layer.frames[currentFrame].strokes.length - 1) { // TODO implement layers

@@ -487,20 +487,33 @@ function main() {
         clearFrame();
         refreshFrame();
     }
-	
-    function frameForward() {
+
+    function frameMain() {
         redrawFrame();
         counter++;
+        if (counter >= frames.length - 1) {
+            counter = 0;
+            loopCounter++;
+            subsCounter = 0;
+            scheduleSubtitles();
+        }
+    }
+
+    function frameForward() {
+        counter++;
         if (counter >= frames.length - 1) counter = 0;
+        redrawFrame();
     }
 
     function frameBack() {
-        redrawFrame();
         counter--;
         if (counter <= 0) counter = frames.length - 1;
+        redrawFrame();
     }
 
     function animate() {
+        updateControllers();
+
         if (armFrameForward) {
             armFrameForward = false;
             isPlaying = false;
@@ -550,14 +563,7 @@ function main() {
 				
 				//frameChange(1);
 
-                frameForward();
-
-                if (counter >= frames.length - 1) {
-                    counter = 0;
-                    loopCounter++;
-                    subsCounter = 0;
-                    scheduleSubtitles();
-                }
+                frameMain();
 			}
 		}
 
@@ -568,8 +574,6 @@ function main() {
 			}
 		}
 			
-        updateControllers();
-
         if (armSaveJson) {
             armSaveJson = false;
             isPlaying = false;

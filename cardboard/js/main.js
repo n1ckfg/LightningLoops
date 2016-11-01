@@ -86,6 +86,8 @@ function main() {
     var frameX = [];
     var frameY = [];
     var frameZ = [];
+    var strokeColors = [];
+    var frameColors = [];
     var frames = [];
     var minDistance = 0.01;
     var useMinDistance = false;
@@ -94,7 +96,7 @@ function main() {
 
     var useAudioSync = false;
     var soundPath = "../sounds/avlt.mp3";
-    var animationPath = "../animations/new_test.json";
+    var animationPath = "../animations/first_color.json";
     var brushPath = "../images/brush_cardboard.png";
 
     init();
@@ -162,6 +164,7 @@ function main() {
             strokeX = [];
             strokeY = [];
             strokeZ = [];
+            strokeColors = [];
             for (var j=0; j<lightningArtistData.frames[i].strokes.length; j++) { // stroke 
                 var bufferX = new ArrayBuffer(lightningArtistData.frames[i].strokes[j].points.length * 4);
                 var bufferY = new ArrayBuffer(lightningArtistData.frames[i].strokes[j].points.length * 4);
@@ -180,12 +183,16 @@ function main() {
                 strokeX.push(bufferXf);
                 strokeY.push(bufferYf);
                 strokeZ.push(bufferZf);
+                strokeColors.push(lightningArtistData.frames[i].strokes[j].color);
             }
 
             frameX.push(strokeX);
             frameY.push(strokeY);
             frameZ.push(strokeZ);
+            frameColors.push(strokeColors);
         }
+
+        console.log("* * * color check: " + frameX.length + " " + frameColors.length + " " + frameX[0].length + " " + frameColors[0].length);
 
         frames = [];
 
@@ -250,7 +257,25 @@ function main() {
 
                 var line = new THREE.MeshLine();
                 line.setGeometry(geometry);
-                var meshLine = new THREE.Mesh(line.geometry, special_mtl);
+                //var meshLine = new THREE.Mesh(line.geometry, special_mtl);
+                var meshLine = new THREE.Mesh(line.geometry, new THREE.MeshLineMaterial({
+                    useMap: 1,
+                    map: texture,
+                    transparent: true,
+                    color: new THREE.Color(frameColors[i][j][0], frameColors[i][j][1], frameColors[i][j][2]),
+                    //sizeAttenuation: false,
+                    opacity: 0.85, 
+                    lineWidth: 0.5,
+                    depthWrite: false,
+                    depthTest: false,
+                    blending: THREE.AdditiveBlending
+                    /*
+                    blending: THREE[blending],
+                    blendSrc: THREE[blendSrc[4]],
+                    blendDst: THREE[blendDst[1]],
+                    blendEquation: THREE.AddEquation
+                    */
+                }));
                 //scene.add(meshLine); // check if this is OK
                 //rotateAroundWorldAxis(meshLine, new THREE.Vector3(1,0,0), laRot.y * Math.PI/180); 
                 //rotateAroundWorldAxis(meshLine, new THREE.Vector3(0,1,0), laRot.x * Math.PI/180); 

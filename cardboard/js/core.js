@@ -19,6 +19,9 @@ var cameraGaze;
 var room;
 
 var armSaveJson = false;
+var armFrameForward = false;
+var armFrameBack = false;
+var armTogglePause = false;
 
 function init() {
     renderer = new THREE.WebGLRenderer({antialias: false});
@@ -98,6 +101,9 @@ function setupControls() {
     window.addEventListener("keydown", function(event) {
         if (getKeyCode() == 'w') isWalking = true;
         if (getKeyCode() == 's') armSaveJson = true;
+        if (getKeyCode() == 'j') armFrameBack = true;
+        if (getKeyCode() == 'k') armTogglePause = true;
+        if (getKeyCode() == 'l') armFrameForward = true;
     });
 
     window.addEventListener("keyup", function(event) {

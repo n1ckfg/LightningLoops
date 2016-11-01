@@ -284,6 +284,24 @@ function main() {
     });
 
     function animate(timestamp) {
+        if (armFrameForward) {
+            armFrameForward = false;
+            pauseAnimation = true;
+            frameForward();
+            console.log("ff: " + counter);
+        }
+        if (armFrameBack) {
+            armFrameBack = false;
+            pauseAnimation = true;
+            frameBack();
+            console.log("rew: " + counter);
+        }
+        if (armTogglePause) {
+            pauseAnimation = !pauseAnimation;
+            console.log("pause: " + pauseAnimation);
+            armTogglePause = false;
+        }
+
     	if (!pauseAnimation) {
 	        if (!useAudioSync && !hidden) {
 	            pTime = time;
@@ -296,34 +314,49 @@ function main() {
 	        if (frameDelta >= frameInterval) {
 	            frameDelta = 0;
 
-	            for (var i=scene.children.length; i>=0; i--) {
-	                if (scene.children[i] !== camera && scene.children[i] !== textMesh  && scene.children[i] !== room) {
-	                    scene.remove(scene.children[i]);
-	                }
-	            }
+                frameForward();
 
-	            for (var i=0; i<frames[counter].length; i++) {
-	                scene.add(frames[counter][i]);
-	            }
-
-	            counter++;
-	            if (counter > frames.length - 1) {
+	            if (counter >= frames.length - 1) {
 	                counter = 0;
 	                loopCounter++;
 	                subsCounter = 0;
 	                scheduleSubtitles();
 	            }
 	        }
-
-	        render(timestamp);
-	        requestAnimationFrame(animate);
-    	}
+        }
 
 	    if (armSaveJson) {
         	armSaveJson = false;
         	pauseAnimation = true;
         	writeJson();
         } 	
+
+        render(timestamp);
+        requestAnimationFrame(animate);
+    }
+
+    function redrawFrame() {
+        for (var i=scene.children.length; i>=0; i--) {
+            if (scene.children[i] !== camera && scene.children[i] !== textMesh  && scene.children[i] !== room) {
+                scene.remove(scene.children[i]);
+            }
+        }
+
+        for (var i=0; i<frames[counter].length; i++) {
+            scene.add(frames[counter][i]);
+        }
+    }
+
+    function frameForward() {
+        redrawFrame();
+        counter++;
+        if (counter >= frames.length - 1) counter = 0;
+    }
+
+    function frameBack() {
+        redrawFrame();
+        counter--;
+        if (counter <= 0) counter = frames.length - 1;
     }
 
     function loadJSON(filepath, callback) { 

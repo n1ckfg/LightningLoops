@@ -413,7 +413,7 @@ function main() {
         isDrawing = false;
    		frames[counter].push(tempStroke);
 		clearTempStroke();
-		refreshFrame();
+		refreshFrameLast();
         console.log("End " + frames[counter][frames[counter].length-1].name + ".");
 		strokeCounter++;
     }
@@ -444,6 +444,10 @@ function main() {
 			scene.add(frames[counter][i]);
 		}		
 	}
+
+	function refreshFrameLast() {
+	    scene.add(frames[counter][frames[counter].length-1]);
+    }
 	
 	function clearFrame() {
 		for (var i=scene.children.length; i>=0; i--) {

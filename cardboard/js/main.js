@@ -314,14 +314,7 @@ function main() {
 	        if (frameDelta >= frameInterval) {
 	            frameDelta = 0;
 
-                frameForward();
-
-	            if (counter >= frames.length - 1) {
-	                counter = 0;
-	                loopCounter++;
-	                subsCounter = 0;
-	                scheduleSubtitles();
-	            }
+                frameMain();
 	        }
         }
 
@@ -354,16 +347,27 @@ function main() {
         }
     }
 
-    function frameForward() {
+    function frameMain() {
         redrawFrame();
         counter++;
+        if (counter >= frames.length - 1) {
+            counter = 0;
+            loopCounter++;
+            subsCounter = 0;
+            scheduleSubtitles();
+        }
+    }
+
+    function frameForward() {
+        counter++;
         if (counter >= frames.length - 1) counter = 0;
+        redrawFrame();
     }
 
     function frameBack() {
-        redrawFrame();
         counter--;
         if (counter <= 0) counter = frames.length - 1;
+        redrawFrame();
     }
 
     function loadJSON(filepath, callback) { 

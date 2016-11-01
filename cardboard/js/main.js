@@ -336,12 +336,19 @@ function main() {
     }
 
     function redrawFrame() {
+        clearFrame();
+        refreshFrame();
+    }
+
+    function clearFrame() {
         for (var i=scene.children.length; i>=0; i--) {
             if (scene.children[i] !== camera && scene.children[i] !== textMesh  && scene.children[i] !== room) {
                 scene.remove(scene.children[i]);
             }
         }
+    }
 
+    function refreshFrame() {
         for (var i=0; i<frames[counter].length; i++) {
             scene.add(frames[counter][i]);
         }

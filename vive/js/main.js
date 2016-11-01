@@ -329,7 +329,7 @@ function main() {
 			
 			if (gamepad1.buttons[2].pressed && !c1b2_blocking) {
 				isPlaying = false;
-				frameChange(1);
+				frameForward();//frameChange(1);
 				c1b2_blocking = true;
 				console.log("frame forward " + counter);
 			} else if (!gamepad1.buttons[2].pressed && c1b2_blocking) {
@@ -350,7 +350,7 @@ function main() {
             // ~ ~ ~
 			if (gamepad2.buttons[2].pressed && !c2b2_blocking) {
 				isPlaying = false;
-				frameChange(-1);
+				frameBack();//frameChange(-1);
 				c2b2_blocking = true;
 				console.log("frame back " + counter);
 			} else if (!gamepad2.buttons[2].pressed && c2b2_blocking) {
@@ -478,8 +478,43 @@ function main() {
 			scheduleSubtitles();
 		}		
 	}
+
+    function redrawFrame() {
+        clearFrame();
+        refreshFrame();
+    }
 	
+    function frameForward() {
+        redrawFrame();
+        counter++;
+        if (counter >= frames.length - 1) counter = 0;
+    }
+
+    function frameBack() {
+        redrawFrame();
+        counter--;
+        if (counter <= 0) counter = frames.length - 1;
+    }
+
     function animate() {
+        if (armFrameForward) {
+            armFrameForward = false;
+            isPlaying = false;
+            frameForward();
+            console.log("ff: " + counter);
+        }
+        if (armFrameBack) {
+            armFrameBack = false;
+            isPlaying = false;
+            frameBack();
+            console.log("rew: " + counter);
+        }
+        if (armTogglePause) {
+            isPlaying = !isPlaying;
+            console.log("playing: " + isPlaying);
+            armTogglePause = false;
+        }
+
 		if (isPlaying) {
 			if (!useAudioSync && !hidden) {
 				pTime = time;
@@ -509,7 +544,16 @@ function main() {
 				}
 				*/
 				
-				frameChange(1);
+				//frameChange(1);
+
+                frameForward();
+
+                if (counter >= frames.length - 1) {
+                    counter = 0;
+                    loopCounter++;
+                    subsCounter = 0;
+                    scheduleSubtitles();
+                }
 			}
 		}
 

@@ -24,6 +24,7 @@ function main() {
     // ~ ~ ~ 
     //var line_mtl, red_mtl, text_mtl;
     var textMesh;
+    var texture;
 
     // http://threejs.org/examples/webgl_materials_blending_custom.html
     //var blendSrc = [ "ZeroFactor", "OneFactor", "SrcAlphaFactor", "OneMinusSrcAlphaFactor", "DstAlphaFactor", "OneMinusDstAlphaFactor", "DstColorFactor", "OneMinusDstColorFactor", "SrcAlphaSaturateFactor" ];
@@ -73,6 +74,7 @@ function main() {
     var frames = [];
     var defaultColor = [0.667, 0.667, 1];
     var strokes = [];
+    var palette = [];
     var strokeColors = [];
     var frameColors = [];
     var strokeCounter = 0;
@@ -211,7 +213,7 @@ function main() {
 
         var oldStrokes = [];
 
-        var texture = THREE.ImageUtils.loadTexture(brushPath);
+        texture = THREE.ImageUtils.loadTexture(brushPath);
         /*
         var exampleMaterial = new THREE.MeshLineMaterial( { 
             map: THREE.ImageUtils.loadTexture( 'assets/stroke.png' ),
@@ -228,24 +230,7 @@ function main() {
             transparent: true
         });
         */
-        special_mtl = new THREE.MeshLineMaterial({
-            useMap: 1,
-            map: texture,
-            transparent: true,
-            color: new THREE.Color(0xaaaaff),
-            //sizeAttenuation: false,
-            opacity: 0.75, 
-            lineWidth: 0.05,
-            depthWrite: false,
-            depthTest: false,
-            blending: THREE.AdditiveBlending
-            /*
-            blending: THREE[blending],
-            blendSrc: THREE[blendSrc[4]],
-            blendDst: THREE[blendDst[1]],
-            blendEquation: THREE.AddEquation
-            */
-        });
+        special_mtl = createMtl(defaultColor);
 
         for (var i=0; i<frameX.length; i++) {
             var strokes = [];
@@ -275,24 +260,7 @@ function main() {
                 
                 var line = new THREE.MeshLine();
                 line.setGeometry(geometry);
-                var meshLine = new THREE.Mesh(line.geometry, new THREE.MeshLineMaterial({
-                    useMap: 1,
-                    map: texture,
-                    transparent: true,
-                    color: new THREE.Color(frameColors[i][j][0], frameColors[i][j][1], frameColors[i][j][2]),
-                    //sizeAttenuation: false,
-                    opacity: 0.85, 
-                    lineWidth: 0.5,
-                    depthWrite: false,
-                    depthTest: false,
-                    blending: THREE.AdditiveBlending
-                    /*
-                    blending: THREE[blending],
-                    blendSrc: THREE[blendSrc[4]],
-                    blendDst: THREE[blendDst[1]],
-                    blendEquation: THREE.AddEquation
-                    */
-                }));
+                var meshLine = new THREE.Mesh(line.geometry, createUniqueMtl([frameColors[i][j][0], frameColors[i][j][1], frameColors[i][j][2]]));
                 //scene.add(meshLine); // check if this is OK
                 //rotateAroundWorldAxis(meshLine, new THREE.Vector3(1,0,0), laRot.y * Math.PI/180); 
                 //rotateAroundWorldAxis(meshLine, new THREE.Vector3(0,1,0), laRot.x * Math.PI/180); 
@@ -913,6 +881,7 @@ function main() {
                 strokeColors = [];
                 frameColors = [];
                 frames = [];
+                palette = [];
                 counter = 0;
                 loopCounter = 0;
                 subsCounter = 0;
@@ -923,6 +892,113 @@ function main() {
             //}   
         }   
     });
+
+    // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+/*
+def searchMtl(color=None, name="crv"):
+returns = []
+if not color:
+    color = getActiveColor().color
+curves = matchName(name)
+for curve in curves:
+    if (compareTuple(curve.data.materials[0].diffuse_color, color)):
+        returns.append(curve)
+#print ("found: " + str(returns))
+return returns
+
+def changeMtl(color=(1,1,0), searchColor=None, name="crv"):
+    if not searchColor:
+        searchColor = getActiveColor().color       
+    curves = searchMtl(color=searchColor, name=name)
+    print("changed: " + str(curves))
+    for curve in curves:
+        curve.data.materials[0].diffuse_color = color
+
+def consolidateMtl(name="crv"):
+    palette = getActivePalette()
+    for color in palette.colors:
+        curves = searchMtl(color=color.color, name=name)
+        for i in range(1, len(curves)):
+            curves[i].data.materials[0] = curves[0].data.materials[0]    
+
+def createColor(_color):
+    frame = getActiveFrame()
+    palette = getActivePalette()
+    matchingColorIndex = -1
+    places = 7
+    for i in range(0, len(palette.colors)):
+        if (roundVal(_color[0], places) == roundVal(palette.colors[i].color.r, places) and roundVal(_color[1], places) == roundVal(palette.colors[i].color.g, places) and roundVal(_color[2], places) == roundVal(palette.colors[i].color.b, places)):
+            matchingColorIndex = i
+    #~
+    if (matchingColorIndex == -1):
+        color = palette.colors.new()
+        color.color = _color
+    else:
+        palette.colors.active = palette.colors[matchingColorIndex]
+        color = palette.colors[matchingColorIndex]
+    #~        
+    print("Active color is: " + "\"" + palette.colors.active.name + "\" " + str(palette.colors.active.color))
+    return color
+*/
+
+    function createMtl(color) {
+        var mtl = new THREE.MeshLineMaterial({
+            useMap: 1,
+            map: texture,
+            transparent: true,
+            color: new THREE.Color(color[0],color[1],color[2]),
+            //sizeAttenuation: false,
+            opacity: 0.85, 
+            lineWidth: 0.5,
+            depthWrite: false,
+            depthTest: false,
+            blending: THREE.AdditiveBlending
+            /*
+            blending: THREE[blending],
+            blendSrc: THREE[blendSrc[4]],
+            blendDst: THREE[blendDst[1]],
+            blendEquation: THREE.AddEquation
+            */
+        });
+        return mtl;
+    }
+
+    function createUniqueMtl(color) {
+        var mtlIndex = -1;
+        for (var i=0; i<palette.length; i++) {
+            var paletteColor = [palette[i].uniforms.color.value.r, palette[i].uniforms.color.value.g, palette[i].uniforms.color.value.b];
+            //console.log(paletteColor);
+            if (compareColor(color, paletteColor, 5)) {
+                mtlIndex = i;
+                console.log("Found palette match at index " + i);
+                break;
+            }
+        }
+        if (mtlIndex === -1) {
+            var mtl = createMtl(color);
+            palette.push(mtl);
+            return palette[palette.length-1];
+            console.log("Creating new color, " + palette.length + " total colors");
+        } else {
+            console.log("Reusing color " + mtlIndex + ", " + palette.length + " total colors");
+            return palette[mtlIndex];
+        }
+    }
+
+    function compareColor(c1, c2, numPlaces) {
+        //console.log(c1 + " " + c2);
+        var r1 = roundVal(c1[0], numPlaces);
+        var r2 = roundVal(c2[0], numPlaces);
+        var g1 = roundVal(c1[1], numPlaces);
+        var g2 = roundVal(c2[1], numPlaces);
+        var b1 = roundVal(c1[2], numPlaces);
+        var b2 = roundVal(c2[2], numPlaces);
+        if (r1 === r2 && g1 === g2 && b1 === b2) {
+            return true;
+        } else {
+            return false;
+        }
+    }
     
 }
 

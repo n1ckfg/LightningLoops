@@ -49,6 +49,7 @@ function main() {
     var blendSrc = [ "ZeroFactor", "OneFactor", "SrcAlphaFactor", "OneMinusSrcAlphaFactor", "DstAlphaFactor", "OneMinusDstAlphaFactor", "DstColorFactor", "OneMinusDstColorFactor", "SrcAlphaSaturateFactor" ];
     var blendDst = [ "ZeroFactor", "OneFactor", "SrcColorFactor", "OneMinusSrcColorFactor", "SrcAlphaFactor", "OneMinusSrcAlphaFactor", "DstAlphaFactor", "OneMinusDstAlphaFactor" ];
     var blending = "CustomBlending";
+    var texture;
 
     /*
     line_mtl = new THREE.MeshLineMaterial({
@@ -89,6 +90,7 @@ function main() {
     var strokeColors = [];
     var frameColors = [];
     var frames = [];
+    var palette = [];
     var defaultColor = [0.667, 0.667, 1];
     var minDistance = 0.01;
     var useMinDistance = false;
@@ -208,7 +210,7 @@ function main() {
 
         var oldStrokes = [];
 
-        var texture = THREE.ImageUtils.loadTexture(brushPath);
+        texture = THREE.ImageUtils.loadTexture(brushPath);
         /*
         var exampleMaterial = new THREE.MeshLineMaterial( { 
             map: THREE.ImageUtils.loadTexture( 'assets/stroke.png' ),
@@ -225,24 +227,8 @@ function main() {
             transparent: true
         });
         */
-        var special_mtl = new THREE.MeshLineMaterial({
-            useMap: 1,
-            map: texture,
-            transparent: true,
-            color: new THREE.Color(0xaaaaff),
-            //sizeAttenuation: false,
-            opacity: 0.85, 
-            lineWidth: 0.5,
-            depthWrite: false,
-            depthTest: false,
-            blending: THREE.AdditiveBlending
-            /*
-            blending: THREE[blending],
-            blendSrc: THREE[blendSrc[4]],
-            blendDst: THREE[blendDst[1]],
-            blendEquation: THREE.AddEquation
-            */
-        });
+
+        var special_mtl = createMtl(defaultColor);
 
         for (var i=0; i<frameX.length; i++) {
             var strokes = [];
@@ -268,24 +254,7 @@ function main() {
                 var line = new THREE.MeshLine();
                 line.setGeometry(geometry);
                 //var meshLine = new THREE.Mesh(line.geometry, special_mtl);
-                var meshLine = new THREE.Mesh(line.geometry, new THREE.MeshLineMaterial({
-                    useMap: 1,
-                    map: texture,
-                    transparent: true,
-                    color: new THREE.Color(frameColors[i][j][0], frameColors[i][j][1], frameColors[i][j][2]),
-                    //sizeAttenuation: false,
-                    opacity: 0.85, 
-                    lineWidth: 0.5,
-                    depthWrite: false,
-                    depthTest: false,
-                    blending: THREE.AdditiveBlending
-                    /*
-                    blending: THREE[blending],
-                    blendSrc: THREE[blendSrc[4]],
-                    blendDst: THREE[blendDst[1]],
-                    blendEquation: THREE.AddEquation
-                    */
-                }));
+                var meshLine = new THREE.Mesh(line.geometry, createUniqueMtl([frameColors[i][j][0], frameColors[i][j][1], frameColors[i][j][2]]));
                 //scene.add(meshLine); // check if this is OK
                 //rotateAroundWorldAxis(meshLine, new THREE.Vector3(1,0,0), laRot.y * Math.PI/180); 
                 //rotateAroundWorldAxis(meshLine, new THREE.Vector3(0,1,0), laRot.x * Math.PI/180); 
@@ -695,6 +664,7 @@ function main() {
                 strokeColors = [];
                 frameColors = [];
                 frames = [];
+                palette = [];
                 counter = 0;
                 loopCounter = 0;
                 subsCounter = 0;
@@ -754,7 +724,52 @@ def createColor(_color):
     return color
 */
 
+    function createMtl(color) {
+    	var mtl = new THREE.MeshLineMaterial({
+            useMap: 1,
+            map: texture,
+            transparent: true,
+            color: new THREE.Color(color[0],color[1],color[2]),
+            //sizeAttenuation: false,
+            opacity: 0.85, 
+            lineWidth: 0.5,
+            depthWrite: false,
+            depthTest: false,
+            blending: THREE.AdditiveBlending
+            /*
+            blending: THREE[blending],
+            blendSrc: THREE[blendSrc[4]],
+            blendDst: THREE[blendDst[1]],
+            blendEquation: THREE.AddEquation
+            */
+        });
+    	return mtl;
+    }
+
+	function createUniqueMtl(color) {
+		var mtlIndex = -1;
+		for (var i=0; i<palette.length; i++) {
+			var paletteColor = [palette[i].uniforms.color.value.r, palette[i].uniforms.color.value.g, palette[i].uniforms.color.value.b];
+			//console.log(paletteColor);
+			if (compareColor(color, paletteColor, 5)) {
+				mtlIndex = i;
+				console.log("Found palette match at index " + i);
+				break;
+			}
+		}
+		if (mtlIndex === -1) {
+			var mtl = createMtl(color);
+			palette.push(mtl);
+			return palette[palette.length-1];
+			console.log("Creating new color, " + palette.length + " total colors");
+		} else {
+			console.log("Reusing color " + mtlIndex + ", " + palette.length + " total colors");
+			return palette[mtlIndex];
+		}
+	}
+
     function compareColor(c1, c2, numPlaces) {
+    	//console.log(c1 + " " + c2);
         var r1 = roundVal(c1[0], numPlaces);
         var r2 = roundVal(c2[0], numPlaces);
         var g1 = roundVal(c1[1], numPlaces);
@@ -767,6 +782,7 @@ def createColor(_color):
             return false;
         }
     }
+
 }
 
 window.onload = main;

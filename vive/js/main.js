@@ -9,7 +9,7 @@ function main() {
     var hidden = false;
     var lightningArtistData;
     var laScale = 100;
-    var laOffset = new THREE.Vector3(0, -20, 0);//100, -20, 150);//95, -22, 50);//(100, -20, 150);
+    var laOffset = new THREE.Vector3(0, 0, 0);//100, -20, 150);//95, -22, 50);//(100, -20, 150);
     var laRot = new THREE.Vector3(0, 0, 0);//145, 10, 0);
     var counter = 0;
     var loopCounter = 0;
@@ -71,6 +71,7 @@ function main() {
     var frameY = [];
     var frameZ = [];
     var frames = [];
+    var defaultColor = [0.667, 0.667, 1];
     var strokes = [];
     var strokeColors = [];
     var frameColors = [];
@@ -142,8 +143,11 @@ function main() {
     var special_mtl;
 
     loadJSON(animationPath, function(response) {
-        lightningArtistData = JSON.parse(response).grease_pencil[0].layers[0];
+        //lightningArtistData = JSON.parse(response).grease_pencil[0].layers[0];
+        jsonToGp(JSON.parse(response).grease_pencil[0].layers[0]);
+    });
 
+    function jsonToGp(lightningArtistData) {
         var frameCount = lightningArtistData.frames.length;
         var strokeCount = 0;
         var pointCount = 0;
@@ -186,7 +190,13 @@ function main() {
                 strokeX.push(bufferXf);
                 strokeY.push(bufferYf);
                 strokeZ.push(bufferZf);
-                strokeColors.push(lightningArtistData.frames[i].strokes[j].color);
+                var newColor = defaultColor;
+                try {
+                    newColor = lightningArtistData.frames[i].strokes[j].color;
+                } catch (e) {
+                    //
+                }
+                strokeColors.push(newColor);
             }
 
             frameX.push(strokeX);
@@ -313,7 +323,7 @@ function main() {
         }
             
         animate();
-    });
+    }
 
     function updateControllers() {
         if (gamepad1 !== undefined) {
@@ -782,13 +792,13 @@ function main() {
                 sb += "                            \"strokes\": [" + "\n";
                 sb += "                                {" + "\n"; // one stroke
                 for (var i=0; i<frames[currentFrame].length; i++) { //layer.frames[currentFrame].strokes.length) { // TODO implement layers
-                    // TODO implement color
-                    var color = [0,0,0];
-                    //try {
+                    var color = defaultColor;
+                    try {
                        //color = frames[currentFrame].strokes[i].color.color; //layer.frames[currentFrame].strokes[i].color.color // TODO implement layers
-                    //} catch (e) {
+                       color = [frameColors[currentFrame][i][0], frameColors[currentFrame][i][1], frameColors[currentFrame][i][2]];
+                    } catch (e) {
                         //
-                    //}
+                    }
                     sb += "                                    \"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "]," + "\n";
                     sb += "                                    \"points\": [" + "\n";
                     for (var j=0; j<frames[currentFrame][i].geometry.attributes.position.array.length; j += 6 ) { //layer.frames[currentFrame].strokes[i].points.length) { // TODO implement layers
@@ -863,6 +873,57 @@ function main() {
         window.open(uriContent);
     }
 
+    // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+
+    //var dropZone = document.getElementById('dropZone');
+    var dropZone = document.getElementsByTagName("body")[0];
+
+    // Optional.   Show the copy icon when dragging over.  Seems to only work for chrome.
+    dropZone.addEventListener('dragover', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+    });
+
+    // Get file data on drop
+    dropZone.addEventListener('drop', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        var files = e.dataTransfer.files; // Array of all files
+        for (var i=0, file; file=files[i]; i++) {
+            var reader = new FileReader();
+            //if (file.type.match(/image.*/)) {
+                //reader.onload = function(e2) { // finished reading file data.
+                    //var img = document.createElement('img');
+                    //img.src= e2.target.result;
+                    //document.body.appendChild(img);
+                //}
+                //reader.readAsDataURL(file); // start reading the file data.
+            //} else {
+            reader.onload = function(e2) {
+                //console.log(e2.target.result);
+                isPlaying = false;
+                clearFrame();
+                strokeX = [];
+                strokeY = [];
+                strokeZ = [];
+                frameX = [];
+                frameY = [];
+                frameZ = [];
+                strokeColors = [];
+                frameColors = [];
+                frames = [];
+                counter = 0;
+                loopCounter = 0;
+                subsCounter = 0;
+                jsonToGp(JSON.parse(e2.target.result).grease_pencil[0].layers[0]);
+                isPlaying = true;
+            }
+            reader.readAsText(file, 'UTF-8');
+            //}   
+        }   
+    });
+    
 }
 
 window.onload = main;

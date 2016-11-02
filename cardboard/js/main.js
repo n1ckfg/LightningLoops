@@ -28,7 +28,7 @@ function main() {
     var hidden = false;
     var lightningArtistData;
     var laScale = 100;
-    var laOffset = new THREE.Vector3(0, -20, 0);//100, -20, 150);//95, -22, 50);//(100, -20, 150);
+    var laOffset = new THREE.Vector3(0, 0, 0);//100, -20, 150);//95, -22, 50);//(100, -20, 150);
     var laRot = new THREE.Vector3(0, 0, 0);//145, 10, 0);
     var counter = 0;
     var loopCounter = 0;
@@ -97,7 +97,7 @@ function main() {
 
     var useAudioSync = false;
     var soundPath = "../sounds/avlt.mp3";
-    var animationPath = "../animations/new_test.json";
+    var animationPath = "../animations/first_color.json";
     var brushPath = "../images/brush_cardboard.png";
 
     init();
@@ -574,7 +574,6 @@ function main() {
 	            sb += "                            \"strokes\": [" + "\n";
 	            sb += "                                {" + "\n"; // one stroke
 	            for (var i=0; i<frames[currentFrame].length; i++) { //layer.frames[currentFrame].strokes.length) { // TODO implement layers
-	                // TODO implement color
 	                var color = defaultColor;
 	                try {
                        //color = frames[currentFrame].strokes[i].color.color; //layer.frames[currentFrame].strokes[i].color.color // TODO implement layers

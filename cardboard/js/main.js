@@ -706,6 +706,67 @@ function main() {
         }   
     });
 
+    // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+/*
+def searchMtl(color=None, name="crv"):
+returns = []
+if not color:
+    color = getActiveColor().color
+curves = matchName(name)
+for curve in curves:
+    if (compareTuple(curve.data.materials[0].diffuse_color, color)):
+        returns.append(curve)
+#print ("found: " + str(returns))
+return returns
+
+def changeMtl(color=(1,1,0), searchColor=None, name="crv"):
+    if not searchColor:
+        searchColor = getActiveColor().color       
+    curves = searchMtl(color=searchColor, name=name)
+    print("changed: " + str(curves))
+    for curve in curves:
+        curve.data.materials[0].diffuse_color = color
+
+def consolidateMtl(name="crv"):
+    palette = getActivePalette()
+    for color in palette.colors:
+        curves = searchMtl(color=color.color, name=name)
+        for i in range(1, len(curves)):
+            curves[i].data.materials[0] = curves[0].data.materials[0]    
+
+def createColor(_color):
+    frame = getActiveFrame()
+    palette = getActivePalette()
+    matchingColorIndex = -1
+    places = 7
+    for i in range(0, len(palette.colors)):
+        if (roundVal(_color[0], places) == roundVal(palette.colors[i].color.r, places) and roundVal(_color[1], places) == roundVal(palette.colors[i].color.g, places) and roundVal(_color[2], places) == roundVal(palette.colors[i].color.b, places)):
+            matchingColorIndex = i
+    #~
+    if (matchingColorIndex == -1):
+        color = palette.colors.new()
+        color.color = _color
+    else:
+        palette.colors.active = palette.colors[matchingColorIndex]
+        color = palette.colors[matchingColorIndex]
+    #~        
+    print("Active color is: " + "\"" + palette.colors.active.name + "\" " + str(palette.colors.active.color))
+    return color
+*/
+
+    function compareColor(c1, c2, numPlaces) {
+        var r1 = roundVal(c1[0], numPlaces);
+        var r2 = roundVal(c2[0], numPlaces);
+        var g1 = roundVal(c1[1], numPlaces);
+        var g2 = roundVal(c2[1], numPlaces);
+        var b1 = roundVal(c1[2], numPlaces);
+        var b2 = roundVal(c2[2], numPlaces);
+        if (r1 === r2 && g1 === g2 && b1 === b2) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
 
 window.onload = main;

@@ -8,7 +8,7 @@ function main() {
 
     var hidden = false;
     var lightningArtistData;
-    var laScale = 100;
+    var laScale = 10;
     var laOffset = new THREE.Vector3(0, 0, 0);//100, -20, 150);//95, -22, 50);//(100, -20, 150);
     var laRot = new THREE.Vector3(0, 0, 0);//145, 10, 0);
     var counter = 0;
@@ -73,6 +73,8 @@ function main() {
     var frameZ = [];
     var frames = [];
     var defaultColor = [0.667, 0.667, 1];
+    var defaultOpacity = 0.85;
+    var defaultLineWidth = 0.05;
     var strokes = [];
     var palette = [];
     var strokeColors = [];
@@ -230,7 +232,7 @@ function main() {
             transparent: true
         });
         */
-        special_mtl = createMtl(defaultColor);
+        special_mtl = createMtl(defaultColor, defaultOpacity, defaultLineWidth/1.5);
 
         for (var i=0; i<frameX.length; i++) {
             var strokes = [];
@@ -941,15 +943,15 @@ def createColor(_color):
     return color
 */
 
-    function createMtl(color) {
+    function createMtl(color, opacity, lineWidth) {
         var mtl = new THREE.MeshLineMaterial({
             useMap: 1,
             map: texture,
             transparent: true,
             color: new THREE.Color(color[0],color[1],color[2]),
             //sizeAttenuation: false,
-            opacity: 0.85, 
-            lineWidth: 0.5,
+            opacity: opacity, 
+            lineWidth: lineWidth,
             depthWrite: false,
             depthTest: false,
             blending: THREE.AdditiveBlending
@@ -975,7 +977,7 @@ def createColor(_color):
             }
         }
         if (mtlIndex === -1) {
-            var mtl = createMtl(color);
+            var mtl = createMtl(color, defaultOpacity, defaultLineWidth);
             palette.push(mtl);
             return palette[palette.length-1];
             console.log("Creating new color, " + palette.length + " total colors");

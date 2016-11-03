@@ -297,69 +297,77 @@ function main() {
 
     function updateControllers() {
         if (gamepad1 !== undefined) {
-            var pos = controller1.position.applyMatrix4(controller1.standingMatrix);
-            if (debugPos) {
-                console.log(
-                "ctl1 pos: " + pos.x + ", " + pos.y + ", " + pos.z + "\n" +
-                "ctl1 pad: "  + gamepad1.buttons[0].pressed + "\n" +
-                "ctl1 trigger: "  + gamepad1.buttons[1].pressed + "\n" +
-                "ctl1 grip: "  + gamepad1.buttons[2].pressed + "\n" +
-                "ctl1 menu: "  + gamepad1.buttons[3].pressed
-                );
+            try {
+                var pos = controller1.position.applyMatrix4(controller1.standingMatrix);
+                if (debugPos) {
+                    console.log(
+                    "ctl1 pos: " + pos.x + ", " + pos.y + ", " + pos.z + "\n" +
+                    "ctl1 pad: "  + gamepad1.buttons[0].pressed + "\n" +
+                    "ctl1 trigger: "  + gamepad1.buttons[1].pressed + "\n" +
+                    "ctl1 grip: "  + gamepad1.buttons[2].pressed + "\n" +
+                    "ctl1 menu: "  + gamepad1.buttons[3].pressed
+                    );
+                }
+                // ~ ~ ~
+                if (gamepad1.buttons[1].pressed && !isDrawing) {
+                    beginStroke(pos.x, pos.y, pos.z);
+                } else if (gamepad1.buttons[1].pressed && isDrawing) {
+                    updateStroke(pos.x, pos.y, pos.z);
+                } else if (!gamepad1.buttons[1].pressed && isDrawing) {
+                    endStroke();
+                }
+                
+                /*
+    			if (gamepad1.buttons[0].pressed && strokes[2]) {
+                    var target = scene.getObjectByName(strokes[2].name);
+                    scene.remove(target);
+                }
+    			*/
+    			
+    			if (gamepad1.buttons[0].pressed && !c1b0_blocking) {
+    				isPlaying = !isPlaying;
+    				c1b0_blocking = true;
+    				console.log("playing: " + isPlaying);
+    			} else if (!gamepad1.buttons[0].pressed && c1b0_blocking) {
+    				c1b0_blocking = false;
+    			}
+    			
+    			if (gamepad1.buttons[2].pressed && !c1b2_blocking) {
+    				isPlaying = false;
+    				frameForward();//frameChange(1);
+    				c1b2_blocking = true;
+    				console.log("frame forward " + counter);
+    			} else if (!gamepad1.buttons[2].pressed && c1b2_blocking) {
+    				c1b2_blocking = false;
+    			}
+            } catch (e) {
+            //
             }
-            // ~ ~ ~
-            if (gamepad1.buttons[1].pressed && !isDrawing) {
-                beginStroke(pos.x, pos.y, pos.z);
-            } else if (gamepad1.buttons[1].pressed && isDrawing) {
-                updateStroke(pos.x, pos.y, pos.z);
-            } else if (!gamepad1.buttons[1].pressed && isDrawing) {
-                endStroke();
-            }
-            
-            /*
-			if (gamepad1.buttons[0].pressed && strokes[2]) {
-                var target = scene.getObjectByName(strokes[2].name);
-                scene.remove(target);
-            }
-			*/
-			
-			if (gamepad1.buttons[0].pressed && !c1b0_blocking) {
-				isPlaying = !isPlaying;
-				c1b0_blocking = true;
-				console.log("playing: " + isPlaying);
-			} else if (!gamepad1.buttons[0].pressed && c1b0_blocking) {
-				c1b0_blocking = false;
-			}
-			
-			if (gamepad1.buttons[2].pressed && !c1b2_blocking) {
-				isPlaying = false;
-				frameForward();//frameChange(1);
-				c1b2_blocking = true;
-				console.log("frame forward " + counter);
-			} else if (!gamepad1.buttons[2].pressed && c1b2_blocking) {
-				c1b2_blocking = false;
-			}
         }
-        if (gamepad2 !== undefined) {
-            var pos = controller2.position.applyMatrix4(controller2.standingMatrix);
-            if (debugPos) {
-                console.log(
-                "ctl2 pos: " + pos.x + ", " + pos.y + ", " + pos.z + "\n" +
-                "ctl2 pad: "  + gamepad2.buttons[0].pressed + "\n" +
-                "ctl2 trigger: "  + gamepad2.buttons[1].pressed + "\n" +
-                "ctl2 grip: "  + gamepad2.buttons[2].pressed + "\n" +
-                "ctl2 menu: "  + gamepad2.buttons[3].pressed
-                );
+        if (gamepad2 !== undefined && controller2 !== undefined) {
+            try {
+                var pos = controller2.position.applyMatrix4(controller2.standingMatrix);
+                if (debugPos) {
+                    console.log(
+                    "ctl2 pos: " + pos.x + ", " + pos.y + ", " + pos.z + "\n" +
+                    "ctl2 pad: "  + gamepad2.buttons[0].pressed + "\n" +
+                    "ctl2 trigger: "  + gamepad2.buttons[1].pressed + "\n" +
+                    "ctl2 grip: "  + gamepad2.buttons[2].pressed + "\n" +
+                    "ctl2 menu: "  + gamepad2.buttons[3].pressed
+                    );
+                }
+                // ~ ~ ~
+    			if (gamepad2.buttons[2].pressed && !c2b2_blocking) {
+    				isPlaying = false;
+    				frameBack();//frameChange(-1);
+    				c2b2_blocking = true;
+    				console.log("frame back " + counter);
+    			} else if (!gamepad2.buttons[2].pressed && c2b2_blocking) {
+    				c2b2_blocking = false;
+    			}
+            } catch (e) {
+                //
             }
-            // ~ ~ ~
-			if (gamepad2.buttons[2].pressed && !c2b2_blocking) {
-				isPlaying = false;
-				frameBack();//frameChange(-1);
-				c2b2_blocking = true;
-				console.log("frame back " + counter);
-			} else if (!gamepad2.buttons[2].pressed && c2b2_blocking) {
-				c2b2_blocking = false;
-			}
 		}       
     }
 
@@ -516,7 +524,7 @@ function main() {
     }
 
     function animate() {
-        updateControllers();
+        if (controller1 !== undefined && controller2 !== undefined) updateControllers();
 
         if (armFrameForward) {
             armFrameForward = false;

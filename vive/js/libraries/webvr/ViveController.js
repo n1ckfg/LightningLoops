@@ -13,17 +13,21 @@ THREE.ViveController = function ( id ) {
 
 		var gamepad = navigator.getGamepads()[ id ];
 
-		if ( gamepad !== undefined && gamepad.pose !== null ) {
+		//if ( gamepad !== undefined && gamepad.pose !== null ) {
+		if ( gamepad !== undefined) {
+			try {
+				var pose = gamepad.pose;
 
-			var pose = gamepad.pose;
+				scope.position.fromArray( pose.position );
+				scope.quaternion.fromArray( pose.orientation );
+				scope.matrix.compose( scope.position, scope.quaternion, scope.scale );
+				scope.matrix.multiplyMatrices( scope.standingMatrix, scope.matrix );
+				scope.matrixWorldNeedsUpdate = true;
 
-			scope.position.fromArray( pose.position );
-			scope.quaternion.fromArray( pose.orientation );
-			scope.matrix.compose( scope.position, scope.quaternion, scope.scale );
-			scope.matrix.multiplyMatrices( scope.standingMatrix, scope.matrix );
-			scope.matrixWorldNeedsUpdate = true;
-
-			scope.visible = true;
+				scope.visible = true;
+			} catch (e) {
+				console.log("error gettiing controller pose");
+			}
 
 		} else {
 

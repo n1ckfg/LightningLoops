@@ -79,27 +79,33 @@ function init() {
     
     // controllers
     controller1 = new THREE.ViveController(0);
-    controller1.standingMatrix = controls.getStandingMatrix();
-    scene.add(controller1);
-    gamepad1 = navigator.getGamepads()[0];
+    if (typeof controller1 !== "undefined") {
+        controller1.standingMatrix = controls.getStandingMatrix();
+        scene.add(controller1);
+        gamepad1 = navigator.getGamepads()[0];
+    }
 
     controller2 = new THREE.ViveController(1);
-    controller2.standingMatrix = controls.getStandingMatrix();
-    scene.add(controller2);
-    gamepad2 = navigator.getGamepads()[1];
+    if (typeof controller2 !== "undefined") {
+        controller2.standingMatrix = controls.getStandingMatrix();
+        scene.add(controller2);
+        gamepad2 = navigator.getGamepads()[1];
+    }
 
-    var vivePath = "./models/vive-controller/";
-    var loader = new THREE.OBJLoader();
-    loader.load(vivePath + "vr_controller_vive_1_5.obj", function(object) {
-        var loader = new THREE.TextureLoader();
+    if (controller1 !== "undefined" && controller2 !== "undefined") {
+        var vivePath = "./models/vive-controller/";
+        var loader = new THREE.OBJLoader();
+        loader.load(vivePath + "vr_controller_vive_1_5.obj", function(object) {
+            var loader = new THREE.TextureLoader();
 
-        var controller = object.children[0];
-        controller.material.map = loader.load(vivePath + "onepointfive_texture.png");
-        controller.material.specularMap = loader.load(vivePath + "onepointfive_spec.png");
+            var controller = object.children[0];
+            controller.material.map = loader.load(vivePath + "onepointfive_texture.png");
+            controller.material.specularMap = loader.load(vivePath + "onepointfive_spec.png");
 
-        controller1.add(object.clone());
-        controller2.add(object.clone());
-    });
+            controller1.add(object.clone());
+            controller2.add(object.clone());
+        });
+    }
 
     effect = new THREE.VREffect(renderer);
 

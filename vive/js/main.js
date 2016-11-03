@@ -91,7 +91,7 @@ function main() {
 
     var useAudioSync = false;
     var soundPath = "../sounds/avlt.ogg";
-    var animationPath = "../animations/first_color.json";
+    var animationPath = "../animations/jellyfish.json";
     var brushPath = "../images/brush_vive.png";
 
     var player = new Tone.Player({

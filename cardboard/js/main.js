@@ -99,7 +99,7 @@ function main() {
 
     var useAudioSync = false;
     var soundPath = "../sounds/avlt.mp3";
-    var animationPath = "../animations/first_color.json";
+    var animationPath = "../animations/jellyfish.json";
     var brushPath = "../images/brush_cardboard.png";
 
     init();

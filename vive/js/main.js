@@ -295,6 +295,7 @@ function main() {
         animate();
     }
 
+    /*
     function updateControllers() {
         if (gamepad1 !== undefined) {
             try {
@@ -317,12 +318,10 @@ function main() {
                     endStroke();
                 }
                 
-                /*
-    			if (gamepad1.buttons[0].pressed && strokes[2]) {
-                    var target = scene.getObjectByName(strokes[2].name);
-                    scene.remove(target);
-                }
-    			*/
+    			//if (gamepad1.buttons[0].pressed && strokes[2]) {
+                    //var target = scene.getObjectByName(strokes[2].name);
+                    //scene.remove(target);
+                //}
     			
     			if (gamepad1.buttons[0].pressed && !c1b0_blocking) {
     				isPlaying = !isPlaying;
@@ -370,6 +369,7 @@ function main() {
             }
 		}       
     }
+    */
 
     // ~ ~ ~ 
     function beginStroke(x, y, z) {
@@ -524,7 +524,7 @@ function main() {
     }
 
     function animate() {
-        if (controller1 !== undefined && controller2 !== undefined) updateControllers();
+        //if (controller1 !== undefined && controller2 !== undefined) updateControllers();
 
         if (armFrameForward) {
             armFrameForward = false;
@@ -592,8 +592,8 @@ function main() {
             writeJson();
         }   
         
+        effect.requestAnimationFrame( animate );
         render();
-        requestAnimationFrame(animate);
     }
 
     function loadJSON(filepath, callback) { 

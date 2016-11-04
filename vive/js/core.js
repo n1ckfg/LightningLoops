@@ -2,7 +2,7 @@
 
 var container;
 var renderer, scene, camera, controls, effect, clock, light;
-var composer, renderPass, bloomPass, copyPass;
+//var composer, renderPass, bloomPass, copyPass;
 var boxWidth, params, manager, lastRender;
 var controller1, controller2;
 var gamepad1, gamepad2;
@@ -78,34 +78,46 @@ function init() {
     controls.standing = true;
     
     // controllers
-    controller1 = new THREE.ViveController(0);
-    if (typeof controller1 !== "undefined") {
-        controller1.standingMatrix = controls.getStandingMatrix();
-        scene.add(controller1);
-        gamepad1 = navigator.getGamepads()[0];
-    }
+    controller1 = new THREE.ViveController( 0 );
+    controller1.standingMatrix = controls.getStandingMatrix();
+    controller1.userData.points = [ new THREE.Vector3(), new THREE.Vector3() ];
+    controller1.userData.matrices = [ new THREE.Matrix4(), new THREE.Matrix4() ];
+    scene.add( controller1 );
 
-    controller2 = new THREE.ViveController(1);
-    if (typeof controller2 !== "undefined") {
-        controller2.standingMatrix = controls.getStandingMatrix();
-        scene.add(controller2);
-        gamepad2 = navigator.getGamepads()[1];
-    }
+    controller2 = new THREE.ViveController( 1 );
+    controller2.standingMatrix = controls.getStandingMatrix();
+    controller2.userData.points = [ new THREE.Vector3(), new THREE.Vector3() ];
+    controller2.userData.matrices = [ new THREE.Matrix4(), new THREE.Matrix4() ];
+    scene.add( controller2 );
 
-    if (controller1 !== "undefined" && controller2 !== "undefined") {
-        var vivePath = "./models/vive-controller/";
-        var loader = new THREE.OBJLoader();
-        loader.load(vivePath + "vr_controller_vive_1_5.obj", function(object) {
-            var loader = new THREE.TextureLoader();
+    var loader = new THREE.OBJLoader();
+    loader.setPath( './models/vive-controller/' );
+    loader.load( 'vr_controller_vive_1_5.obj', function ( object ) {
 
-            var controller = object.children[0];
-            controller.material.map = loader.load(vivePath + "onepointfive_texture.png");
-            controller.material.specularMap = loader.load(vivePath + "onepointfive_spec.png");
+        var loader = new THREE.TextureLoader();
+        loader.setPath( 'models/obj/vive-controller/' );
 
-            controller1.add(object.clone());
-            controller2.add(object.clone());
-        });
-    }
+        var controller = object.children[ 0 ];
+        controller.material.map = loader.load( 'onepointfive_texture.png' );
+        controller.material.specularMap = loader.load( 'onepointfive_spec.png' );
+        controller.castShadow = true;
+        controller.receiveShadow = true;
+
+        // var pivot = new THREE.Group();
+        // var pivot = new THREE.Mesh( new THREE.BoxGeometry( 0.01, 0.01, 0.01 ) );
+        var pivot = new THREE.Mesh( new THREE.IcosahedronGeometry( 0.002, 2 ) );
+        pivot.name = 'pivot';
+        pivot.position.y = -0.016;
+        pivot.position.z = -0.043;
+        pivot.rotation.x = Math.PI / 5.5;
+        controller.add( pivot );
+
+        controller1.add( controller.clone() );
+
+        pivot.material = pivot.material.clone();
+        controller2.add( controller.clone() );
+
+    } );
 
     effect = new THREE.VREffect(renderer);
 
@@ -164,11 +176,46 @@ function updateControllers() {
 }
 */
 
+function handleController( controller ) {
+    controller.update();
+
+    var pivot = controller.getObjectByName( 'pivot' );
+
+    if ( pivot ) {
+
+        /*
+        pivot.material.color.copy( controller.getColor() );
+
+        var matrix = pivot.matrixWorld;
+
+        var point1 = controller.userData.points[ 0 ];
+        var point2 = controller.userData.points[ 1 ];
+
+        var matrix1 = controller.userData.matrices[ 0 ];
+        var matrix2 = controller.userData.matrices[ 1 ];
+
+        point1.setFromMatrixPosition( matrix );
+        matrix1.lookAt( point2, point1, up );
+
+        if ( controller.getButtonState( 'trigger' ) ) {
+            stroke( controller, point1, point2, matrix1, matrix2 );
+        }
+
+        point2.copy( point1 );
+        matrix2.copy( matrix1 );
+        */
+    }
+}
+
 function render() {
     //updatePlayer();
 
     controls.update();
-    effect.render(scene, camera);
+
+    handleController( controller1 );
+    handleController( controller2 );
+
+    effect.render( scene, camera );
 
     //updateComposer();
 }

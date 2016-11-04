@@ -1,7 +1,7 @@
 "use strict";
 
 var renderer, scene, camera, controls, effect, clock, light;
-var composer, renderPass, bloomPass, copyPass;
+//var composer, renderPass, bloomPass, copyPass;
 var boxWidth, params, manager, lastRender;
 
 var sprites = [];
@@ -73,6 +73,7 @@ function render(timestamp) {
 }
 
 function setupComposer() {
+    /*
     composer = new THREE.EffectComposer(renderer);
     renderPass = new THREE.RenderPass(scene, camera);
     composer.addPass(renderPass);
@@ -81,12 +82,15 @@ function setupComposer() {
     copyPass = new THREE.ShaderPass(THREE.CopyShader);
     copyPass.renderToScreen = true;
     composer.addPass(copyPass);  
+    */
 }
 
 function updateComposer(_timestamp) {
+    /*
     if (!effect.vrHMD) {
         composer.render(_timestamp);
     }
+    */
 }
 
 function setupControls() {

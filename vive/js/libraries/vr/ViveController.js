@@ -1,6 +1,5 @@
 /**
  * @author mrdoob / http://mrdoob.com
- * @author stewdio / http://stewd.io
  */
 
 THREE.ViveController = function ( id ) {
@@ -56,6 +55,10 @@ THREE.ViveController = function ( id ) {
 		if ( button === 'menu' ) return menuIsPressed;
 
 	};
+
+	this.getPosition = function() {
+		return scope.position.applyMatrix4(this.standingMatrix);
+	}
 
 	this.update = function () {
 

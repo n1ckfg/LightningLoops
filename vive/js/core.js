@@ -95,7 +95,7 @@ function init() {
     loader.load( 'vr_controller_vive_1_5.obj', function ( object ) {
 
         var loader = new THREE.TextureLoader();
-        loader.setPath( 'models/obj/vive-controller/' );
+        loader.setPath( 'models/vive-controller/' );
 
         var controller = object.children[ 0 ];
         controller.material.map = loader.load( 'onepointfive_texture.png' );

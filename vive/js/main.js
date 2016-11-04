@@ -82,7 +82,7 @@ function main() {
     var strokeCounter = 0;
     var isDrawing = false;
 	var isPlaying = true;
-    var debugPos = true;
+    var debugPos = false;
 	var tempStroke;
 	var tempStrokeGeometry;
 	var tempPoints = [];

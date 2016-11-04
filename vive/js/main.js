@@ -748,7 +748,7 @@ function main() {
         console.log("***********************");
 
         var useScaleAndOffset = true;
-        var globalScale = new THREE.Vector3(0.01, 0.01, 0.01);
+        var globalScale = new THREE.Vector3(0.1, 0.1, 0.1);
         var globalOffset = new THREE.Vector3(0, 0, 0);
 
         var sg = "{" + "\n";
@@ -823,6 +823,7 @@ function main() {
                 } else {
                     sb += "                        }," + "\n";
                 }
+                sb = sb.replace("NaN", "0");
             }
             //~
             var sf = "                {" + "\n";
@@ -1005,7 +1006,7 @@ def createColor(_color):
             return false;
         }
     }
-    
+
 }
 
 window.onload = main;

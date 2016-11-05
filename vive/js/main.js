@@ -823,7 +823,6 @@ function main() {
                 } else {
                     sb += "                        }," + "\n";
                 }
-                sb = sb.replace("NaN", "0");
             }
             //~
             var sf = "                {" + "\n";
@@ -842,6 +841,8 @@ function main() {
         sg += "        }"+ "\n";
         sg += "    ]"+ "\n";
         sg += "}"+ "\n";
+
+        sg = sg.replace("NaN", "0");
 
         var uriContent = "data:text/plain;charset=utf-8," + encodeURIComponent(sg);
         isPlaying = true;

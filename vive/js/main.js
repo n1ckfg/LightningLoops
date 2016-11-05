@@ -823,6 +823,8 @@ function main() {
                 } else {
                     sb += "                        }," + "\n";
                 }
+
+                sb = sb.replace("NaN", "0");
             }
             //~
             var sf = "                {" + "\n";
@@ -833,9 +835,14 @@ function main() {
             } else {
                 sf += "                }," + "\n";
             }
+            sf = sf.replace("NaN", "0");
+
             sl += sf;
             //~
         }
+
+        sl = sl.replace("NaN", "0");
+
         sg += sl;
         sg += "            ]" + "\n";
         sg += "        }"+ "\n";

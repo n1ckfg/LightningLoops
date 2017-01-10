@@ -30,8 +30,6 @@ function main() {
     var laScale = 100;
     var laOffset = new THREE.Vector3(0, 0, 0);//100, -20, 150);//95, -22, 50);//(100, -20, 150);
     var laRot = new THREE.Vector3(0, 0, 0);//145, 10, 0);
-    var counter = 0;
-    var loopCounter = 0;
     var subsCounter = 0;
     var subsFrameOffset = 44;
     var fps = 12.0;
@@ -81,6 +79,7 @@ function main() {
     //red_mtl.color.setHex(0xffaaaa);
     // ~ ~ ~ 
 
+    /*
     var strokeX = [];
     var strokeY = [];
     var strokeZ = [];
@@ -90,6 +89,28 @@ function main() {
     var strokeColors = [];
     var frameColors = [];
     var frames = [];
+    var counter = 0;
+    var loopCounter = 0;
+    */
+
+    var layers = [];
+
+    class Layer {
+        constructor() {
+            this.strokeX = [];
+            this.strokeY = [];
+            this.strokeZ = [];
+            this.frameX = [];
+            this.frameY = [];
+            this.frameZ = [];
+            this.strokeColors = [];
+            this.frameColors = [];
+            this.frames = [];
+            this.counter = 0;
+            this.loopCounter = 0;
+        }
+    }
+
     var palette = [];
     var defaultColor = [0.667, 0.667, 1];
     var minDistance = 0.01;
@@ -99,7 +120,7 @@ function main() {
 
     var useAudioSync = false;
     var soundPath = "../sounds/avlt.mp3";
-    var animationPath = "../animations/jellyfish.json";
+    var animationPath = "../animations/layer_test.json";
     var brushPath = "../images/brush_cardboard.png";
 
     init();
@@ -143,136 +164,143 @@ function main() {
 
     loadJSON(animationPath, function(response) {
         //lightningArtistData = JSON.parse(response).grease_pencil[0].layers[0];
-        jsonToGp(JSON.parse(response).grease_pencil[0].layers[0]);
+        jsonToGp(JSON.parse(response).grease_pencil[0]);
     });
 
     function jsonToGp(lightningArtistData) {
-        var frameCount = lightningArtistData.frames.length;
-        var strokeCount = 0;
-        var pointCount = 0;
-        for (var i=0; i<lightningArtistData.frames.length; i++) {
-            strokeCount += lightningArtistData.frames[i].strokes.length;
-            for (var j=0; j<lightningArtistData.frames[i].strokes.length; j++) {
-                pointCount += lightningArtistData.frames[i].strokes[j].points.length;
-            }
-        }
-        var firstPoint = lightningArtistData.frames[0].strokes[0].points[0].co[0] * 100;
-
-        console.log("***********************");
-        console.log("~INPUT~")
-        console.log("total frames: " + frameCount);
-        console.log("total strokes: " + strokeCount);
-        console.log("total points: " + pointCount);
-        console.log("first point: " + firstPoint);
-        console.log("***********************");
-
-        for (var i=0; i<lightningArtistData.frames.length; i++) { // frame
-            strokeX = [];
-            strokeY = [];
-            strokeZ = [];
-            strokeColors = [];
-            for (var j=0; j<lightningArtistData.frames[i].strokes.length; j++) { // stroke 
-                var bufferX = new ArrayBuffer(lightningArtistData.frames[i].strokes[j].points.length * 4);
-                var bufferY = new ArrayBuffer(lightningArtistData.frames[i].strokes[j].points.length * 4);
-                var bufferZ = new ArrayBuffer(lightningArtistData.frames[i].strokes[j].points.length * 4);
-                
-                var bufferXf = new Float32Array(bufferX);
-                var bufferYf = new Float32Array(bufferY);
-                var bufferZf = new Float32Array(bufferZ);
-                
-                for (var l=0; l<lightningArtistData.frames[i].strokes[j].points.length; l++) { // point
-                    bufferXf[l] = (lightningArtistData.frames[i].strokes[j].points[l].co[0] * laScale) + laOffset.x;
-                    bufferYf[l] = (lightningArtistData.frames[i].strokes[j].points[l].co[1] * laScale) + laOffset.y;
-                    bufferZf[l] = (lightningArtistData.frames[i].strokes[j].points[l].co[2] * laScale) + laOffset.z;
+        for (var h=0; h<lightningArtistData.layers.length; h++) {
+            // ~ ~ ~
+            var layer = new Layer();
+            var frameCount = lightningArtistData.layers[h].frames.length;
+            var strokeCount = 0;
+            var pointCount = 0;
+            for (var i=0; i<lightningArtistData.layers[h].frames.length; i++) {
+                strokeCount += lightningArtistData.layers[h].frames[i].strokes.length;
+                for (var j=0; j<lightningArtistData.layers[h].frames[i].strokes.length; j++) {
+                    pointCount += lightningArtistData.layers[h].frames[i].strokes[j].points.length;
                 }
-
-                strokeX.push(bufferXf);
-                strokeY.push(bufferYf);
-                strokeZ.push(bufferZf);
-                var newColor = defaultColor;
-                try {
-                    newColor = lightningArtistData.frames[i].strokes[j].color;
-                } catch (e) {
-                    //
-                }
-                strokeColors.push(newColor);
             }
+            var firstPoint = lightningArtistData.layers[h].frames[0].strokes[0].points[0].co[0] * 100;
 
-            frameX.push(strokeX);
-            frameY.push(strokeY);
-            frameZ.push(strokeZ);
-            frameColors.push(strokeColors);
-        }
+            console.log("***********************");
+            console.log("~INPUT~")
+            console.log("total frames: " + frameCount);
+            console.log("total strokes: " + strokeCount);
+            console.log("total points: " + pointCount);
+            console.log("first point: " + firstPoint);
+            console.log("***********************");
 
-        console.log("* * * color check: " + frameX.length + " " + frameColors.length + " " + frameX[0].length + " " + frameColors[0].length);
-
-        frames = [];
-
-        var oldStrokes = [];
-
-        texture = THREE.ImageUtils.loadTexture(brushPath);
-        /*
-        var exampleMaterial = new THREE.MeshLineMaterial( { 
-            map: THREE.ImageUtils.loadTexture( 'assets/stroke.png' ),
-            useMap: false,
-            color: new THREE.Color( colors[ 3 ] ),
-            opacity: .5,
-            resolution: resolution,
-            sizeAttenuation: false,
-            lineWidth: 10,
-            near: camera.near,
-            far: camera.far,
-            depthWrite: false,
-            depthTest: false,
-            transparent: true
-        });
-        */
-
-        var special_mtl = createMtl(defaultColor);
-
-        for (var i=0; i<frameX.length; i++) {
-            var strokes = [];
-            for (var j=0; j<frameX[i].length; j++) {
-                var geometry = new THREE.Geometry();
-                geometry.dynamic = true;
-                
-                var origVerts = [];
-
-                for (var l=0; l<frameX[i][j].length; l++) {
-                    origVerts.push(new THREE.Vector3(frameX[i][j][l],frameY[i][j][l], frameZ[i][j][l]));
-
-                    if (l === 0 || !useMinDistance || (useMinDistance && origVerts[l].distanceTo(origVerts[l-1]) > minDistance)) {
-
-                //for (var l=0; l<frameX[i][j].length; l++) {
-                    //geometry.vertices.push(new THREE.Vector3(frameX[i][j][l],frameY[i][j][l], frameZ[i][j][l]));
-                        geometry.vertices.push(origVerts[l]);
-                    //line.positions.push(new THREE.Vector3(frameX[i][j][l],frameY[i][j][l], frameZ[i][j][l]));
+            for (var i=0; i<lightningArtistData.layers[h].frames.length; i++) { // frame
+                layer.strokeX = [];
+                layer.strokeY = [];
+                layer.strokeZ = [];
+                layer.strokeColors = [];
+                for (var j=0; j<lightningArtistData.layers[h].frames[i].strokes.length; j++) { // stroke 
+                    var bufferX = new ArrayBuffer(lightningArtistData.layers[h].frames[i].strokes[j].points.length * 4);
+                    var bufferY = new ArrayBuffer(lightningArtistData.layers[h].frames[i].strokes[j].points.length * 4);
+                    var bufferZ = new ArrayBuffer(lightningArtistData.layers[h].frames[i].strokes[j].points.length * 4);
+                    
+                    var bufferXf = new Float32Array(bufferX);
+                    var bufferYf = new Float32Array(bufferY);
+                    var bufferZf = new Float32Array(bufferZ);
+                    
+                    for (var l=0; l<lightningArtistData.layers[h].frames[i].strokes[j].points.length; l++) { // point
+                        bufferXf[l] = (lightningArtistData.layers[h].frames[i].strokes[j].points[l].co[0] * laScale) + laOffset.x;
+                        bufferYf[l] = (lightningArtistData.layers[h].frames[i].strokes[j].points[l].co[1] * laScale) + laOffset.y;
+                        bufferZf[l] = (lightningArtistData.layers[h].frames[i].strokes[j].points[l].co[2] * laScale) + laOffset.z;
                     }
-                }
-                geometry.verticesNeedUpdate = true;
 
-                var line = new THREE.MeshLine();
-                line.setGeometry(geometry);
-                //var meshLine = new THREE.Mesh(line.geometry, special_mtl);
-                var meshLine = new THREE.Mesh(line.geometry, createUniqueMtl([frameColors[i][j][0], frameColors[i][j][1], frameColors[i][j][2]]));
-                //scene.add(meshLine); // check if this is OK
-                //rotateAroundWorldAxis(meshLine, new THREE.Vector3(1,0,0), laRot.y * Math.PI/180); 
-                //rotateAroundWorldAxis(meshLine, new THREE.Vector3(0,1,0), laRot.x * Math.PI/180); 
-                strokes.push(meshLine);//line);
+                    layer.strokeX.push(bufferXf);
+                    layer.strokeY.push(bufferYf);
+                    layer.strokeZ.push(bufferZf);
+                    var newColor = defaultColor;
+                    try {
+                        newColor = lightningArtistData.layers[h].frames[i].strokes[j].color;
+                    } catch (e) {
+                        //
+                    }
+                    layer.strokeColors.push(newColor);
+                }
+
+                layer.frameX.push(layer.strokeX);
+                layer.frameY.push(layer.strokeY);
+                layer.frameZ.push(layer.strokeZ);
+                layer.frameColors.push(layer.strokeColors);
             }
-            if (strokes.length !== 0) {
-                oldStrokes = strokes;
-                frames.push(strokes);  
-            } else if (strokes.length === 0 && oldStrokes) {
-                frames.push(oldStrokes);
-            }            
+
+            console.log("* * * color check: " + layer.frameX.length + " " + layer.frameColors.length + " " + layer.frameX[0].length + " " + layer.frameColors[0].length);
+
+            layer.frames = [];
+
+            var oldStrokes = [];
+
+            texture = THREE.ImageUtils.loadTexture(brushPath);
+            /*
+            var exampleMaterial = new THREE.MeshLineMaterial( { 
+                map: THREE.ImageUtils.loadTexture( 'assets/stroke.png' ),
+                useMap: false,
+                color: new THREE.Color( colors[ 3 ] ),
+                opacity: .5,
+                resolution: resolution,
+                sizeAttenuation: false,
+                lineWidth: 10,
+                near: camera.near,
+                far: camera.far,
+                depthWrite: false,
+                depthTest: false,
+                transparent: true
+            });
+            */
+
+            var special_mtl = createMtl(defaultColor);
+
+            for (var i=0; i<layer.frameX.length; i++) {
+                var strokes = [];
+                for (var j=0; j<layer.frameX[i].length; j++) {
+                    var geometry = new THREE.Geometry();
+                    geometry.dynamic = true;
+                    
+                    var origVerts = [];
+
+                    for (var l=0; l<layer.frameX[i][j].length; l++) {
+                        origVerts.push(new THREE.Vector3(layer.frameX[i][j][l], layer.frameY[i][j][l], layer.frameZ[i][j][l]));
+
+                        if (l === 0 || !useMinDistance || (useMinDistance && origVerts[l].distanceTo(origVerts[l-1]) > minDistance)) {
+
+                    //for (var l=0; l<frameX[i][j].length; l++) {
+                        //geometry.vertices.push(new THREE.Vector3(frameX[i][j][l],frameY[i][j][l], frameZ[i][j][l]));
+                            geometry.vertices.push(origVerts[l]);
+                        //line.positions.push(new THREE.Vector3(frameX[i][j][l],frameY[i][j][l], frameZ[i][j][l]));
+                        }
+                    }
+                    geometry.verticesNeedUpdate = true;
+
+                    var line = new THREE.MeshLine();
+                    line.setGeometry(geometry);
+                    //var meshLine = new THREE.Mesh(line.geometry, special_mtl);
+                    var meshLine = new THREE.Mesh(line.geometry, createUniqueMtl([layer.frameColors[i][j][0], layer.frameColors[i][j][1], layer.frameColors[i][j][2]]));
+                    //scene.add(meshLine); // check if this is OK
+                    //rotateAroundWorldAxis(meshLine, new THREE.Vector3(1,0,0), laRot.y * Math.PI/180); 
+                    //rotateAroundWorldAxis(meshLine, new THREE.Vector3(0,1,0), laRot.x * Math.PI/180); 
+                    strokes.push(meshLine);//line);
+                }
+                if (strokes.length !== 0) {
+                    oldStrokes = strokes;
+                    layer.frames.push(strokes);  
+                } else if (strokes.length === 0 && oldStrokes) {
+                    layer.frames.push(oldStrokes);
+                }            
+            }
+            // ~ ~ ~ 
+            layers.push(layer);
         }
 
         if (useAudioSync) {
             Tone.Buffer.on("load", function(){
                 player.loop = true;
                 player.loopStart = 0;
-                player.loopEnd = frames.length * frameInterval;
+                //player.loopEnd = frames.length * frameInterval;
+                player.loopEnd = layers[getLongestLayer()].frames.length * frameInterval;
                 player.sync();
                 Tone.Transport.start();
                 
@@ -283,8 +311,16 @@ function main() {
                 scheduleSubtitles();
             });
         }
-            
+   
         animate(performance ? performance.now() : Date.now());
+    }
+
+    function getLongestLayer() {
+        var returns = 0;
+        for (var h=0; h<layers.length; h++) {
+            if (layers[h].frames.length > returns) returns = h;
+        }
+        return returns;
     }
 
     function animate(timestamp) {
@@ -292,13 +328,13 @@ function main() {
             armFrameForward = false;
             pauseAnimation = true;
             frameForward();
-            console.log("ff: " + counter);
+            console.log("ff: " + layer[getLongestLayer()].counter);
         }
         if (armFrameBack) {
             armFrameBack = false;
             pauseAnimation = true;
             frameBack();
-            console.log("rew: " + counter);
+            console.log("rew: " + layer[getLongestLayer()].counter);
         }
         if (armTogglePause) {
             pauseAnimation = !pauseAnimation;
@@ -332,9 +368,9 @@ function main() {
         requestAnimationFrame(animate);
     }
 
-    function redrawFrame() {
-        clearFrame();
-        refreshFrame();
+    function redrawFrame(index) {
+        if (index === 0) clearFrame();
+        refreshFrame(index);
     }
 
     function clearFrame() {
@@ -345,33 +381,42 @@ function main() {
         }
     }
 
-    function refreshFrame() {
-        for (var i=0; i<frames[counter].length; i++) {
-            scene.add(frames[counter][i]);
+    function refreshFrame(index) {
+        for (var i=0; i<layers[index].frames[layers[index].counter].length; i++) {
+            scene.add(layers[index].frames[layers[index].counter][i]);
         }
     }
 
     function frameMain() {
-        redrawFrame();
-        counter++;
-        if (counter >= frames.length - 1) {
-            counter = 0;
-            loopCounter++;
-            subsCounter = 0;
-            scheduleSubtitles();
+        for (var h=0; h<layers.length; h++) {
+            redrawFrame(h);
+            layers[h].counter++;
+            if (layers[h].counter >= layers[h].frames.length - 1) {
+                layers[h].counter = 0;
+                layers[h].loopCounter++;
+                
+                if (h == getLongestLayer()) {
+                    subsCounter = 0;
+                    scheduleSubtitles();
+                }
+            }
         }
     }
 
     function frameForward() {
-        counter++;
-        if (counter >= frames.length - 1) counter = 0;
-        redrawFrame();
+        for (var h=0; h<layers.length; h++) {        
+            layers[h].counter++;
+            if (layers[h].counter >= layers[h].frames.length - 1) layers[h].counter = 0;
+            redrawFrame(h);
+        }
     }
 
     function frameBack() {
-        counter--;
-        if (counter <= 0) counter = frames.length - 1;
-        redrawFrame();
+        for (var h=0; h<layers.length; h++) {        
+            layers[h].counter--;
+            if (layers[h].counter <= 0) layers[h].counter = layers[h].frames.length - 1;
+            redrawFrame(h);
+        }
     }
 
     function loadJSON(filepath, callback) { 
@@ -452,7 +497,8 @@ function main() {
     }
 
     function getLoopFrame(_frame) {
-        return ((loopCounter * (frames.length - 1)) + (_frame + subsFrameOffset)) * frameInterval;
+        //return ((loopCounter * (frames.length - 1)) + (_frame + subsFrameOffset)) * frameInterval;
+        return ((layers[getLongestLayer()].loopCounter * (layers[getLongestLayer()].frames.length - 1)) + (_frame + subsFrameOffset)) * frameInterval;
     }
 
     function scheduleSubtitles() {
@@ -655,6 +701,7 @@ function main() {
                 //console.log(e2.target.result);
                 pauseAnimation = true;
                 clearFrame();
+                /*
                 strokeX = [];
                 strokeY = [];
                 strokeZ = [];
@@ -667,8 +714,10 @@ function main() {
                 palette = [];
                 counter = 0;
                 loopCounter = 0;
+                */
                 subsCounter = 0;
-                jsonToGp(JSON.parse(e2.target.result).grease_pencil[0].layers[0]);
+                layers = [];
+                jsonToGp(JSON.parse(e2.target.result).grease_pencil[0]);
                 pauseAnimation = false;
             }
             reader.readAsText(file, 'UTF-8');

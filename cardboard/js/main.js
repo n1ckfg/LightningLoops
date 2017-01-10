@@ -97,6 +97,7 @@ function main() {
 
     class Layer {
         constructor() {
+            this.name = "";
             this.strokeX = [];
             this.strokeY = [];
             this.strokeZ = [];
@@ -171,6 +172,11 @@ function main() {
         for (var h=0; h<lightningArtistData.layers.length; h++) {
             // ~ ~ ~
             var layer = new Layer();
+            if (lightningArtistData.layers[h].name != null) {
+                layer.name = lightningArtistData.layers[h].name;
+            } else {
+                layer.name = "WebVR Layer " + (h+1);
+            }
             var frameCount = lightningArtistData.layers[h].frames.length;
             var strokeCount = 0;
             var pointCount = 0;
@@ -548,20 +554,22 @@ function main() {
     } 
 
     function writeJson() {
-    	var frameCount = frames.length;
+    	var frameCount = layers[getLongestLayer()].frames.length;
     	var strokeCount = 0;
     	var pointCount = 0;
     	// http://stackoverflow.com/questions/35370483/geometries-on-vertex-of-buffergeometry-in-three-js
-    	var firstPoint = frames[0][0].geometry.attributes.position.array[0];
-    	for (var i=0; i<frames.length; i++) {
-    		strokeCount += frames[i].length;
-    		for (var j=0; j<frames[i].length; j++) {
-    			//pointCount += frames[i][j].geometry.attributes.position.count;
-                for (var l=0; l<frames[i][j].geometry.attributes.position.array.length; l += 6) {//l += 2) {
-                    pointCount++;
-                }
-    		}
-    	}
+    	var firstPoint = layers[getLongestLayer()].frames[0][0].geometry.attributes.position.array[0];
+        for (var h=0; h<layers.length; h++) {
+        	for (var i=0; i<layers[h].frames.length; i++) {
+        		strokeCount += layers[h].frames[i].length;
+        		for (var j=0; j<layers[h].frames[i].length; j++) {
+        			//pointCount += frames[i][j].geometry.attributes.position.count;
+                    for (var l=0; l<layers[h].frames[i][j].geometry.attributes.position.array.length; l += 6) {//l += 2) {
+                        pointCount++;
+                    }
+        		}
+        	}
+        }
     	console.log("***********************");
         console.log("~OUTPUT~")
     	console.log("total frames: " + frameCount);
@@ -580,30 +588,30 @@ function main() {
 	    sg += "        {" + "\n";
 	    sg += "            \"layers\": [" + "\n";
 	    var sl = "";
-	    for (var f=0; f<1; f++) {// gp.layers.length, f++) { // TODO implement layers
+	    for (var f=0; f<layers.length; f++) {// gp.layers.length, f++) { // TODO implement layers
 	        var sb = "";
-	        var layer = 0; //gp.layers[f] // TODO implement layers
-	        for (var h=0; h<frames.length; h++) { //layer.frames.length, h++) { // TODO implement layers
+	        var layer = layers[f]; //gp.layers[f] // TODO implement layers
+	        for (var h=0; h<layer.frames.length; h++) { //layer.frames.length, h++) { // TODO implement layers
 	            var currentFrame = h;
 	            sb += "                        {" + "\n"; // one frame
 	            sb += "                            \"strokes\": [" + "\n";
 	            sb += "                                {" + "\n"; // one stroke
-	            for (var i=0; i<frames[currentFrame].length; i++) { //layer.frames[currentFrame].strokes.length) { // TODO implement layers
+	            for (var i=0; i<layer.frames[currentFrame].length; i++) { //layer.frames[currentFrame].strokes.length) { // TODO implement layers
 	                var color = defaultColor;
 	                try {
                        //color = frames[currentFrame].strokes[i].color.color; //layer.frames[currentFrame].strokes[i].color.color // TODO implement layers
-                       color = [frameColors[currentFrame][i][0], frameColors[currentFrame][i][1], frameColors[currentFrame][i][2]];
+                       color = [layer.frameColors[currentFrame][i][0], layer.frameColors[currentFrame][i][1], layer.frameColors[currentFrame][i][2]];
 	                } catch (e) {
 	                	//
 	                }
 	                sb += "                                    \"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "]," + "\n";
 	                sb += "                                    \"points\": [" + "\n";
-	                for (var j=0; j<frames[currentFrame][i].geometry.attributes.position.array.length; j += 6 ) { //layer.frames[currentFrame].strokes[i].points.length) { // TODO implement layers
+	                for (var j=0; j<layer.frames[currentFrame][i].geometry.attributes.position.array.length; j += 6 ) { //layer.frames[currentFrame].strokes[i].points.length) { // TODO implement layers
 	                    var x = 0.0;
 	                    var y = 0.0;
 	                    var z = 0.0;
 
-                        var point = new THREE.Vector3(frames[currentFrame][i].geometry.attributes.position.array[j], frames[currentFrame][i].geometry.attributes.position.array[j+1], frames[currentFrame][i].geometry.attributes.position.array[j+2]);
+                        var point = new THREE.Vector3(layer.frames[currentFrame][i].geometry.attributes.position.array[j], layer.frames[currentFrame][i].geometry.attributes.position.array[j+1], layer.frames[currentFrame][i].geometry.attributes.position.array[j+2]);
 
 	                    //~
 	                    //var point = frames[currentFrame][i].geometry.attributes.position[j]; //layer.frames[currentFrame].strokes[i].points[j].co // TODO implement layers
@@ -624,10 +632,10 @@ function main() {
 	                        sb += "                                        {\"co\": [" + x + ", " + z + ", " + y + "]";                  
 	                    }
 	                    //~
-	                    if (j >= frames[currentFrame][i].geometry.attributes.position.array.length - 6) {  //layer.frames[currentFrame].strokes[i].points.length - 1) { // TODO implement layers
+	                    if (j >= layer.frames[currentFrame][i].geometry.attributes.position.array.length - 6) {  //layer.frames[currentFrame].strokes[i].points.length - 1) { // TODO implement layers
 	                        sb += "}" + "\n";
 	                        sb += "                                    ]" + "\n";
-	                        if (i == frames[currentFrame].length - 1) { //layer.frames[currentFrame].strokes.length - 1) { // TODO implement layers
+	                        if (i == layer.frames[currentFrame].length - 1) { //layer.frames[currentFrame].strokes.length - 1) { // TODO implement layers
 	                            sb += "                                }" + "\n"; // last stroke for this frame
 	                        } else {
 	                            sb += "                                }," + "\n"; // end stroke
@@ -637,11 +645,11 @@ function main() {
 	                        sb += "}," + "\n";
 	                    }
 	                }
-	                if (i == frames[currentFrame].length - 1) { //layer.frames[currentFrame].strokes.length - 1) { // TODO implement layers
+	                if (i == layer.frames[currentFrame].length - 1) { //layer.frames[currentFrame].strokes.length - 1) { // TODO implement layers
 	                    sb += "                            ]" + "\n";
 	                }
 	            }
-	            if (h == frames.length - 1) { //layer.frames.length - 1) { // TODO implement layers
+	            if (h == layer.frames.length - 1) { //layer.frames.length - 1) { // TODO implement layers
 	                sb += "                        }" + "\n";
 	            } else {
 	                sb += "                        }," + "\n";
@@ -649,9 +657,9 @@ function main() {
 	        }
 	        //~
 	        var sf = "                {" + "\n";
-	        sf += "                    \"name\": \"" + "WebVR Layer" + "\"," + "\n"; //layer.info + "\"," + "\n" // TODO implement layers
+	        sf += "                    \"name\": \"" + layer.name + "\"," + "\n"; //layer.info + "\"," + "\n" // TODO implement layers
 	        sf += "                    \"frames\": [" + "\n" + sb + "                    ]" + "\n";
-	        if (f == 0) { //gp.layers.length-1) { // TODO implement layers
+	        if (f == layers.length-1) { //gp.layers.length-1) { // TODO implement layers
 	            sf += "                }" + "\n";
 	        } else {
 	            sf += "                }," + "\n";

@@ -588,25 +588,25 @@ function main() {
 	    sg += "        {" + "\n";
 	    sg += "            \"layers\": [" + "\n";
 	    var sl = "";
-	    for (var f=0; f<layers.length; f++) {// gp.layers.length, f++) { // TODO implement layers
+	    for (var f=0; f<layers.length; f++) {// gp.layers.length, f++) { 
 	        var sb = "";
-	        var layer = layers[f]; //gp.layers[f] // TODO implement layers
-	        for (var h=0; h<layer.frames.length; h++) { //layer.frames.length, h++) { // TODO implement layers
+	        var layer = layers[f]; //gp.layers[f] 
+	        for (var h=0; h<layer.frames.length; h++) { //layer.frames.length, h++) { 
 	            var currentFrame = h;
 	            sb += "                        {" + "\n"; // one frame
 	            sb += "                            \"strokes\": [" + "\n";
 	            sb += "                                {" + "\n"; // one stroke
-	            for (var i=0; i<layer.frames[currentFrame].length; i++) { //layer.frames[currentFrame].strokes.length) { // TODO implement layers
+	            for (var i=0; i<layer.frames[currentFrame].length; i++) { //layer.frames[currentFrame].strokes.length) { 
 	                var color = defaultColor;
 	                try {
-                       //color = frames[currentFrame].strokes[i].color.color; //layer.frames[currentFrame].strokes[i].color.color // TODO implement layers
+                       //color = frames[currentFrame].strokes[i].color.color; //layer.frames[currentFrame].strokes[i].color.color 
                        color = [layer.frameColors[currentFrame][i][0], layer.frameColors[currentFrame][i][1], layer.frameColors[currentFrame][i][2]];
 	                } catch (e) {
 	                	//
 	                }
 	                sb += "                                    \"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "]," + "\n";
 	                sb += "                                    \"points\": [" + "\n";
-	                for (var j=0; j<layer.frames[currentFrame][i].geometry.attributes.position.array.length; j += 6 ) { //layer.frames[currentFrame].strokes[i].points.length) { // TODO implement layers
+	                for (var j=0; j<layer.frames[currentFrame][i].geometry.attributes.position.array.length; j += 6 ) { //layer.frames[currentFrame].strokes[i].points.length) { 
 	                    var x = 0.0;
 	                    var y = 0.0;
 	                    var z = 0.0;
@@ -614,7 +614,7 @@ function main() {
                         var point = new THREE.Vector3(layer.frames[currentFrame][i].geometry.attributes.position.array[j], layer.frames[currentFrame][i].geometry.attributes.position.array[j+1], layer.frames[currentFrame][i].geometry.attributes.position.array[j+2]);
 
 	                    //~
-	                    //var point = frames[currentFrame][i].geometry.attributes.position[j]; //layer.frames[currentFrame].strokes[i].points[j].co // TODO implement layers
+	                    //var point = frames[currentFrame][i].geometry.attributes.position[j]; //layer.frames[currentFrame].strokes[i].points[j].co 
 	                    if (useScaleAndOffset) {
 	                        x = (point.x * globalScale.x) + globalOffset.x
 	                        y = (point.y * globalScale.y) + globalOffset.y
@@ -632,10 +632,10 @@ function main() {
 	                        sb += "                                        {\"co\": [" + x + ", " + z + ", " + y + "]";                  
 	                    }
 	                    //~
-	                    if (j >= layer.frames[currentFrame][i].geometry.attributes.position.array.length - 6) {  //layer.frames[currentFrame].strokes[i].points.length - 1) { // TODO implement layers
+	                    if (j >= layer.frames[currentFrame][i].geometry.attributes.position.array.length - 6) {  //layer.frames[currentFrame].strokes[i].points.length - 1) { 
 	                        sb += "}" + "\n";
 	                        sb += "                                    ]" + "\n";
-	                        if (i == layer.frames[currentFrame].length - 1) { //layer.frames[currentFrame].strokes.length - 1) { // TODO implement layers
+	                        if (i == layer.frames[currentFrame].length - 1) { //layer.frames[currentFrame].strokes.length - 1) { 
 	                            sb += "                                }" + "\n"; // last stroke for this frame
 	                        } else {
 	                            sb += "                                }," + "\n"; // end stroke
@@ -645,11 +645,11 @@ function main() {
 	                        sb += "}," + "\n";
 	                    }
 	                }
-	                if (i == layer.frames[currentFrame].length - 1) { //layer.frames[currentFrame].strokes.length - 1) { // TODO implement layers
+	                if (i == layer.frames[currentFrame].length - 1) { //layer.frames[currentFrame].strokes.length - 1) { 
 	                    sb += "                            ]" + "\n";
 	                }
 	            }
-	            if (h == layer.frames.length - 1) { //layer.frames.length - 1) { // TODO implement layers
+	            if (h == layer.frames.length - 1) { //layer.frames.length - 1) { 
 	                sb += "                        }" + "\n";
 	            } else {
 	                sb += "                        }," + "\n";
@@ -657,9 +657,9 @@ function main() {
 	        }
 	        //~
 	        var sf = "                {" + "\n";
-	        sf += "                    \"name\": \"" + layer.name + "\"," + "\n"; //layer.info + "\"," + "\n" // TODO implement layers
+	        sf += "                    \"name\": \"" + layer.name + "\"," + "\n"; //layer.info + "\"," + "\n" 
 	        sf += "                    \"frames\": [" + "\n" + sb + "                    ]" + "\n";
-	        if (f == layers.length-1) { //gp.layers.length-1) { // TODO implement layers
+	        if (f == layers.length-1) { //gp.layers.length-1) { 
 	            sf += "                }" + "\n";
 	        } else {
 	            sf += "                }," + "\n";

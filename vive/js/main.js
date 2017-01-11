@@ -18,6 +18,7 @@ function main() {
     var frameDelta = 0;
     var time = 0;
     var pTime = 0;
+    var pauseAnimation = false;
 
     // ~ ~ ~ 
     //var line_mtl, red_mtl, text_mtl;
@@ -116,7 +117,7 @@ function main() {
 
     var useAudioSync = false;
     var soundPath = "../sounds/avlt.ogg";
-    var animationPath = "../animations/layer_test.json";
+    var animationPath = "../animations/jellyfish.json";
     var brushPath = "../images/brush_vive.png";
 
     var player = new Tone.Player({

@@ -186,7 +186,12 @@ function main() {
                     pointCount += lightningArtistData.layers[h].frames[i].strokes[j].points.length;
                 }
             }
-            var firstPoint = lightningArtistData.layers[h].frames[0].strokes[0].points[0].co[0] * 100;
+            var firstPoint = "*";
+            try {
+                firstPoint = lightningArtistData.layers[h].frames[0].strokes[0].points[0].co[0] * 100;
+            } catch (e) {
+                //
+            }
 
             console.log("***********************");
             console.log("~INPUT~")
@@ -595,7 +600,11 @@ function main() {
 	            var currentFrame = h;
 	            sb += "                        {" + "\n"; // one frame
 	            sb += "                            \"strokes\": [" + "\n";
-	            sb += "                                {" + "\n"; // one stroke
+	            if (layer.frames[currentFrame].length > 0) {
+                    sb += "                                {" + "\n"; // one stroke
+                } else {
+                    sb += "                            ]" + "\n"; // no strokes
+                }
 	            for (var i=0; i<layer.frames[currentFrame].length; i++) { //layer.frames[currentFrame].strokes.length) { 
 	                var color = defaultColor;
 	                try {

@@ -40,14 +40,14 @@ function main() {
     var pauseAnimation = false;
 
     // ~ ~ ~ 
-    var line_mtl, red_mtl, text_mtl;
+    //var line_mtl, red_mtl, text_mtl;
     var subtitleText, readingText;
+    var texture;
 
     // http://threejs.org/examples/webgl_materials_blending_custom.html
-    var blendSrc = [ "ZeroFactor", "OneFactor", "SrcAlphaFactor", "OneMinusSrcAlphaFactor", "DstAlphaFactor", "OneMinusDstAlphaFactor", "DstColorFactor", "OneMinusDstColorFactor", "SrcAlphaSaturateFactor" ];
-    var blendDst = [ "ZeroFactor", "OneFactor", "SrcColorFactor", "OneMinusSrcColorFactor", "SrcAlphaFactor", "OneMinusSrcAlphaFactor", "DstAlphaFactor", "OneMinusDstAlphaFactor" ];
-    var blending = "CustomBlending";
-    var texture;
+    //var blendSrc = [ "ZeroFactor", "OneFactor", "SrcAlphaFactor", "OneMinusSrcAlphaFactor", "DstAlphaFactor", "OneMinusDstAlphaFactor", "DstColorFactor", "OneMinusDstColorFactor", "SrcAlphaSaturateFactor" ];
+    //var blendDst = [ "ZeroFactor", "OneFactor", "SrcColorFactor", "OneMinusSrcColorFactor", "SrcAlphaFactor", "OneMinusSrcAlphaFactor", "DstAlphaFactor", "OneMinusDstAlphaFactor" ];
+    //var blending = "CustomBlending";
 
     /*
     line_mtl = new THREE.MeshLineMaterial({
@@ -67,6 +67,7 @@ function main() {
     });
     */
 
+    /*
     line_mtl = new THREE.MeshLineMaterial();
 
     text_mtl = new THREE.MeshBasicMaterial({ 
@@ -76,6 +77,7 @@ function main() {
     });
 
     red_mtl = line_mtl;
+    */
     //red_mtl.color.setHex(0xffaaaa);
     // ~ ~ ~ 
 
@@ -492,6 +494,7 @@ function main() {
 
         scene.add(textMesh);
         textMesh.parent = camera;
+        textMesh.lookAt(camera);
         return textMesh;
     }
 
@@ -516,10 +519,9 @@ function main() {
 
     function showReading() {
         readingText = createText("READING...", 0, 0, -2000);//1300, -1200, -2800);
-        readingText.lookAt(camera);
+        //readingText.lookAt(camera);
         render(0);
     }
-
 
     function scheduleSubtitles() {
         doSubtitle(1);

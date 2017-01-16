@@ -9,8 +9,9 @@ var blendSrc = [ "ZeroFactor", "OneFactor", "SrcAlphaFactor", "OneMinusSrcAlphaF
 var blendDst = [ "ZeroFactor", "OneFactor", "SrcColorFactor", "OneMinusSrcColorFactor", "SrcAlphaFactor", "OneMinusSrcAlphaFactor", "DstAlphaFactor", "OneMinusDstAlphaFactor" ];
 var blending = "CustomBlending";
 	
-var line_mtl, red_mtl, text_mtl;
+//var line_mtl, red_mtl, text_mtl;
 
+/*
 var line_mtl = new THREE.LineBasicMaterial({
 	color: 0xaaaaaa,//999fff,
 	opacity: 0.5,
@@ -21,6 +22,8 @@ var line_mtl = new THREE.LineBasicMaterial({
 	blendDst: THREE[blendDst[1]],
 	blendEquation: THREE.AddEquation
 });
+*/
+var line_mtl = new THREE.MeshLineMaterial();
 
 var text_mtl = new THREE.MeshBasicMaterial({ 
 	color: 0xffff00,
@@ -28,8 +31,8 @@ var text_mtl = new THREE.MeshBasicMaterial({
 	depthWrite: true 
 });
 
-var red_mtl = line_mtl;
-var blue_mtl = line_mtl;
+//var red_mtl = line_mtl;
+//var blue_mtl = line_mtl;
 
-red_mtl.color.setHex(0xffaaaa);
-blue_mtl.color.setHex(0xaaaaff);
+//red_mtl.color.setHex(0xffaaaa);
+//blue_mtl.color.setHex(0xaaaaff);

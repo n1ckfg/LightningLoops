@@ -22,7 +22,8 @@ function main() {
 
     // ~ ~ ~ 
     //var line_mtl, red_mtl, text_mtl;
-    var textMesh;
+    var subtitleText, readingText;
+    var firstTextUse = true;
     var texture;
 
     // http://threejs.org/examples/webgl_materials_blending_custom.html
@@ -52,6 +53,7 @@ function main() {
     red_mtl.color.setHex(0xaaaaff);
 	*/
 
+    /*
     line_mtl = new THREE.MeshLineMaterial();
 
     text_mtl = new THREE.MeshBasicMaterial({ 
@@ -61,6 +63,7 @@ function main() {
     });
 
     red_mtl = line_mtl;
+    */
 
     // ~ ~ ~ 
 
@@ -167,6 +170,7 @@ function main() {
     // ~ ~ ~ ~ ~ ~ 
 
     init();
+    showReading();
 
     var special_mtl;
 
@@ -501,7 +505,7 @@ function main() {
 	
     function clearFrame() {
         for (var i=scene.children.length; i>=0; i--) {
-            if (scene.children[i] !== camera && scene.children[i] !== textMesh  && scene.children[i] !== room) {
+            if (scene.children[i] !== camera && scene.children[i] !== subtitleText  && scene.children[i] !== room) {
                 scene.remove(scene.children[i]);
             }
         }
@@ -608,9 +612,9 @@ function main() {
 				frameDelta += time - pTime;
 			} else if (useAudioSync && !hidden) {
 				/*
-				if (textMesh) {
-					textMesh.lookAt(camera);
-					textMesh.rotation.set(0, -45, 0);
+				if (subtitleText) {
+					subtitleText.lookAt(camera);
+					subtitleText.rotation.set(0, -45, 0);
 				}
 				*/
 			}
@@ -620,7 +624,7 @@ function main() {
 
 				/*
 				for (var i=scene.children.length; i>=0; i--) {
-					if (scene.children[i] !== camera && scene.children[i] !== textMesh && scene.children[i] !== room && scene.children[i] !== controller1 && scene.children[i] !== controller2) {
+					if (scene.children[i] !== camera && scene.children[i] !== subtitleText && scene.children[i] !== room && scene.children[i] !== controller1 && scene.children[i] !== controller2) {
 						scene.remove(scene.children[i]);
 					}
 				}
@@ -637,9 +641,9 @@ function main() {
 		}
 
 		if (useAudioSync && !hidden) {
-			if (textMesh) {
-				textMesh.lookAt(camera);
-				textMesh.rotation.set(0, -45, 0);
+			if (subtitleText) {
+				subtitleText.lookAt(camera);
+				subtitleText.rotation.set(0, -45, 0);
 			}
 		}
 			
@@ -688,50 +692,50 @@ function main() {
         object.rotation.setFromRotationMatrix(object.matrix);
     }
 
-    function createText(_text) {
-       if (textMesh) scene.remove(textMesh);
-        
-        var textGeo = new THREE.TextGeometry(_text, {
-            size: 200,
-            height: 1,
-            curveSegments: 12,
+    function createText(_text, x, y, z) {
+        var loader = new THREE.FontLoader();
 
-            font: "helvetiker",
-            weight: "bold",
-            style: "normal",
+        loader.load("./fonts/helvetiker_bold.typeface.json", function (font) {
+            var textGeo = new THREE.TextGeometry(_text, {
+                size: 200,
+                height: 1,
+                curveSegments: 12,
 
-            bevelThickness: 2,
-            bevelSize: 5,
-            bevelEnabled: false
+                font: "helvetiker",
+                weight: "bold",
+                style: "normal",
+
+                bevelThickness: 2,
+                bevelSize: 5,
+                bevelEnabled: false
+            });
+
+            textGeo.computeBoundingBox();
+            var centerOffset = -0.5 * (textGeo.boundingBox.max.x - textGeo.boundingBox.min.x);
+
+            var textMesh = new THREE.Mesh(textGeo, text_mtl);
+            textMesh.castShadow = false;
+            textMesh.receiveShadow = false;
+
+            textMesh.position.set(centerOffset + x, y, z);
+
+            scene.add(textMesh);
+            textMesh.parent = camera;
+            textMesh.lookAt(camera);
+            return textMesh;
         });
-
-        textGeo.computeBoundingBox();
-        var centerOffset = -0.5 * (textGeo.boundingBox.max.x - textGeo.boundingBox.min.x);
-
-        textMesh = new THREE.Mesh(textGeo, text_mtl);
-        textMesh.castShadow = false;
-        textMesh.receiveShadow = false;
-
-        var scaler = 0.01
-        centerOffset *= scaler;
-        textMesh.scale.set(-scaler, scaler, scaler);
-        textMesh.position.set(-20, -5, 20);
-        //rotateAroundWorldAxis(textMesh, new THREE.Vector3(1,0,0), laRot.y * Math.PI/180); 
-        //rotateAroundWorldAxis(textMesh, new THREE.Vector3(0,1,0), laRot.x * Math.PI/180); 
-
-        scene.add(textMesh);
     }
 
     function doSubtitle(_frame) {
         Tone.Transport.scheduleOnce(function(time){
-            createText(subtitlesArray[subsCounter]);
+            subtitleText = createText(subtitlesArray[subsCounter], 1300, -1200, -2800);
             subsCounter++;
         }, getLoopFrame(_frame));
     }
 
     function clearSubtitle(_frame) {
         Tone.Transport.scheduleOnce(function(time){
-            if (textMesh) scene.remove(textMesh);
+            if (subtitleText) scene.remove(subtitleText);
         }, getLoopFrame(_frame));
     }
 
@@ -740,6 +744,11 @@ function main() {
         return ((layers[getLongestLayer()].loopCounter * (layers[getLongestLayer()].frames.length - 1)) + (_frame + subsFrameOffset)) * frameInterval;
     }
 
+    function showReading() {
+        readingText = createText("READING...", 0, 0, -2000);//1300, -1200, -2800);
+        render(0);
+    }
+    
     function scheduleSubtitles() {
         doSubtitle(1);
         doSubtitle(20);

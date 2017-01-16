@@ -41,7 +41,7 @@ function main() {
 
     // ~ ~ ~ 
     var line_mtl, red_mtl, text_mtl;
-    var textMesh;
+    var subtitleText, readingText;
 
     // http://threejs.org/examples/webgl_materials_blending_custom.html
     var blendSrc = [ "ZeroFactor", "OneFactor", "SrcAlphaFactor", "OneMinusSrcAlphaFactor", "DstAlphaFactor", "OneMinusDstAlphaFactor", "DstColorFactor", "OneMinusDstColorFactor", "SrcAlphaSaturateFactor" ];
@@ -125,6 +125,7 @@ function main() {
     var brushPath = "../images/brush_cardboard.png";
 
     init();
+    showReading();
 
     var player = new Tone.Player({
         "url": soundPath
@@ -359,7 +360,7 @@ function main() {
 	            time = new Date().getTime() / 1000;
 	            frameDelta += time - pTime;
 	        } else if (useAudioSync && !hidden) {
-	            if (textMesh) textMesh.lookAt(camera);
+	            if (subtitleText) subtitleText.lookAt(camera);
 	        }
 
 	        if (frameDelta >= frameInterval) {
@@ -386,7 +387,7 @@ function main() {
 
     function clearFrame() {
         for (var i=scene.children.length; i>=0; i--) {
-            if (scene.children[i] !== camera && scene.children[i] !== textMesh  && scene.children[i] !== room) {
+            if (scene.children[i] !== camera && scene.children[i] !== subtitleText  && scene.children[i] !== room) {
                 scene.remove(scene.children[i]);
             }
         }
@@ -465,8 +466,8 @@ function main() {
         object.rotation.setFromRotationMatrix(object.matrix);
     }
 
-    function createText(_text) {
-        if (textMesh) scene.remove(textMesh);
+    function createText(_text, x, y, z) {
+        //if (textMesh) scene.remove(textMesh);
         
         var textGeo = new THREE.TextGeometry(_text, {
             size: 200,
@@ -485,25 +486,27 @@ function main() {
         textGeo.computeBoundingBox();
         var centerOffset = -0.5 * (textGeo.boundingBox.max.x - textGeo.boundingBox.min.x);
 
-        textMesh = new THREE.Mesh(textGeo, text_mtl);
+        var textMesh = new THREE.Mesh(textGeo, text_mtl);
         textMesh.castShadow = false;
         textMesh.receiveShadow = false;
 
-        textMesh.position.set(centerOffset + 1300, -1200, -2800);
+        textMesh.position.set(centerOffset + x, y, z);
 
         scene.add(textMesh);
+        return textMesh;
     }
+
 
     function doSubtitle(_frame) {
         Tone.Transport.scheduleOnce(function(time){
-            createText(subtitlesArray[subsCounter]);
+            subtitleText = createText(subtitlesArray[subsCounter], 1300, -1200, -2800);
             subsCounter++;
         }, getLoopFrame(_frame));
     }
 
     function clearSubtitle(_frame) {
         Tone.Transport.scheduleOnce(function(time){
-            if (textMesh) scene.remove(textMesh);
+            if (subtitleText) scene.remove(subtitleText);
         }, getLoopFrame(_frame));
     }
 
@@ -511,6 +514,13 @@ function main() {
         //return ((loopCounter * (frames.length - 1)) + (_frame + subsFrameOffset)) * frameInterval;
         return ((layers[getLongestLayer()].loopCounter * (layers[getLongestLayer()].frames.length - 1)) + (_frame + subsFrameOffset)) * frameInterval;
     }
+
+    function showReading() {
+        readingText = createText("READING...", 0, 0, -2000);//1300, -1200, -2800);
+        readingText.lookAt(camera);
+        render(0);
+    }
+
 
     function scheduleSubtitles() {
         doSubtitle(1);
@@ -701,6 +711,8 @@ function main() {
 
     // Get file data on drop
     dropZone.addEventListener('drop', function(e) {
+        showReading();
+
         e.stopPropagation();
         e.preventDefault();
         var files = e.dataTransfer.files; // Array of all files

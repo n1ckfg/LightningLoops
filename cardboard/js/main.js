@@ -467,8 +467,6 @@ function main() {
     }
 
     function createText(_text, x, y, z) {
-        //if (textMesh) scene.remove(textMesh);
-        
         var textGeo = new THREE.TextGeometry(_text, {
             size: 200,
             height: 1,
@@ -493,6 +491,7 @@ function main() {
         textMesh.position.set(centerOffset + x, y, z);
 
         scene.add(textMesh);
+        textMesh.parent = camera;
         return textMesh;
     }
 

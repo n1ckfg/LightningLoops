@@ -104,10 +104,10 @@ function setupControls() {
 
     window.addEventListener("keydown", function(event) {
         if (getKeyCode() == 'w') isWalking = true;
-        if (getKeyCode() == 's') armSaveJson = true;
-        if (getKeyCode() == 'j') armFrameBack = true;
-        if (getKeyCode() == 'k') armTogglePause = true;
-        if (getKeyCode() == 'l') armFrameForward = true;
+        if (getKeyCode() == 'o') armSaveJson = true;
+        //if (getKeyCode() == 'j') armFrameBack = true;
+        if (getKeyCode() == 'p') armTogglePause = true;
+        //if (getKeyCode() == 'l') armFrameForward = true;        
     });
 
     window.addEventListener("keyup", function(event) {

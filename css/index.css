@@ -1,8 +1,9 @@
 body {
-	background:#dadada;
+	background:#000000;
 	color:0b0b0b;
 	font-size:14px;
 	font-family: Georgia, serif;
+	background-image: url("../images/bg4.gif");
 }
 
 a {

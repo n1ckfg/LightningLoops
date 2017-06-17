@@ -1,5 +1,6 @@
 @echo off
 
-http-server
+cd %cd%
+node app.js
 
 @pause

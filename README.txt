@@ -1,8 +1,8 @@
 Lightning Artist Toolkit / JS 
-Notes 160828
+Notes 170617
 
 * Cardboard
     three.js version: r73
 
 * Vive
-    three.js version: r78
+    three.js version: r82

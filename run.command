@@ -9,7 +9,5 @@ done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 cd $DIR
-#cd tools/mac
-#./minify.command
 
-http-server $DIR
+node app.js

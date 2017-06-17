@@ -36,8 +36,8 @@ io.on('connection', function(socket){
         console.log('user disconnected');
     });
     //~
-    socket.on("stroke", function() {
-    	console.log("eee");
+    socket.on("stroke", function(data) { 
+    	console.log(data);
     });
 });
 

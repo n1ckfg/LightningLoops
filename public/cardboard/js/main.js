@@ -5,6 +5,7 @@
 // https://github.com/mrdoob/three.js/blob/master/examples/webgl_geometry_dynamic.html
 
 function main() {
+    var latkDebug = false;
     var socket = io();
     /*
     socket.on('news', function (data) {
@@ -144,13 +145,15 @@ function main() {
                 firstPoint = lightningArtistData.layers[h].frames[0].strokes[0].points[0].co[0] * 100;
             } catch (e) { }
             
-            console.log("***********************");
-            console.log("~INPUT~")
-            console.log("total frames: " + frameCount);
-            console.log("total strokes: " + strokeCount);
-            console.log("total points: " + pointCount);
-            console.log("first point: " + firstPoint);
-            console.log("***********************");
+            if (latkDebug) {
+                console.log("***********************");
+                console.log("~INPUT~")
+                console.log("total frames: " + frameCount);
+                console.log("total strokes: " + strokeCount);
+                console.log("total points: " + pointCount);
+                console.log("first point: " + firstPoint);
+                console.log("***********************");
+            }
 
             for (var i=0; i<lightningArtistData.layers[h].frames.length; i++) { // frame
                 layer.strokeX = [];
@@ -188,7 +191,7 @@ function main() {
                 layer.frameColors.push(layer.strokeColors);
             }
 
-            console.log("* * * color check: " + layer.frameX.length + " " + layer.frameColors.length + " " + layer.frameX[0].length + " " + layer.frameColors[0].length);
+            if (latkDebug) console.log("* * * color check: " + layer.frameX.length + " " + layer.frameColors.length + " " + layer.frameX[0].length + " " + layer.frameColors[0].length);
 
             layer.frames = [];
 
@@ -274,7 +277,7 @@ function main() {
                                         -( event.clientY / window.innerHeight ) * 2 + 1,  //y
                                         0.5 );                                            //z
         mouse3D.unproject(camera);   
-        console.log(mouse3D);
+        if (latkDebug) console.log(mouse3D);
     }
 
     function updateControllers() {
@@ -282,7 +285,7 @@ function main() {
         if (controller1 !== undefined) {
             var pos = controller1.getPosition();
             if (debugPos) {
-                console.log(
+                if (latkDebug) console.log(
                 "ctl1 pos: " + pos.x + ", " + pos.y + ", " + pos.z + "\n" +
                 "ctl1 pad: "  + controller1.getButtonState("thumbpad") + "\n" +
                 "ctl1 trigger: "  + controller1.getButtonState("trigger") + "\n" +
@@ -305,7 +308,7 @@ function main() {
                 isPlaying = false;
                 frameForward();//frameChange(1);
                 c1b2_blocking = true;
-                console.log("frame forward " + layers[layers.length-1].counter); // TODO draw on new layer
+                if (latkDebug) console.log("frame forward " + layers[layers.length-1].counter); // TODO draw on new layer
             } else if (!controller1.getButtonState("grips") && c1b2_blocking) {
                 c1b2_blocking = false;
             }
@@ -314,7 +317,7 @@ function main() {
         if (controller2 !== undefined) {
             var pos = controller2.getPosition();
             if (debugPos) {
-                console.log(
+                if (latkDebug) console.log(
                 "ctl2 pos: " + pos.x + ", " + pos.y + ", " + pos.z + "\n" +
                 "ctl2 pad: "  + controller2.getButtonState("thumbpad") + "\n" +
                 "ctl2 trigger: "  + controller2.getButtonState("trigger") + "\n" +
@@ -327,7 +330,7 @@ function main() {
             if (controller2.getButtonState("thumbpad") && !c2b0_blocking) {
                 isPlaying = !isPlaying;
                 c2b0_blocking = true;
-                console.log("playing: " + isPlaying);
+                if (latkDebug) console.log("playing: " + isPlaying);
             } else if (!controller2.getButtonState("thumbpad") && c2b0_blocking) {
                 c2b0_blocking = false;
             }
@@ -337,7 +340,7 @@ function main() {
                 isPlaying = false;
                 frameBack();//frameChange(-1);
                 c2b2_blocking = true;
-                console.log("frame back " + layers[layers.length-1].counter); // TODO draw on new layer
+                if (latkDebug) console.log("frame back " + layers[layers.length-1].counter); // TODO draw on new layer
             } else if (!controller2.getButtonState("grips") && c2b2_blocking) {
                 c2b2_blocking = false;
             }
@@ -352,7 +355,7 @@ function main() {
         tempPoints = [];
         //clearTempStroke();
         createTempStroke(x, y, z);
-        console.log("Begin " + tempStroke.name + ".");
+        if (latkDebug) console.log("Begin " + tempStroke.name + ".");
     }
     
     function updateStroke(x, y, z) {
@@ -361,7 +364,7 @@ function main() {
         if (p.distanceTo(tempPoints[tempPoints.length-1]) > minDistance) {
             clearTempStroke();
             createTempStroke(x, y, z);
-            console.log("Update " + tempStroke.name + ": " + tempStrokeGeometry.vertices.length + " points."); 
+            if (latkDebug) console.log("Update " + tempStroke.name + ": " + tempStrokeGeometry.vertices.length + " points."); 
         }
     }
     
@@ -370,11 +373,11 @@ function main() {
         var last = layers.length-1;
         layers[last].frames[layers[last].counter].push(tempStroke);
         //~
-        socket.emit("stroke", { my: "data" });
+        socket.emit("stroke", tempStrokeToJson());
         //~
         clearTempStroke();
         refreshFrameLast();
-        console.log("End " + layers[last].frames[layers[last].counter][layers[last].frames[layers[last].counter].length-1].name + ".");
+        if (latkDebug) console.log("End " + layers[last].frames[layers[last].counter][layers[last].frames[layers[last].counter].length-1].name + ".");
         strokeCounter++;
     }
     
@@ -421,7 +424,7 @@ function main() {
     function clearTempStroke() {
         try {
             scene.remove(tempStroke);
-            console.log("Removed temp stroke.")
+            if (latkDebug) console.log("Removed temp stroke.")
         } catch (e) {
             //
         }       
@@ -501,17 +504,17 @@ function main() {
             armFrameForward = false;
             isPlaying = false;
             frameForward();
-            console.log("ff: " + counter);
+            if (latkDebug) console.log("ff: " + counter);
         }
         if (armFrameBack) {
             armFrameBack = false;
             isPlaying = false;
             frameBack();
-            console.log("rew: " + counter);
+            if (latkDebug) console.log("rew: " + counter);
         }
         if (armTogglePause) {
             isPlaying = !isPlaying;
-            console.log("playing: " + isPlaying);
+            if (latkDebug) console.log("playing: " + isPlaying);
             armTogglePause = false;
         }
 
@@ -723,6 +726,71 @@ function main() {
         return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
     } 
 
+    function tempStrokeToJson() {
+    /*
+               sb += "                            \"strokes\": [" + "\n";
+                if (layer.frames[currentFrame].length > 0) {
+                    sb += "                                {" + "\n"; // one stroke
+                } else {
+                    sb += "                            ]" + "\n"; // no strokes
+                }
+                for (var i=0; i<layer.frames[currentFrame].length; i++) { //layer.frames[currentFrame].strokes.length) { 
+                    var color = defaultColor;
+                    try {
+                       //color = frames[currentFrame].strokes[i].color.color; //layer.frames[currentFrame].strokes[i].color.color 
+                       color = [layer.frameColors[currentFrame][i][0], layer.frameColors[currentFrame][i][1], layer.frameColors[currentFrame][i][2]];
+                    } catch (e) {
+                        //
+                    }
+                    sb += "                                    \"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "]," + "\n";
+                    sb += "                                    \"points\": [" + "\n";
+                    for (var j=0; j<layer.frames[currentFrame][i].geometry.attributes.position.array.length; j += 6 ) { //layer.frames[currentFrame].strokes[i].points.length) { 
+                        var x = 0.0;
+                        var y = 0.0;
+                        var z = 0.0;
+
+                        var point = new THREE.Vector3(layer.frames[currentFrame][i].geometry.attributes.position.array[j], layer.frames[currentFrame][i].geometry.attributes.position.array[j+1], layer.frames[currentFrame][i].geometry.attributes.position.array[j+2]);
+
+                        //~
+                        //var point = frames[currentFrame][i].geometry.attributes.position[j]; //layer.frames[currentFrame].strokes[i].points[j].co 
+                        if (useScaleAndOffset) {
+                            x = (point.x * globalScale.x) + globalOffset.x
+                            y = (point.y * globalScale.y) + globalOffset.y
+                            z = (point.z * globalScale.z) + globalOffset.z
+                        } else {
+                            x = point.x;
+                            y = point.y;
+                            z = point.z;
+                            //console.log(x + " " + y + " " + z);
+                        }
+                        //~
+                        if (roundValues) {
+                            sb += "                                        {\"co\": [" + roundVal(x, numPlaces) + ", " + roundVal(y, numPlaces) + ", " + roundVal(z, numPlaces) + "]";
+                        } else {
+                            sb += "                                        {\"co\": [" + x + ", " + z + ", " + y + "]";                  
+                        }
+                        //~
+                        if (j >= layer.frames[currentFrame][i].geometry.attributes.position.array.length - 6) {  //layer.frames[currentFrame].strokes[i].points.length - 1) { 
+                            sb += "}" + "\n";
+                            sb += "                                    ]" + "\n";
+                            if (i == layer.frames[currentFrame].length - 1) { //layer.frames[currentFrame].strokes.length - 1) { 
+                                sb += "                                }" + "\n"; // last stroke for this frame
+                            } else {
+                                sb += "                                }," + "\n"; // end stroke
+                                sb += "                                {" + "\n"; // begin stroke
+                            }
+                        } else {
+                            sb += "}," + "\n";
+                        }
+                    }
+                    if (i == layer.frames[currentFrame].length - 1) { //layer.frames[currentFrame].strokes.length - 1) { 
+                        sb += "                            ]" + "\n";
+                    }
+
+    */    
+    return { my: tempStroke.geometry.attributes.position.array[0] };
+    }
+
     function writeJson() {
         var frameCount = layers[getLongestLayer()].frames.length;
         var strokeCount = 0;
@@ -739,13 +807,16 @@ function main() {
                 }
             }
         }
-        console.log("***********************");
-        console.log("~OUTPUT~")
-        console.log("total frames: " + frameCount);
-        console.log("total strokes: " + strokeCount);
-        console.log("total points: " + pointCount);
-        console.log("first point: " + firstPoint);
-        console.log("***********************");
+
+        if (latkDebug) {
+            console.log("***********************");
+            console.log("~OUTPUT~")
+            console.log("total frames: " + frameCount);
+            console.log("total strokes: " + strokeCount);
+            console.log("total points: " + pointCount);
+            console.log("first point: " + firstPoint);
+            console.log("***********************");
+        }
 
         var useScaleAndOffset = true;
         var globalScale = new THREE.Vector3(0.01, 0.01, 0.01);

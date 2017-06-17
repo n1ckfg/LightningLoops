@@ -5,7 +5,11 @@
 // https://github.com/mrdoob/three.js/blob/master/examples/webgl_geometry_dynamic.html
 
 function main() {
-
+    var socket = io('http://localhost');
+    socket.on('news', function (data) {
+        console.log(data);
+        socket.emit('my other event', { my: 'data' });
+    });
     var viveMode = false;
     var hidden = false;
     var lightningArtistData;

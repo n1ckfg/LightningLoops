@@ -13,6 +13,12 @@ var io = require("socket.io")(http, {
 	pingTimeout: 1000 * 60
 });
 
+io.on("connection", function(socket) {
+    console.log(socket);
+});
+
+// ~ ~ ~ ~
+	
 app.use(express.static("public"));
 
 app.get("/", function(req, res) {

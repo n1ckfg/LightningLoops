@@ -13,10 +13,6 @@ var io = require("socket.io")(http, {
 	pingTimeout: 1000 * 60
 });
 
-io.on("connection", function(socket) {
-    console.log(socket);
-});
-
 // ~ ~ ~ ~
 	
 app.use(express.static("public"));
@@ -28,3 +24,20 @@ app.get("/", function(req, res) {
 http.listen(port, function() {
 	console.log("\nNode app started. Listening on port " + port);
 });
+
+// ~ ~ ~ ~
+
+// https://socket.io/get-started/chat/
+
+io.on('connection', function(socket){
+    console.log('a user connected');
+    //~
+    socket.on('disconnect', function(){
+        console.log('user disconnected');
+    });
+    //~
+    socket.on("stroke", function() {
+    	console.log("eee");
+    });
+});
+

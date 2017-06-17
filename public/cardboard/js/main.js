@@ -7,12 +7,11 @@
 function main() {
     var latkDebug = false;
     var socket = io();
-    /*
-    socket.on('news', function (data) {
+    
+    socket.on("createStroke", function (data) {
         console.log(data);
-        socket.emit('my other event', { my: 'data' });
     });
-    */
+
     var viveMode = false;
     var hidden = false;
     var lightningArtistData;
@@ -351,7 +350,7 @@ function main() {
     // ~ ~ ~ 
     function beginStroke(x, y, z) {
         isDrawing = true;
-        isPlaying = false;
+        //isPlaying = false;
         tempPoints = [];
         //clearTempStroke();
         createTempStroke(x, y, z);
@@ -425,9 +424,7 @@ function main() {
         try {
             scene.remove(tempStroke);
             if (latkDebug) console.log("Removed temp stroke.")
-        } catch (e) {
-            //
-        }       
+        } catch (e) { }       
     }
     
     function redrawFrame(index) {
@@ -727,6 +724,7 @@ function main() {
     } 
 
     function tempStrokeToJson() {
+        var obj = { my: tempStroke.geometry.attributes.position.array[0] };
     /*
                sb += "                            \"strokes\": [" + "\n";
                 if (layer.frames[currentFrame].length > 0) {
@@ -788,7 +786,7 @@ function main() {
                     }
 
     */    
-    return { my: tempStroke.geometry.attributes.position.array[0] };
+    return obj;
     }
 
     function writeJson() {

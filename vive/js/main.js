@@ -6,6 +6,7 @@
 
 function main() {
 
+	var viveMode = false;
     var hidden = false;
     var lightningArtistData;
     var laScale = 10;
@@ -21,65 +22,9 @@ function main() {
     var pauseAnimation = false;
 
     // ~ ~ ~ 
-    //var line_mtl, red_mtl, text_mtl;
     var subtitleText, readingText;
     var firstTextUse = true;
     var texture;
-
-    // http://threejs.org/examples/webgl_materials_blending_custom.html
-    //var blendSrc = [ "ZeroFactor", "OneFactor", "SrcAlphaFactor", "OneMinusSrcAlphaFactor", "DstAlphaFactor", "OneMinusDstAlphaFactor", "DstColorFactor", "OneMinusDstColorFactor", "SrcAlphaSaturateFactor" ];
-    //var blendDst = [ "ZeroFactor", "OneFactor", "SrcColorFactor", "OneMinusSrcColorFactor", "SrcAlphaFactor", "OneMinusSrcAlphaFactor", "DstAlphaFactor", "OneMinusDstAlphaFactor" ];
-    //var blending = "CustomBlending";
-
-    /*
-	line_mtl = new THREE.LineBasicMaterial({
-        color: 0xaaaaaa,//999fff,
-        opacity: 0.5,
-        linewidth: 3,
-        transparent: true,
-        blending: THREE[blending],
-        blendSrc: THREE[blendSrc[4]],
-        blendDst: THREE[blendDst[1]],
-        blendEquation: THREE.AddEquation
-    });
-
-    text_mtl = new THREE.MeshBasicMaterial({ 
-        color: 0xffff00,
-        depthTest: false,
-        depthWrite: true 
-    });
-
-    red_mtl = line_mtl;
-    red_mtl.color.setHex(0xaaaaff);
-	*/
-
-    /*
-    line_mtl = new THREE.MeshLineMaterial();
-
-    text_mtl = new THREE.MeshBasicMaterial({ 
-        color: 0xffff00,
-        depthTest: false,
-        depthWrite: true 
-    });
-
-    red_mtl = line_mtl;
-    */
-
-    // ~ ~ ~ 
-
-    /*
-    var strokeX = [];
-    var strokeY = [];
-    var strokeZ = [];
-    var frameX = [];
-    var frameY = [];
-    var frameZ = [];
-    var strokeColors = [];
-    var frameColors = [];    
-    var frames = [];
-    var counter = 0;
-    var loopCounter = 0;
-    */
 
     var layers = [];
 
@@ -136,17 +81,6 @@ function main() {
 	var c2b2_blocking = false;
 	var c2b3_blocking = false;
 	
-    /*
-    var listener = new THREE.AudioListener();
-    camera.add(listener);
-
-    var sound1 = new THREE.Audio(listener);
-    sound1.load("./sounds/test.mp3");
-    sound1.setRefDistance(20);
-    sound1.autoplay = true;
-    scene.add(sound1);
-    */
-
     // ~ ~ ~ ~ ~ ~ 
     document.addEventListener("visibilitychange", visibilityChanged);
 
@@ -175,7 +109,6 @@ function main() {
     var special_mtl;
 
     loadJSON(animationPath, function(response) {
-        //lightningArtistData = JSON.parse(response).grease_pencil[0].layers[0];
         jsonToGp(JSON.parse(response).grease_pencil[0]);
     });
 
@@ -200,9 +133,7 @@ function main() {
             var firstPoint = "*";
             try {
                 firstPoint = lightningArtistData.layers[h].frames[0].strokes[0].points[0].co[0] * 100;
-            } catch (e) {
-                //
-            }
+            } catch (e) { }
             
             console.log("***********************");
             console.log("~INPUT~")
@@ -238,9 +169,7 @@ function main() {
                     var newColor = defaultColor;
                     try {
                         newColor = lightningArtistData.layers[h].frames[i].strokes[j].color;
-                    } catch (e) {
-                        //
-                    }
+                    } catch (e) { }
                     layer.strokeColors.push(newColor);
                 }
 
@@ -257,22 +186,7 @@ function main() {
             var oldStrokes = [];
 
             texture = THREE.ImageUtils.loadTexture(brushPath);
-            /*
-            var exampleMaterial = new THREE.MeshLineMaterial( { 
-                map: THREE.ImageUtils.loadTexture( 'assets/stroke.png' ),
-                useMap: false,
-                color: new THREE.Color( colors[ 3 ] ),
-                opacity: .5,
-                resolution: resolution,
-                sizeAttenuation: false,
-                lineWidth: 10,
-                near: camera.near,
-                far: camera.far,
-                depthWrite: false,
-                depthTest: false,
-                transparent: true
-            });
-            */
+
             special_mtl = createMtl(defaultColor, defaultOpacity, defaultLineWidth/1.5);
 
             for (var i=0; i<layer.frameX.length; i++) {
@@ -280,22 +194,14 @@ function main() {
                 for (var j=0; j<layer.frameX[i].length; j++) {
                     var geometry = new THREE.Geometry();
                     geometry.dynamic = true;
-                    /*
-                    for (var l=0; l<frameX[i][j].length; l++) {
-                        geometry.vertices.push(new THREE.Vector3(frameX[i][j][l],frameY[i][j][l], frameZ[i][j][l]));
-                    }
-                    */
+
                     var origVerts = [];
 
                     for (var l=0; l<layer.frameX[i][j].length; l++) {
                         origVerts.push(new THREE.Vector3(layer.frameX[i][j][l], layer.frameY[i][j][l], layer.frameZ[i][j][l]));
 
                         if (l === 0 || !useMinDistance || (useMinDistance && origVerts[l].distanceTo(origVerts[l-1]) > minDistance)) {
-
-                    //for (var l=0; l<frameX[i][j].length; l++) {
-                        //geometry.vertices.push(new THREE.Vector3(frameX[i][j][l],frameY[i][j][l], frameZ[i][j][l]));
                             geometry.vertices.push(origVerts[l]);
-                        //line.positions.push(new THREE.Vector3(frameX[i][j][l],frameY[i][j][l], frameZ[i][j][l]));
                         }
                     }
 
@@ -304,7 +210,6 @@ function main() {
                     var line = new THREE.MeshLine();
                     line.setGeometry(geometry);
                     var meshLine = new THREE.Mesh(line.geometry, createUniqueMtl([layer.frameColors[i][j][0], layer.frameColors[i][j][1], layer.frameColors[i][j][2]]));
-                    //scene.add(meshLine); // check if this is OK
                     //rotateAroundWorldAxis(meshLine, new THREE.Vector3(1,0,0), laRot.y * Math.PI/180); 
                     //rotateAroundWorldAxis(meshLine, new THREE.Vector3(0,1,0), laRot.x * Math.PI/180); 
                     strokes.push(meshLine);//line);
@@ -341,7 +246,6 @@ function main() {
 
     function updateControllers() {
         if (controller1 !== undefined) {
-            //var pos = controller1.position.applyMatrix4(controller1.standingMatrix);
             var pos = controller1.getPosition();
             if (debugPos) {
                 console.log(
@@ -362,11 +266,6 @@ function main() {
                 endStroke();
             }
             
-			//if (gamepad1.buttons[0].pressed && strokes[2]) {
-                //var target = scene.getObjectByName(strokes[2].name);
-                //scene.remove(target);
-            //}
-
 			//ff
   			if (controller1.getButtonState("grips") && !c1b2_blocking) {
 				isPlaying = false;
@@ -419,29 +318,9 @@ function main() {
 		//clearTempStroke();
 		createTempStroke(x, y, z);
 		console.log("Begin " + tempStroke.name + ".");
-		
-        /*
-		var geometry = new THREE.Geometry();
-        geometry.dynamic = true;
-        var line = new THREE.MeshLine();
-        //var line = new THREE.Line(geometry, red_mtl);
-        line.setGeometry(geometry);
-        var meshLine = new THREE.Mesh(line.geometry, special_mtl);
-        meshLine.name = "stroke" + strokeCounter;
-        strokes.push(meshLine);
-        scene.add(strokes[strokeCounter]);
-        addVertex(strokes[strokeCounter], x, y, z);
-
-        console.log("Begin " + strokes[strokeCounter].name + ".");
-		*/
     }
     
     function updateStroke(x, y, z) {
-        /*
-		addVertex(strokes[strokeCounter], x, y, z);
-        strokes[strokeCounter].geometry.verticesNeedUpdate = true;
-        console.log("Update " + strokes[strokeCounter].name + ": " + strokes[strokeCounter].geometry.vertices.length + " points.");
-		*/
         var p = new THREE.Vector3(x, y, z);
 
 		if (p.distanceTo(tempPoints[tempPoints.length-1]) > minDistance) {
@@ -451,17 +330,7 @@ function main() {
         }
     }
     
-    /*
-	function addVertex(obj, x, y, z) {
-		obj.geometry.dynamic = true;
-        obj.geometry.vertices.push(new THREE.Vector3(x, y, z));
-        obj.geometry.verticesNeedUpdate = true;
-        obj.geometry.__dirtyVertices = true; 
-    }
-	*/
-	
 	function endStroke() {  // TODO draw on new layer
-        //scene.add(strokes[strokeCounter]);
         isDrawing = false;
         var last = layers.length-1;
    		layers[last].frames[layers[last].counter].push(tempStroke);
@@ -520,25 +389,6 @@ function main() {
 		}		
 	}
 	
-	/*
-    function frameChange(index) {
-		// TODO order correctly
-		clearFrame();
-		refreshFrame();
-		counter += index;
-		if (counter > frames.length - 1 || counter < 0) {
-			if (counter > frames.length - 1) {
-				counter = 0;
-			} else if (counter < 0) {
-				counter = frames.length - 1;
-			}
-			loopCounter++;
-			subsCounter = 0;
-			scheduleSubtitles();
-		}		
-	}
-    */
-
     function redrawFrame(index) {
         if (index === 0) clearFrame();
         refreshFrame(index);
@@ -584,8 +434,30 @@ function main() {
         return returns;
     }
 
+    /*
+    // CARDBOARD VERSION
+    function animate(timestamp) {
+	
+		// ...
+	
+        render(timestamp);
+        requestAnimationFrame(animate);
+    }
+
+    // VIVE VERSION
+
     function animate() {
         updateControllers();
+		
+		// ...
+
+		effect.requestAnimationFrame( animate );
+        render();
+    }
+    */
+
+    function animate(timestamp) {
+        if (viveMode) updateControllers();
 
         if (armFrameForward) {
             armFrameForward = false;
@@ -622,20 +494,6 @@ function main() {
 			if (frameDelta >= frameInterval) {
 				frameDelta = 0;
 
-				/*
-				for (var i=scene.children.length; i>=0; i--) {
-					if (scene.children[i] !== camera && scene.children[i] !== subtitleText && scene.children[i] !== room && scene.children[i] !== controller1 && scene.children[i] !== controller2) {
-						scene.remove(scene.children[i]);
-					}
-				}
-
-				for (var i=0; i<frames[counter].length; i++) {
-					scene.add(frames[counter][i]);
-				}
-				*/
-				
-				//frameChange(1);
-
                 frameMain();
 			}
 		}
@@ -653,19 +511,22 @@ function main() {
             writeJson();
         }   
         
-        effect.requestAnimationFrame( animate );
-        render();
+        if (viveMode) {
+        	effect.requestAnimationFrame( animate );
+            render();
+        } else {
+        	render(timestamp);
+        	requestAnimationFrame(animate);        	
+        }
     }
 
     function loadJSON(filepath, callback) { 
         // https://codepen.io/KryptoniteDove/post/load-json-file-locally-using-pure-javascript  
-        //var filepath = animationPath;
         var xobj = new XMLHttpRequest();
         xobj.overrideMimeType("application/json");
         xobj.open('GET', filepath, true);
         xobj.onreadystatechange = function() {
             if (xobj.readyState == 4 && xobj.status == "200") {
-                // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
                 callback(xobj.responseText);
             }
         };
@@ -693,6 +554,36 @@ function main() {
     }
 
     function createText(_text, x, y, z) {
+        var textGeo = new THREE.TextGeometry(_text, {
+            size: 200,
+            height: 1,
+            curveSegments: 12,
+
+            font: "helvetiker",
+            weight: "bold",
+            style: "normal",
+
+            bevelThickness: 2,
+            bevelSize: 5,
+            bevelEnabled: false
+        });
+
+        textGeo.computeBoundingBox();
+        var centerOffset = -0.5 * (textGeo.boundingBox.max.x - textGeo.boundingBox.min.x);
+
+        var textMesh = new THREE.Mesh(textGeo, text_mtl);
+        textMesh.castShadow = false;
+        textMesh.receiveShadow = false;
+
+        textMesh.position.set(centerOffset + x, y, z);
+
+        scene.add(textMesh);
+        textMesh.parent = camera;
+        textMesh.lookAt(camera);
+        return textMesh;
+    }
+
+    function createTextAlt(_text, x, y, z) {
         var loader = new THREE.FontLoader();
 
         loader.load("./fonts/helvetiker_bold.typeface.json", function (font) {
@@ -740,7 +631,6 @@ function main() {
     }
 
     function getLoopFrame(_frame) {
-        //return ((loopCounter * (frames.length - 1)) + (_frame + subsFrameOffset)) * frameInterval;
         return ((layers[getLongestLayer()].loopCounter * (layers[getLongestLayer()].frames.length - 1)) + (_frame + subsFrameOffset)) * frameInterval;
     }
 
@@ -805,7 +695,6 @@ function main() {
             for (var i=0; i<layers[h].frames.length; i++) {
                 strokeCount += layers[h].frames[i].length;
                 for (var j=0; j<layers[h].frames[i].length; j++) {
-                    //pointCount += frames[i][j].geometry.attributes.position.count;
                     for (var l=0; l<layers[h].frames[i][j].geometry.attributes.position.array.length; l += 6) {//l += 2) {
                         pointCount++;
                     }
@@ -926,10 +815,9 @@ function main() {
 
     // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
-    //var dropZone = document.getElementById('dropZone');
     var dropZone = document.getElementsByTagName("body")[0];
 
-    // Optional.   Show the copy icon when dragging over.  Seems to only work for chrome.
+    // Show the copy icon when dragging over.  Seems to only work for chrome.
     dropZone.addEventListener('dragover', function(e) {
         e.stopPropagation();
         e.preventDefault();
@@ -943,89 +831,19 @@ function main() {
         var files = e.dataTransfer.files; // Array of all files
         for (var i=0, file; file=files[i]; i++) {
             var reader = new FileReader();
-            //if (file.type.match(/image.*/)) {
-                //reader.onload = function(e2) { // finished reading file data.
-                    //var img = document.createElement('img');
-                    //img.src= e2.target.result;
-                    //document.body.appendChild(img);
-                //}
-                //reader.readAsDataURL(file); // start reading the file data.
-            //} else {
             reader.onload = function(e2) {
-                //console.log(e2.target.result);
                 pauseAnimation = true;
                 clearFrame();
-                /*
-                strokeX = [];
-                strokeY = [];
-                strokeZ = [];
-                frameX = [];
-                frameY = [];
-                frameZ = [];
-                strokeColors = [];
-                frameColors = [];
-                frames = [];
-                palette = [];
-                counter = 0;
-                loopCounter = 0;
-                */
                 subsCounter = 0;
                 layers = [];
                 jsonToGp(JSON.parse(e2.target.result).grease_pencil[0]);
                 pauseAnimation = false;
             }
             reader.readAsText(file, 'UTF-8');
-            //}   
         }   
     });
 
     // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
-/*
-def searchMtl(color=None, name="crv"):
-returns = []
-if not color:
-    color = getActiveColor().color
-curves = matchName(name)
-for curve in curves:
-    if (compareTuple(curve.data.materials[0].diffuse_color, color)):
-        returns.append(curve)
-#print ("found: " + str(returns))
-return returns
-
-def changeMtl(color=(1,1,0), searchColor=None, name="crv"):
-    if not searchColor:
-        searchColor = getActiveColor().color       
-    curves = searchMtl(color=searchColor, name=name)
-    print("changed: " + str(curves))
-    for curve in curves:
-        curve.data.materials[0].diffuse_color = color
-
-def consolidateMtl(name="crv"):
-    palette = getActivePalette()
-    for color in palette.colors:
-        curves = searchMtl(color=color.color, name=name)
-        for i in range(1, len(curves)):
-            curves[i].data.materials[0] = curves[0].data.materials[0]    
-
-def createColor(_color):
-    frame = getActiveFrame()
-    palette = getActivePalette()
-    matchingColorIndex = -1
-    places = 7
-    for i in range(0, len(palette.colors)):
-        if (roundVal(_color[0], places) == roundVal(palette.colors[i].color.r, places) and roundVal(_color[1], places) == roundVal(palette.colors[i].color.g, places) and roundVal(_color[2], places) == roundVal(palette.colors[i].color.b, places)):
-            matchingColorIndex = i
-    #~
-    if (matchingColorIndex == -1):
-        color = palette.colors.new()
-        color.color = _color
-    else:
-        palette.colors.active = palette.colors[matchingColorIndex]
-        color = palette.colors[matchingColorIndex]
-    #~        
-    print("Active color is: " + "\"" + palette.colors.active.name + "\" " + str(palette.colors.active.color))
-    return color
-*/
 
     function createMtl(color, opacity, lineWidth) {
         var mtl = new THREE.MeshLineMaterial({
@@ -1053,7 +871,6 @@ def createColor(_color):
         var mtlIndex = -1;
         for (var i=0; i<palette.length; i++) {
             var paletteColor = [palette[i].uniforms.color.value.r, palette[i].uniforms.color.value.g, palette[i].uniforms.color.value.b];
-            //console.log(paletteColor);
             if (compareColor(color, paletteColor, 5)) {
                 mtlIndex = i;
                 console.log("Found palette match at index " + i);
@@ -1072,7 +889,6 @@ def createColor(_color):
     }
 
     function compareColor(c1, c2, numPlaces) {
-        //console.log(c1 + " " + c2);
         var r1 = roundVal(c1[0], numPlaces);
         var r2 = roundVal(c2[0], numPlaces);
         var g1 = roundVal(c1[1], numPlaces);

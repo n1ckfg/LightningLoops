@@ -8,7 +8,7 @@ function main() {
     viveMode = false;
     
     soundPath = "../sounds/avlt.ogg";
-    animationPath = "../animations/jellyfish.json";
+    animationPath = "../animations/jellyfish_onelayer.json";
     brushPath = "../images/brush_vive.png";
 
     player = new Tone.Player({

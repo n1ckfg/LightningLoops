@@ -15,7 +15,7 @@ var io = require("socket.io")(http, {
 
 // ~ ~ ~ ~
 	
-app.use(express.static("public"));
+app.use(express.static("public")); 
 
 app.get("/", function(req, res) {
 	res.sendFile(__dirname + "/public/index.html");
@@ -37,7 +37,12 @@ io.on('connection', function(socket){
     });
     //~
     socket.on("stroke", function(data) { 
-    	console.log(data);
+    	//console.log(data);
+    });
+    //~
+    socket.on("frame", function(data) {
+        console.log(data);
+        io.emit("frame", { my: "response" });
     });
 });
 

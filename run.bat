@@ -1,6 +1,6 @@
 @echo off
 
 cd %cd%
-node app.js
+nodemon app.js
 
 @pause

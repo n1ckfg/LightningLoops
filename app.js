@@ -27,22 +27,67 @@ http.listen(port, function() {
 
 // ~ ~ ~ ~
 
+class Frame {
+	constructor() {
+		this.strokes = [];
+	}
+}
+
+class Layer {
+    constructor() {
+        this.frames = [];
+    }
+
+    getFrame(index) {
+    	if (!this.frames[index]) {
+    		//console.log("Client asked for frame " + index +", but it's missing.");
+    		for (var i=0; i<index+1; i++) {
+    			if (!this.frames[i]) {
+    				var frame = new Frame();
+    				this.frames.push(frame); 
+    				//console.log("> Created frame " + i + ".");
+    			}
+    		}
+    	}
+        //console.log("Retrieving frame " + index + " of " + this.frames.length + ".");
+        return this.frames[index];
+    }
+
+    addStroke(data) {
+    	var index = data["index"];
+    	if (index != NaN) {
+    		this.getFrame(index); 
+    		this.frames[index].strokes.push(data); 
+    	}
+    }
+}
+
+var layer = new Layer();
+
+// ~ ~ ~ ~
+
 // https://socket.io/get-started/chat/
 
 io.on('connection', function(socket){
-    console.log('a user connected');
+    console.log('A user connected.');
     //~
     socket.on('disconnect', function(){
-        console.log('user disconnected');
+        console.log('A user disconnected.');
     });
     //~
-    socket.on("stroke", function(data) { 
+    socket.on("clientStrokeToServer", function(data) { 
     	//console.log(data);
+    	layer.addStroke(data);
     });
     //~
-    socket.on("frame", function(data) {
-        console.log(data);
-        io.emit("frame", { my: "response" });
+    socket.on("clientRequestFrame", function(data) {
+        //console.log(data["num"]);
+        var index = data["num"];
+        if (index != NaN) {
+        	var frame = layer.getFrame(index);
+        	if (frame && frame.strokes.length > 0) {
+        		io.emit("newFrameFromServer", frame.strokes);
+        	}
+    	}
     });
 });
-

@@ -48,6 +48,23 @@ var text_mtl = new THREE.MeshBasicMaterial({
 var latkDebug = false;
 var socket = io();
 
+/*
+JSZipUtils.getBinaryContent(animationPath, function(err, data) {
+    if (err) {
+        throw err; // or handle err
+    }
+
+    var zip = new JSZip();
+    zip.loadAsync(data).then(function () {
+        var fileNameOrig = animationPath.split('\\').pop().split('/').pop();
+        var fileName = fileNameOrig.split('.')[0] + ".json";
+        zip.file(fileName).async("string").then(function(response) {
+            jsonToGp(JSON.parse(response).grease_pencil[0]);
+        });
+    });
+});
+*/
+
 socket.on("newFrameFromServer", function(data) {
 	console.log("Receiving new frame " + data[0]["index"] + " with " + data.length + " strokes.");
     var newStrokes = [];

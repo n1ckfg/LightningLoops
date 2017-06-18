@@ -49,37 +49,36 @@ var latkDebug = false;
 var socket = io();
 
 socket.on("newFrameFromServer", function(data) {
+	console.log("Receiving new frame " + data[0]["index"] + " with " + data.length + " strokes.");
+    var newStrokes = [];
+
     for (var i=0; i<data.length; i++) {
-        var index = data[i]["index"];
-        if (index != NaN) {
-            var strokes = [];
-            for (var j=0; j<data[i].length; j++) {
-                var geometry = new THREE.Geometry();
-                geometry.dynamic = true;
+        var geometry = new THREE.Geometry();
+        geometry.dynamic = true;
 
-                var origVerts = [];
+        var origVerts = [];
 
-                for (var l=0; l<data[i]["points"].length; l++) {
-                    origVerts.push(new THREE.Vector3(layer.frameX[i][j][l], layer.frameY[i][j][l], layer.frameZ[i][j][l]));
+        for (var j=0; j<data[i]["points"].length; j++) {
+        	var co = data[i]["points"][j]["co"];
+            origVerts.push(new THREE.Vector3(co[0], co[1], co[2]));
 
-                    if (l === 0 || !useMinDistance || (useMinDistance && origVerts[l].distanceTo(origVerts[l-1]) > minDistance)) {
-                        geometry.vertices.push(origVerts[l]);
-                    }
-                }
-
-                geometry.verticesNeedUpdate = true;
-                
-                var line = new THREE.MeshLine();
-                line.setGeometry(geometry);
-                var meshLine = new THREE.Mesh(line.geometry, createUniqueMtl(defaultColor));//[layer.frameColors[i][j][0], layer.frameColors[i][j][1], layer.frameColors[i][j][2]]));
-                //rotateAroundWorldAxis(meshLine, new THREE.Vector3(1,0,0), laRot.y * Math.PI/180); 
-                //rotateAroundWorldAxis(meshLine, new THREE.Vector3(0,1,0), laRot.x * Math.PI/180); 
-                strokes.push(meshLine);//line);
-            }
-
-            layers[layers.length-1].frames[index] = strokes;
+            //if (j === 0 || !useMinDistance || (useMinDistance && origVerts[j].distanceTo(origVerts[j-1]) > minDistance)) {
+            geometry.vertices.push(origVerts[j]);
+            //}
         }
-    }
+
+        console.log("Created new geometry with " + geometry.vertices.length + " vertices.");
+
+        geometry.verticesNeedUpdate = true;
+
+        var line = new THREE.MeshLine();
+        line.setGeometry(geometry);
+        var meshLine = new THREE.Mesh(line.geometry, createUniqueMtl([0.667, 0.667, 1]));
+        newStrokes.push(meshLine);//line);
+	}
+
+    var index = data[0]["index"];
+  	if (newStrokes.length > 0 && layers[0].frames) layers[0].frames[index] = newStrokes;
 });
 
 
@@ -530,24 +529,23 @@ function tempStrokeToJson() {
         var point = new THREE.Vector3(tempStroke.geometry.attributes.position.array[j], tempStroke.geometry.attributes.position.array[j+1], tempStroke.geometry.attributes.position.array[j+2]);
 
         //~
-        //var point = frames[currentFrame][i].geometry.attributes.position[j]; //layer.frames[currentFrame].strokes[i].points[j].co 
-        if (useScaleAndOffset) {
-            x = (point.x * globalScale.x) + globalOffset.x;
-            y = (point.y * globalScale.y) + globalOffset.y;
-            z = (point.z * globalScale.z) + globalOffset.z;
-        } else {
+        //if (useScaleAndOffset) {
+            //x = (point.x * globalScale.x) + globalOffset.x;
+            //y = (point.y * globalScale.y) + globalOffset.y;
+            //z = (point.z * globalScale.z) + globalOffset.z;
+        //} else {
             x = point.x;
             y = point.y;
             z = point.z;
             //console.log(x + " " + y + " " + z);
-        }
+        //}
         //~
         if (x!=NaN && y!=NaN && z!=NaN) {
-            if (roundValues) {
-                sb += "        {\"co\": [" + roundVal(x, numPlaces) + ", " + roundVal(y, numPlaces) + ", " + roundVal(z, numPlaces) + "]";
-            } else {
-                sb += "        {\"co\": [" + x + ", " + z + ", " + y + "]";                  
-            }
+            //if (roundValues) {
+                //sb += "        {\"co\": [" + roundVal(x, numPlaces) + ", " + roundVal(y, numPlaces) + ", " + roundVal(z, numPlaces) + "]";
+            //} else {
+                sb += "        {\"co\": [" + x + ", " + y + ", " + z + "]";                  
+            //}
             //~
             if (j >= tempStroke.geometry.attributes.position.array.length - 6) {  //layer.frames[currentFrame].strokes[i].points.length - 1) { 
                 sb += "}" + "\n"

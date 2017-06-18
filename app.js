@@ -45,7 +45,7 @@ class Layer {
     			if (!this.frames[i]) {
     				var frame = new Frame();
     				this.frames.push(frame); 
-    				//console.log("> Created frame " + i + ".");
+    				//console.log("* Created frame " + i + ".");
     			}
     		}
     	}
@@ -58,6 +58,7 @@ class Layer {
     	if (index != NaN) {
     		this.getFrame(index); 
     		this.frames[index].strokes.push(data); 
+            console.log("<<< Received a stroke with color (" + data["color"] + ") and " + data["points"].length + " points.");
     	}
     }
 }
@@ -87,6 +88,7 @@ io.on('connection', function(socket){
         	var frame = layer.getFrame(index);
         	if (frame && frame.strokes.length > 0) {
         		io.emit("newFrameFromServer", frame.strokes);
+                console.log("> > > Sending a new frame " + frame.strokes[0]["index"] + " with " + frame.strokes.length + " strokes.");
         	}
     	}
     });

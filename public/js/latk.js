@@ -812,10 +812,24 @@ function onMouseMove(event) {
     }
 }
 
+function onTouchStart(event) {                
+    updateMousePos(event);
+    beginStroke(mouse3D.x, mouse3D.y, mouse3D.z);
+}
+
+function onTouchEnd(event) {
+    endStroke();
+}
+
+function onTouchMove(event) {
+    if (isDrawing) {
+        updateMousePos(event);
+        updateStroke(mouse3D.x, mouse3D.y, mouse3D.z);
+    }
+}
+
 function updateMousePos(event) {
-    mouse3D = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1,   //x
-                                    -( event.clientY / window.innerHeight ) * 2 + 1,  //y
-                                    0.5 );                                            //z
+    mouse3D = new THREE.Vector3((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
     mouse3D.unproject(camera);   
     if (latkDebug) console.log(mouse3D);
 }
@@ -977,9 +991,15 @@ function latkStart() {
 
     // ~ ~ ~ ~ ~ ~ 
     document.addEventListener("visibilitychange", visibilityChanged);
+
     document.addEventListener("mousedown", onMouseDown);
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("mouseup", onMouseUp);
+
+    document.addEventListener("touchstart", onTouchStart);
+    document.addEventListener("touchmove", onTouchMove);
+    doucument.addEventListener("touchend", onTouchEnd);
+
     dropZone = document.getElementsByTagName("body")[0];
     dropZone.addEventListener('dragover', onDragOver);
     dropZone.addEventListener('drop', onDrop);

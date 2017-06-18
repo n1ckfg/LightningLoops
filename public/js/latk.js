@@ -998,7 +998,7 @@ function latkStart() {
 
     document.addEventListener("touchstart", onTouchStart);
     document.addEventListener("touchmove", onTouchMove);
-    doucument.addEventListener("touchend", onTouchEnd);
+    document.addEventListener("touchend", onTouchEnd);
 
     dropZone = document.getElementsByTagName("body")[0];
     dropZone.addEventListener('dragover', onDragOver);

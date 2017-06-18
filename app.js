@@ -1,6 +1,5 @@
 "use strict";
 
-var latk = require("./public/js/latk-io.js");
 var express = require("express");
 var app = express();
 var http = require("http").Server(app);

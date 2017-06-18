@@ -8,9 +8,15 @@ var player; // Tone.js
 var viveMode = false;
 var hidden = false;
 var lightningArtistData;
+
 var laScale = 10;
 var laOffset = new THREE.Vector3(0, 0, 0);//100, -20, 150);//95, -22, 50);//(100, -20, 150);
 var laRot = new THREE.Vector3(0, 0, 0);//145, 10, 0);
+
+var useScaleAndOffset = true;
+var globalScale = new THREE.Vector3(0.01, 0.01, 0.01);
+var globalOffset = new THREE.Vector3(0, 0, 0);
+
 var subsCounter = 0;
 var subsFrameOffset = 44;
 var fps = 12.0;
@@ -42,7 +48,7 @@ var text_mtl = new THREE.MeshBasicMaterial({
 var latkDebug = false;
 var socket = io();
 
-socket.on("createStroke", function (data) {
+socket.on("frame", function (data) {
     console.log(data);
 });
 
@@ -481,69 +487,48 @@ function roundVal(value, decimals) {
 } 
 
 function tempStrokeToJson() {
-    var obj = { my: tempStroke.geometry.attributes.position.array[0] };
-/*
-           sb += "                            \"strokes\": [" + "\n";
-            if (layer.frames[currentFrame].length > 0) {
-                sb += "                                {" + "\n"; // one stroke
+    var color = defaultColor;
+    var sb = "{\n";
+    sb += "    \"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "]," + "\n";
+    sb += "    \"points\": [" + "\n";
+    for (var j=0; j<tempStroke.geometry.attributes.position.array.length; j += 6 ) { //layer.frames[currentFrame].strokes[i].points.length) { 
+        var x = 0.0;
+        var y = 0.0;
+        var z = 0.0;
+
+        var point = new THREE.Vector3(tempStroke.geometry.attributes.position.array[j], tempStroke.geometry.attributes.position.array[j+1], tempStroke.geometry.attributes.position.array[j+2]);
+
+        //~
+        //var point = frames[currentFrame][i].geometry.attributes.position[j]; //layer.frames[currentFrame].strokes[i].points[j].co 
+        if (useScaleAndOffset) {
+            x = (point.x * globalScale.x) + globalOffset.x;
+            y = (point.y * globalScale.y) + globalOffset.y;
+            z = (point.z * globalScale.z) + globalOffset.z;
+        } else {
+            x = point.x;
+            y = point.y;
+            z = point.z;
+            //console.log(x + " " + y + " " + z);
+        }
+        //~
+        if (x!=NaN && y!=NaN && z!=NaN) {
+            if (roundValues) {
+                sb += "        {\"co\": [" + roundVal(x, numPlaces) + ", " + roundVal(y, numPlaces) + ", " + roundVal(z, numPlaces) + "]";
             } else {
-                sb += "                            ]" + "\n"; // no strokes
+                sb += "        {\"co\": [" + x + ", " + z + ", " + y + "]";                  
             }
-            for (var i=0; i<layer.frames[currentFrame].length; i++) { //layer.frames[currentFrame].strokes.length) { 
-                var color = defaultColor;
-                try {
-                   //color = frames[currentFrame].strokes[i].color.color; //layer.frames[currentFrame].strokes[i].color.color 
-                   color = [layer.frameColors[currentFrame][i][0], layer.frameColors[currentFrame][i][1], layer.frameColors[currentFrame][i][2]];
-                } catch (e) {
-                    //
-                }
-                sb += "                                    \"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "]," + "\n";
-                sb += "                                    \"points\": [" + "\n";
-                for (var j=0; j<layer.frames[currentFrame][i].geometry.attributes.position.array.length; j += 6 ) { //layer.frames[currentFrame].strokes[i].points.length) { 
-                    var x = 0.0;
-                    var y = 0.0;
-                    var z = 0.0;
+            //~
+            if (j >= tempStroke.geometry.attributes.position.array.length - 6) {  //layer.frames[currentFrame].strokes[i].points.length - 1) { 
+                sb += "}" + "\n"
+            } else {
+                sb += "}," + "\n";
+            }
+        }
+    }
+    sb += "    ]" + "\n";
+    sb += "}" + "\n";
 
-                    var point = new THREE.Vector3(layer.frames[currentFrame][i].geometry.attributes.position.array[j], layer.frames[currentFrame][i].geometry.attributes.position.array[j+1], layer.frames[currentFrame][i].geometry.attributes.position.array[j+2]);
-
-                    //~
-                    //var point = frames[currentFrame][i].geometry.attributes.position[j]; //layer.frames[currentFrame].strokes[i].points[j].co 
-                    if (useScaleAndOffset) {
-                        x = (point.x * globalScale.x) + globalOffset.x
-                        y = (point.y * globalScale.y) + globalOffset.y
-                        z = (point.z * globalScale.z) + globalOffset.z
-                    } else {
-                        x = point.x;
-                        y = point.y;
-                        z = point.z;
-                        //console.log(x + " " + y + " " + z);
-                    }
-                    //~
-                    if (roundValues) {
-                        sb += "                                        {\"co\": [" + roundVal(x, numPlaces) + ", " + roundVal(y, numPlaces) + ", " + roundVal(z, numPlaces) + "]";
-                    } else {
-                        sb += "                                        {\"co\": [" + x + ", " + z + ", " + y + "]";                  
-                    }
-                    //~
-                    if (j >= layer.frames[currentFrame][i].geometry.attributes.position.array.length - 6) {  //layer.frames[currentFrame].strokes[i].points.length - 1) { 
-                        sb += "}" + "\n";
-                        sb += "                                    ]" + "\n";
-                        if (i == layer.frames[currentFrame].length - 1) { //layer.frames[currentFrame].strokes.length - 1) { 
-                            sb += "                                }" + "\n"; // last stroke for this frame
-                        } else {
-                            sb += "                                }," + "\n"; // end stroke
-                            sb += "                                {" + "\n"; // begin stroke
-                        }
-                    } else {
-                        sb += "}," + "\n";
-                    }
-                }
-                if (i == layer.frames[currentFrame].length - 1) { //layer.frames[currentFrame].strokes.length - 1) { 
-                    sb += "                            ]" + "\n";
-                }
-
-*/    
-return obj;
+    return JSON.parse(sb);
 }
 
 function writeJson() {
@@ -573,9 +558,9 @@ function writeJson() {
         console.log("***********************");
     }
 
-    var useScaleAndOffset = true;
-    var globalScale = new THREE.Vector3(0.01, 0.01, 0.01);
-    var globalOffset = new THREE.Vector3(0, 0, 0);
+    //var useScaleAndOffset = true;
+    //var globalScale = new THREE.Vector3(0.01, 0.01, 0.01);
+    //var globalOffset = new THREE.Vector3(0, 0, 0);
 
     var sg = "{" + "\n";
     sg += "    \"creator\": \"webvr\"," + "\n";
@@ -736,7 +721,7 @@ function createUniqueMtl(color) {
         var paletteColor = [palette[i].uniforms.color.value.r, palette[i].uniforms.color.value.g, palette[i].uniforms.color.value.b];
         if (compareColor(color, paletteColor, 5)) {
             mtlIndex = i;
-            console.log("Found palette match at index " + i);
+            if (latkDebug) console.log("Found palette match at index " + i);
             break;
         }
     }
@@ -744,9 +729,9 @@ function createUniqueMtl(color) {
         var mtl = createMtl(color, defaultOpacity, defaultLineWidth);
         palette.push(mtl);
         return palette[palette.length-1];
-        console.log("Creating new color, " + palette.length + " total colors");
+        if (latkDebug) console.log("Creating new color, " + palette.length + " total colors");
     } else {
-        console.log("Reusing color " + mtlIndex + ", " + palette.length + " total colors");
+        if (latkDebug) console.log("Reusing color " + mtlIndex + ", " + palette.length + " total colors");
         return palette[mtlIndex];
     }
 }
@@ -915,6 +900,7 @@ function refreshFrame(index) {
     for (var i=0; i<layers[index].frames[layers[index].counter].length; i++) {
         scene.add(layers[index].frames[layers[index].counter][i]);
     }
+    socket.emit("frame", { num: layers[index].counter });
 }
 
 function refreshFrameLast() {  // TODO draw on new layer

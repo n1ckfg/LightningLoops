@@ -318,6 +318,73 @@ function updatePlayer() {
         if (camera.position.y < floor) camera.position.y = floor;
     }
 }
+*/
+
+function updateControllers() {
+    if (controller1 !== undefined) {
+        var pos = controller1.getPosition();
+        if (debugPos) {
+            if (latkDebug) console.log(
+            "ctl1 pos: " + pos.x + ", " + pos.y + ", " + pos.z + "\n" +
+            "ctl1 pad: "  + controller1.getButtonState("thumbpad") + "\n" +
+            "ctl1 trigger: "  + controller1.getButtonState("trigger") + "\n" +
+            "ctl1 grip: "  + controller1.getButtonState("grips") + "\n" +
+            "ctl1 menu: "  + controller1.getButtonState("menu")
+            );
+        }
+        // ~ ~ ~
+        //draw
+        if (controller1.getButtonState("trigger") && !isDrawing) {
+            beginStroke(pos.x, pos.y, pos.z);
+        } else if (controller1.getButtonState("trigger") && isDrawing) {
+            updateStroke(pos.x, pos.y, pos.z);
+        } else if (!controller1.getButtonState("trigger") && isDrawing) {
+            endStroke();
+        }
+        
+        //ff
+        if (controller1.getButtonState("grips") && !c1b2_blocking) {
+            isPlaying = false;
+            frameForward();//frameChange(1);
+            c1b2_blocking = true;
+            if (latkDebug) console.log("frame forward " + layers[layers.length-1].counter); // TODO draw on new layer
+        } else if (!controller1.getButtonState("grips") && c1b2_blocking) {
+            c1b2_blocking = false;
+        }
+    }
+
+    if (controller2 !== undefined) {
+        var pos = controller2.getPosition();
+        if (debugPos) {
+            if (latkDebug) console.log(
+            "ctl2 pos: " + pos.x + ", " + pos.y + ", " + pos.z + "\n" +
+            "ctl2 pad: "  + controller2.getButtonState("thumbpad") + "\n" +
+            "ctl2 trigger: "  + controller2.getButtonState("trigger") + "\n" +
+            "ctl2 grip: "  + controller2.getButtonState("grips") + "\n" +
+            "ctl2 menu: "  + controller2.getButtonState("menu")
+            );
+        }
+        // ~ ~ ~
+        //play/pause
+        if (controller2.getButtonState("thumbpad") && !c2b0_blocking) {
+            isPlaying = !isPlaying;
+            c2b0_blocking = true;
+            if (latkDebug) console.log("playing: " + isPlaying);
+        } else if (!controller2.getButtonState("thumbpad") && c2b0_blocking) {
+            c2b0_blocking = false;
+        }
+
+        //rew
+        if (controller2.getButtonState("grips") && !c2b2_blocking) {
+            isPlaying = false;
+            frameBack();//frameChange(-1);
+            c2b2_blocking = true;
+            if (latkDebug) console.log("frame back " + layers[layers.length-1].counter); // TODO draw on new layer
+        } else if (!controller2.getButtonState("grips") && c2b2_blocking) {
+            c2b2_blocking = false;
+        }
+    }    
+}
 
 function spriteAnimator(texture, tilesHoriz, tilesVert, numTiles, tileDispDuration) {          
     this.tilesHorizontal = tilesHoriz;
@@ -355,4 +422,3 @@ function updateSprites() {
     }
 }
 
-*/

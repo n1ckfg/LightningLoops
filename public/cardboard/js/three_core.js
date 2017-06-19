@@ -94,6 +94,7 @@ function updateComposer(_timestamp) {
 }
 
 function setupControls() {
+    /*
     window.addEventListener("touchstart", function(event) {
         isWalking = true;
     });
@@ -101,7 +102,8 @@ function setupControls() {
     window.addEventListener("touchend", function(event) {
         isWalking = false;
     })
-
+    */
+    
     window.addEventListener("keydown", function(event) {
         if (getKeyCode() == 'w') isWalking = true;
         if (getKeyCode() == 'o') armSaveJson = true;

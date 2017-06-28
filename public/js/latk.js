@@ -134,6 +134,7 @@ var minDistance = 0.001;
 var useMinDistance = false;
 var roundValues = true;
 var numPlaces = 7;
+var altKeyBlock = false;
 
 var useAudioSync = false;
 
@@ -799,7 +800,7 @@ function compareColor(c1, c2, numPlaces) {
 
 function onMouseDown(event) {                
     updateMousePos(event);
-    beginStroke(mouse3D.x, mouse3D.y, mouse3D.z);
+    if (!altKeyBlock) beginStroke(mouse3D.x, mouse3D.y, mouse3D.z);
 
     var last = layers.length - 1;
     if (drawWhilePlaying && isPlaying && layers[last].frames.Count > 1 && layers[last].frames[layers[last].previousFrame].brushStrokeList.Count > 0) {
@@ -873,16 +874,18 @@ function updateStroke(x, y, z) {
 }
 
 function endStroke() {  // TODO draw on new layer
-    isDrawing = false;
-    var last = layers.length-1;
-    layers[last].frames[layers[last].counter].push(tempStroke);
-    //~
-    socket.emit("clientStrokeToServer", tempStrokeToJson());
-    //~
-    clearTempStroke();
-    refreshFrameLast();
-    if (latkDebug) console.log("End " + layers[last].frames[layers[last].counter][layers[last].frames[layers[last].counter].length-1].name + ".");
-    strokeCounter++;
+    if (isDrawing) {
+    	isDrawing = false;
+	    var last = layers.length-1;
+	    layers[last].frames[layers[last].counter].push(tempStroke);
+	    //~
+	    socket.emit("clientStrokeToServer", tempStrokeToJson());
+	    //~
+	    clearTempStroke();
+	    refreshFrameLast();
+	    if (latkDebug) console.log("End " + layers[last].frames[layers[last].counter][layers[last].frames[layers[last].counter].length-1].name + ".");
+	    strokeCounter++;
+	}
 }
 
 function addTempPoints(x, y, z) {
@@ -1017,6 +1020,19 @@ function latkStart() {
     document.addEventListener("touchstart", onTouchStart);
     document.addEventListener("touchmove", onTouchMove);
     document.addEventListener("touchend", onTouchEnd);
+
+    document.addEventListener("keydown", function(event) {
+    	if (event.altKey && !altKeyBlock) {
+    		altKeyBlock = true;
+    		console.log(altKeyBlock);
+    	}
+    });
+    document.addEventListener("keyup", function(event) {
+    	if (altKeyBlock) {
+    		altKeyBlock = false;
+    		console.log(altKeyBlock);
+    	}
+    });
 
     dropZone = document.getElementsByTagName("body")[0];
     dropZone.addEventListener('dragover', onDragOver);

@@ -65,14 +65,14 @@ function init() {
         new THREE.BoxGeometry(6, 6, 6, 10, 10, 10),
         new THREE.MeshBasicMaterial({ color: 0x202020, wireframe: true })
     );
-    room.position.y = 3;
+    room.position.y = 0;
     scene.add(room);
 
-    scene.add(new THREE.HemisphereLight(0x404020, 0x202040, 0.5));
+    //scene.add(new THREE.HemisphereLight(0x404020, 0x202040, 0.5));
 
-    var light = new THREE.DirectionalLight(0xffffff);
-    light.position.set(1, 1, 1).normalize();
-    scene.add(light);
+    //var light = new THREE.DirectionalLight(0xffffff);
+    //light.position.set(1, 1, 1).normalize();
+    //scene.add(light);
 
     controls = new THREE.VRControls(camera);
     controls.standing = true;
@@ -95,7 +95,7 @@ function init() {
     loader.load( 'vr_controller_vive_1_5.obj', function ( object ) {
 
         var loader = new THREE.TextureLoader();
-        loader.setPath( 'models/vive-controller/' );
+        loader.setPath( './models/vive-controller/' );
 
         var controller = object.children[ 0 ];
         controller.material.map = loader.load( 'onepointfive_texture.png' );

@@ -9,6 +9,7 @@ var viveMode = false;
 var hidden = false;
 var drawWhilePlaying = true;
 var lightningArtistData;
+var clicked = false;
 
 var laScale = 10;
 var laOffset = new THREE.Vector3(0, 0, 0);//100, -20, 150);//95, -22, 50);//(100, -20, 150);
@@ -67,7 +68,7 @@ JSZipUtils.getBinaryContent(animationPath, function(err, data) {
 */
 
 socket.on("newFrameFromServer", function(data) {
-	console.log("Receiving new frame " + data[0]["index"] + " with " + data.length + " strokes.");
+	if (latkDebug) console.log("Receiving new frame " + data[0]["index"] + " with " + data.length + " strokes.");
     var newStrokes = [];
 
     for (var i=0; i<data.length; i++) {
@@ -85,7 +86,7 @@ socket.on("newFrameFromServer", function(data) {
             //}
         }
 
-        console.log("Created new geometry with " + geometry.vertices.length + " vertices.");
+        if (latkDebug) console.log("Created new geometry with " + geometry.vertices.length + " vertices.");
 
         geometry.verticesNeedUpdate = true;
 
@@ -115,6 +116,7 @@ class Layer {
         this.frames = [];
         this.counter = 0;
         this.loopCounter = 0;
+        this.previousFrame = 0;
     }
 }
 
@@ -346,6 +348,62 @@ function animate(timestamp) {
 
             frameMain();
         }
+
+        if (isDrawing) {
+            var last = layers.length - 1;
+            var drawTrailLength = 4;
+
+            if (drawWhilePlaying && layers[last].frames.length > 1 && layers[last].frames[layers[last].previousFrame].length > 0) {
+                var lastStroke = layers[last].frames[layers[last].previousFrame][layers[last].frames[layers[last].previousFrame].length - 1];
+                var points = getPoints(lastStroke);
+                clearTempStroke();
+                for (var pts = parseInt(points.length / drawTrailLength); pts < points.length - 1; pts++) {
+                    //layerList[currentLayer].frameList[layerList[currentLayer].currentFrame].brushStrokeList[layerList[currentLayer].frameList[layerList[currentLayer].currentFrame].brushStrokeList.Count - 1].points.Add(lastStroke.points[pts]);
+                    createTempStroke(points[pts].x, points[pts].y, points[pts].z);
+                }
+                layers[last].frames[layers[last].counter].push(tempStroke);
+                //~
+                socket.emit("clientStrokeToServer", tempStrokeToJson());
+                //~
+                refreshFrameLast();
+                strokeCounter++;
+                                clearTempStroke();
+
+                beginStroke(mouse3D.x, mouse3D.y, mouse3D.z);
+            }
+        }
+
+        /*
+        if (isDrawing) {
+            var last = layers.length - 1;
+            var drawTrailLength = 4;
+
+            if (drawWhilePlaying && layers[last].frames.length > 1 && layers[last].frames[layers[last].previousFrame].length > 0) {
+                var lastStroke = layers[last].frames[layers[last].previousFrame][layers[last].frames[layers[last].previousFrame].length - 1];
+                var points = getPoints(lastStroke);
+                console.log(points);
+                
+                for (var pts = parseInt(points.length / drawTrailLength); pts < points.length - 1; pts++) {
+                    //layerList[currentLayer].frameList[layerList[currentLayer].currentFrame].brushStrokeList[layerList[currentLayer].frameList[layerList[currentLayer].currentFrame].brushStrokeList.Count - 1].points.Add(lastStroke.points[pts]);
+                    updateStroke(points[pts].x, points[pts].y, points[pts].z);
+                }
+                    endStroke();
+                    beginStroke(mouse3D.x, mouse3D.y, mouse3D.z);
+            }
+        }
+        */
+
+        /*
+        if (clicked && !isDrawing) {
+            beginStroke();
+            if (drawWhilePlaying && isPlaying && layerList[currentLayer].frameList.Count > 1 && layerList[currentLayer].frameList[layerList[currentLayer].previousFrame].brushStrokeList.Count > 0) {
+                BrushStroke lastStroke = layerList[currentLayer].frameList[layerList[currentLayer].previousFrame].brushStrokeList[layerList[currentLayer].frameList[layerList[currentLayer].previousFrame].brushStrokeList.Count - 1];
+                for (int pts = lastStroke.points.Count / drawTrailLength; pts < lastStroke.points.Count - 1; pts++) {
+                    layerList[currentLayer].frameList[layerList[currentLayer].currentFrame].brushStrokeList[layerList[currentLayer].frameList[layerList[currentLayer].currentFrame].brushStrokeList.Count - 1].points.Add(lastStroke.points[pts]);
+                }
+            }
+        }
+        */
     }
 
     if (useAudioSync && !hidden) {
@@ -799,20 +857,14 @@ function compareColor(c1, c2, numPlaces) {
     }
 }
 
-function onMouseDown(event) {                
+function onMouseDown(event) {
+    clicked = true;  
     updateMousePos(event);
     if (!altKeyBlock) beginStroke(mouse3D.x, mouse3D.y, mouse3D.z);
-
-    var last = layers.length - 1;
-    if (drawWhilePlaying && isPlaying && layers[last].frames.Count > 1 && layers[last].frames[layers[last].previousFrame].brushStrokeList.Count > 0) {
-        var lastStroke = layers[last].frames[layers[last].previousFrame].brushStrokeList[layers[last].frames[layers[last].previousFrame].brushStrokeList.Count - 1];
-        for (var pts = lastStroke.points.Count / drawTrailLength; pts < lastStroke.points.Count - 1; pts++) {
-            //layers[last].frames[layers[last].currentFrame].brushStrokeList[layers[last].frames[layers[last].currentFrame].brushStrokeList.Count - 1].points.Add(lastStroke.points[pts]);
-        }
-    }
 }
 
 function onMouseUp(event) {
+    clicked = false;
     endStroke();
 }
 
@@ -875,18 +927,18 @@ function updateStroke(x, y, z) {
 }
 
 function endStroke() {  // TODO draw on new layer
-    if (isDrawing) {
-    	isDrawing = false;
-	    var last = layers.length-1;
-	    layers[last].frames[layers[last].counter].push(tempStroke);
-	    //~
-	    socket.emit("clientStrokeToServer", tempStrokeToJson());
-	    //~
-	    clearTempStroke();
-	    refreshFrameLast();
-	    if (latkDebug) console.log("End " + layers[last].frames[layers[last].counter][layers[last].frames[layers[last].counter].length-1].name + ".");
-	    strokeCounter++;
-	}
+    //if (isDrawing) {
+	isDrawing = false;
+    var last = layers.length-1;
+    layers[last].frames[layers[last].counter].push(tempStroke);
+    //~
+    socket.emit("clientStrokeToServer", tempStrokeToJson());
+    //~
+    clearTempStroke();
+    refreshFrameLast();
+    if (latkDebug) console.log("End " + layers[last].frames[layers[last].counter][layers[last].frames[layers[last].counter].length-1].name + ".");
+    strokeCounter++;
+	//}
 }
 
 function addTempPoints(x, y, z) {
@@ -948,6 +1000,7 @@ function redrawFrame(index) {
 function frameMain() {
     for (var h=0; h<layers.length; h++) {
         redrawFrame(h);
+        layers[h].previousFrame = layers[h].counter;
         layers[h].counter++;
         if (layers[h].counter >= layers[h].frames.length - 1) {
             layers[h].counter = 0;
@@ -981,6 +1034,15 @@ function getLongestLayer() {
     var returns = 0;
     for (var h=0; h<layers.length; h++) {
         if (layers[h].frames.length > returns) returns = h;
+    }
+    return returns;
+}
+
+function getPoints(stroke){
+    var returns = [];
+    for (var i=0; i<stroke.geometry.attributes.position.array.length; i += 6) { 
+        var point = new THREE.Vector3(stroke.geometry.attributes.position.array[i], stroke.geometry.attributes.position.array[i+1], stroke.geometry.attributes.position.array[i+2]);
+        returns.push(point);
     }
     return returns;
 }

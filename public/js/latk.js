@@ -96,7 +96,8 @@ socket.on("newFrameFromServer", function(data) {
 	}
 
     var index = data[0]["index"];
-  	if (newStrokes.length > 0 && layers.length > 0 && layers[0].frames) layers[0].frames[index] = newStrokes;
+    var last = layers.length - 1;
+  	if (newStrokes.length > 0 && layers.length > 0 && layers[last].frames) layers[last].frames[index] = newStrokes;
 });
 
 
@@ -806,7 +807,7 @@ function onMouseDown(event) {
     if (drawWhilePlaying && isPlaying && layers[last].frames.Count > 1 && layers[last].frames[layers[last].previousFrame].brushStrokeList.Count > 0) {
         var lastStroke = layers[last].frames[layers[last].previousFrame].brushStrokeList[layers[last].frames[layers[last].previousFrame].brushStrokeList.Count - 1];
         for (var pts = lastStroke.points.Count / drawTrailLength; pts < lastStroke.points.Count - 1; pts++) {
-            layers[last].frames[layers[last].currentFrame].brushStrokeList[layers[last].frames[layers[last].currentFrame].brushStrokeList.Count - 1].points.Add(lastStroke.points[pts]);
+            //layers[last].frames[layers[last].currentFrame].brushStrokeList[layers[last].frames[layers[last].currentFrame].brushStrokeList.Count - 1].points.Add(lastStroke.points[pts]);
         }
     }
 }
@@ -910,10 +911,12 @@ function createTempStroke(x, y , z) {
 // ~ ~ ~ 
 
 function refreshFrame(index) {
-    for (var i=0; i<layers[index].frames[layers[index].counter].length; i++) {
-        scene.add(layers[index].frames[layers[index].counter][i]);
-    }
-    socket.emit("clientRequestFrame", { num: layers[index].counter });
+	if (layers[index].frames[layers[index].counter]) {
+	    for (var i=0; i<layers[index].frames[layers[index].counter].length; i++) {
+	        scene.add(layers[index].frames[layers[index].counter][i]);
+	    }
+	    socket.emit("clientRequestFrame", { num: layers[index].counter });
+	}
 }
 
 function refreshFrameLast() {  // TODO draw on new layer
@@ -937,6 +940,7 @@ function clearTempStroke() {
 }
 
 function redrawFrame(index) {
+	//console.log(index + " " + layers[index].frames.length);
     if (index === 0) clearFrame();
     refreshFrame(index);
 }

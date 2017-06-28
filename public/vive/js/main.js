@@ -8,7 +8,7 @@ function main() {
     
     viveMode = true;
     soundPath = "../sounds/avlt.ogg";
-    animationPath = "../animations/jellyfish_onelayer.json";
+    animationPath = "../animations/arena.json";
     brushPath = "../images/brush_vive.png";
 
     latkStart();

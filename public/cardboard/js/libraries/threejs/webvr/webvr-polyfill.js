@@ -571,9 +571,18 @@ var KEY_SPEED = 0.15;
 var KEY_ANIMATION_DURATION = 80;
 
 // How much to rotate for mouse events.
-var MOUSE_SPEED_X = 0.5;
-var MOUSE_SPEED_Y = 0.3;
-
+var MOUSE_SPEED_X = 0; //0.5;
+var MOUSE_SPEED_Y = 0; //0.3;
+window.addEventListener("keydown", function(event) {
+	if (event.altKey) {
+		MOUSE_SPEED_X = 0.5;
+		MOUSE_SPEED_Y = 0.3;
+	}
+});
+window.addEventListener("keyup", function(event) {
+		MOUSE_SPEED_X = 0;
+		MOUSE_SPEED_Y = 0;
+});
 /**
  * A virtual position sensor, implemented using keyboard and
  * mouse APIs. This is designed as for desktops/laptops where no Device*

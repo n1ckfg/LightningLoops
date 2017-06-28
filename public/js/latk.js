@@ -7,6 +7,7 @@ var brushPath = "../images/brush_vive.png";
 var player; // Tone.js
 var viveMode = false;
 var hidden = false;
+var drawWhilePlaying = true;
 var lightningArtistData;
 
 var laScale = 10;
@@ -799,6 +800,14 @@ function compareColor(c1, c2, numPlaces) {
 function onMouseDown(event) {                
     updateMousePos(event);
     beginStroke(mouse3D.x, mouse3D.y, mouse3D.z);
+
+    var last = layers.length - 1;
+    if (drawWhilePlaying && isPlaying && layers[last].frames.Count > 1 && layers[last].frames[layers[last].previousFrame].brushStrokeList.Count > 0) {
+        var lastStroke = layers[last].frames[layers[last].previousFrame].brushStrokeList[layers[last].frames[layers[last].previousFrame].brushStrokeList.Count - 1];
+        for (var pts = lastStroke.points.Count / drawTrailLength; pts < lastStroke.points.Count - 1; pts++) {
+            layers[last].frames[layers[last].currentFrame].brushStrokeList[layers[last].frames[layers[last].currentFrame].brushStrokeList.Count - 1].points.Add(lastStroke.points[pts]);
+        }
+    }
 }
 
 function onMouseUp(event) {

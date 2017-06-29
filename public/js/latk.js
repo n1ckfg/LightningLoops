@@ -594,49 +594,53 @@ function roundVal(value, decimals) {
 } 
 
 function tempStrokeToJson() {
-    var color = defaultColor;
-    var sb = "{\n";
-    sb += "    \"timestamp\": " + new Date().getTime() + ",\n";
-    sb += "    \"index\": " + layers[layers.length-1].counter + ",\n";
-    sb += "    \"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "]," + "\n";
-    sb += "    \"points\": [" + "\n";
-    for (var j=0; j<tempStroke.geometry.attributes.position.array.length; j += 6 ) { //layer.frames[currentFrame].strokes[i].points.length) { 
-        var x = 0.0;
-        var y = 0.0;
-        var z = 0.0;
+    try {
+        var color = defaultColor;
+        var sb = "{\n";
+        sb += "    \"timestamp\": " + new Date().getTime() + ",\n";
+        sb += "    \"index\": " + layers[layers.length-1].counter + ",\n";
+        sb += "    \"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "]," + "\n";
+        sb += "    \"points\": [" + "\n";
+        for (var j=0; j<tempStroke.geometry.attributes.position.array.length; j += 6 ) { //layer.frames[currentFrame].strokes[i].points.length) { 
+            var x = 0.0;
+            var y = 0.0;
+            var z = 0.0;
 
-        var point = new THREE.Vector3(tempStroke.geometry.attributes.position.array[j], tempStroke.geometry.attributes.position.array[j+1], tempStroke.geometry.attributes.position.array[j+2]);
+            var point = new THREE.Vector3(tempStroke.geometry.attributes.position.array[j], tempStroke.geometry.attributes.position.array[j+1], tempStroke.geometry.attributes.position.array[j+2]);
 
-        //~
-        //if (useScaleAndOffset) {
-            //x = (point.x * globalScale.x) + globalOffset.x;
-            //y = (point.y * globalScale.y) + globalOffset.y;
-            //z = (point.z * globalScale.z) + globalOffset.z;
-        //} else {
-            x = point.x;
-            y = point.y;
-            z = point.z;
-            //console.log(x + " " + y + " " + z);
-        //}
-        //~
-        if (x!=NaN && y!=NaN && z!=NaN) {
-            //if (roundValues) {
-                //sb += "        {\"co\": [" + roundVal(x, numPlaces) + ", " + roundVal(y, numPlaces) + ", " + roundVal(z, numPlaces) + "]";
+            //~
+            //if (useScaleAndOffset) {
+                //x = (point.x * globalScale.x) + globalOffset.x;
+                //y = (point.y * globalScale.y) + globalOffset.y;
+                //z = (point.z * globalScale.z) + globalOffset.z;
             //} else {
-                sb += "        {\"co\": [" + x + ", " + y + ", " + z + "]";                  
+                x = point.x;
+                y = point.y;
+                z = point.z;
+                //console.log(x + " " + y + " " + z);
             //}
             //~
-            if (j >= tempStroke.geometry.attributes.position.array.length - 6) {  //layer.frames[currentFrame].strokes[i].points.length - 1) { 
-                sb += "}" + "\n"
-            } else {
-                sb += "}," + "\n";
+            if (x!=NaN && y!=NaN && z!=NaN) {
+                //if (roundValues) {
+                    //sb += "        {\"co\": [" + roundVal(x, numPlaces) + ", " + roundVal(y, numPlaces) + ", " + roundVal(z, numPlaces) + "]";
+                //} else {
+                    sb += "        {\"co\": [" + x + ", " + y + ", " + z + "]";                  
+                //}
+                //~
+                if (j >= tempStroke.geometry.attributes.position.array.length - 6) {  //layer.frames[currentFrame].strokes[i].points.length - 1) { 
+                    sb += "}" + "\n"
+                } else {
+                    sb += "}," + "\n";
+                }
             }
         }
-    }
-    sb += "    ]" + "\n";
-    sb += "}" + "\n";
+        sb += "    ]" + "\n";
+        sb += "}" + "\n";
 
-    return JSON.parse(sb);
+        return JSON.parse(sb);
+    } catch (e) {
+        console.log("Something went wrong sending a stroke.")
+    }
 }
 
 function writeJson() {

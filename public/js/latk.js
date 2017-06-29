@@ -886,12 +886,14 @@ function updateMousePos(event) {
     if (latkDebug) console.log(mouse3D);
 }
 
-function onTouchStart(event) {                
+function onTouchStart(event) {
+    clicked = true;  
     updateTouchPos(event);
     beginStroke(mouse3D.x, mouse3D.y, mouse3D.z);
 }
 
 function onTouchEnd(event) {
+    clicked = false;
     endStroke();
 }
 

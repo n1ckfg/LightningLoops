@@ -3144,9 +3144,9 @@ var ROTATE_SPEED = 0.5;
  * transformations due to device sensors.
  */
 function TouchPanner() {
-  window.addEventListener('touchstart', this.onTouchStart_.bind(this));
-  window.addEventListener('touchmove', this.onTouchMove_.bind(this));
-  window.addEventListener('touchend', this.onTouchEnd_.bind(this));
+  //window.addEventListener('touchstart', this.onTouchStart_.bind(this));
+  //window.addEventListener('touchmove', this.onTouchMove_.bind(this));
+  //window.addEventListener('touchend', this.onTouchEnd_.bind(this));
 
   this.isTouching = false;
   this.rotateStart = new THREE.Vector2();

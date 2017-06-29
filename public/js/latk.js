@@ -596,6 +596,7 @@ function roundVal(value, decimals) {
 function tempStrokeToJson() {
     var color = defaultColor;
     var sb = "{\n";
+    sb += "    \"timestamp\": " + new Date().getTime() + ",\n";
     sb += "    \"index\": " + layers[layers.length-1].counter + ",\n";
     sb += "    \"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "]," + "\n";
     sb += "    \"points\": [" + "\n";

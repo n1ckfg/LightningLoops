@@ -1,5 +1,7 @@
 "use strict";
 
+var strokeLifetime = 10000;
+
 var express = require("express");
 var app = express();
 var http = require("http").Server(app);
@@ -64,6 +66,19 @@ class Layer {
 }
 
 var layer = new Layer();
+
+setInterval(function() {
+	var time = new Date().getTime();
+
+	for (var i=0; i<layer.frames.length; i++) {
+		for (var j=0; j<layer.frames[i].strokes.length; j++) {
+			if (time > layer.frames[i].strokes[j]["timestamp"] + strokeLifetime) {
+				layer.frames[i].strokes.splice(j, 1);
+				console.log("X Removing frame " + i + ", stroke " + j + ".");
+			}
+		}
+	}
+}, strokeLifetime);
 
 // ~ ~ ~ ~
 

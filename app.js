@@ -56,12 +56,16 @@ class Layer {
     }
 
     addStroke(data) {
+        try {
     	var index = data["index"];
     	if (index != NaN) {
     		this.getFrame(index); 
     		this.frames[index].strokes.push(data); 
             console.log("<<< Received a stroke with color (" + data["color"] + ") and " + data["points"].length + " points.");
     	}
+        } catch (e) {
+            console.log(e.data);
+        }
     }
 }
 

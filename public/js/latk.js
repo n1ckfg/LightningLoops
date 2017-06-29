@@ -1047,9 +1047,13 @@ function getLongestLayer() {
 
 function getPoints(stroke){
     var returns = [];
-    for (var i=0; i<stroke.geometry.attributes.position.array.length; i += 6) { 
-        var point = new THREE.Vector3(stroke.geometry.attributes.position.array[i], stroke.geometry.attributes.position.array[i+1], stroke.geometry.attributes.position.array[i+2]);
-        returns.push(point);
+    try {
+        for (var i=0; i<stroke.geometry.attributes.position.array.length; i += 6) { 
+            var point = new THREE.Vector3(stroke.geometry.attributes.position.array[i], stroke.geometry.attributes.position.array[i+1], stroke.geometry.attributes.position.array[i+2]);
+            returns.push(point);
+        }
+    } catch (e) {
+        console.log(e.data);
     }
     return returns;
 }

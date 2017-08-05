@@ -92,7 +92,7 @@ socket.on("newFrameFromServer", function(data) {
 
         var line = new THREE.MeshLine();
         line.setGeometry(geometry);
-        var meshLine = new THREE.Mesh(line.geometry, server_mtl);//createUniqueMtl([0.667, 0.667, 1]));
+        var meshLine = new THREE.Mesh(line.geometry, createUniqueMtl(serverColor));
         newStrokes.push(meshLine);//line);
 	}
 
@@ -151,7 +151,7 @@ var c2b1_blocking = false;
 var c2b2_blocking = false;
 var c2b3_blocking = false;
 
-var special_mtl, server_mtl;
+//var special_mtl, server_mtl;
 
 function jsonToGp(lightningArtistData) {
     for (var h=0; h<lightningArtistData.layers.length; h++) {
@@ -230,8 +230,8 @@ function jsonToGp(lightningArtistData) {
 
         texture = THREE.ImageUtils.loadTexture(brushPath);
 
-        special_mtl = createMtl(defaultColor, defaultOpacity, defaultLineWidth/1.5);
-        server_mtl = createMtl(serverColor, defaultOpacity, defaultLineWidth/1.5);
+        //special_mtl = createMtl(defaultColor, defaultOpacity, defaultLineWidth/1.5);
+        //server_mtl = createMtl(serverColor, defaultOpacity, defaultLineWidth/1.5);
 
         for (var i=0; i<layer.frameX.length; i++) {
             var strokes = [];
@@ -840,7 +840,7 @@ function createUniqueMtl(color) {
         }
     }
     if (mtlIndex === -1) {
-        var mtl = createMtl(color, defaultOpacity, defaultLineWidth);
+        var mtl = createMtl(color, defaultOpacity, defaultLineWidth/1.5);
         palette.push(mtl);
         return palette[palette.length-1];
         if (latkDebug) console.log("Creating new color, " + palette.length + " total colors");
@@ -965,7 +965,7 @@ function createTempStroke(x, y , z) {
     addTempPoints(x, y, z);
     var line = new THREE.MeshLine();
     line.setGeometry(tempStrokeGeometry);
-    tempStroke = new THREE.Mesh(line.geometry, special_mtl);
+    tempStroke = new THREE.Mesh(line.geometry, createUniqeuMtl(defaultColor));
     tempStroke.name = "stroke" + strokeCounter;
     scene.add(tempStroke);
 }

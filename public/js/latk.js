@@ -965,7 +965,7 @@ function createTempStroke(x, y , z) {
     addTempPoints(x, y, z);
     var line = new THREE.MeshLine();
     line.setGeometry(tempStrokeGeometry);
-    tempStroke = new THREE.Mesh(line.geometry, createUniqeuMtl(defaultColor));
+    tempStroke = new THREE.Mesh(line.geometry, createUniqueMtl(defaultColor));
     tempStroke.name = "stroke" + strokeCounter;
     scene.add(tempStroke);
 }

@@ -92,7 +92,7 @@ socket.on("newFrameFromServer", function(data) {
 
         var line = new THREE.MeshLine();
         line.setGeometry(geometry);
-        var meshLine = new THREE.Mesh(line.geometry, createUniqueMtl([0.667, 0.667, 1]));
+        var meshLine = new THREE.Mesh(line.geometry, server_mtl);//createUniqueMtl([0.667, 0.667, 1]));
         newStrokes.push(meshLine);//line);
 	}
 
@@ -121,6 +121,7 @@ class Layer {
 }
 
 var defaultColor = [0.667, 0.667, 1];
+var serverColor = [1, 0.5, 0.25];
 var defaultOpacity = 0.85;
 var defaultLineWidth = 0.05;
 //var strokes = [];
@@ -133,8 +134,8 @@ var debugPos = false;
 var tempStroke;
 var tempStrokeGeometry;
 var tempPoints = [];
-var minDistance = 0.001;
-var useMinDistance = false;
+var minDistance = 0.01;
+var useMinDistance = true;
 var roundValues = true;
 var numPlaces = 7;
 var altKeyBlock = false;
@@ -150,7 +151,7 @@ var c2b1_blocking = false;
 var c2b2_blocking = false;
 var c2b3_blocking = false;
 
-var special_mtl;
+var special_mtl, server_mtl;
 
 function jsonToGp(lightningArtistData) {
     for (var h=0; h<lightningArtistData.layers.length; h++) {
@@ -230,6 +231,7 @@ function jsonToGp(lightningArtistData) {
         texture = THREE.ImageUtils.loadTexture(brushPath);
 
         special_mtl = createMtl(defaultColor, defaultOpacity, defaultLineWidth/1.5);
+        server_mtl = createMtl(serverColor, defaultOpacity, defaultLineWidth/1.5);
 
         for (var i=0; i<layer.frameX.length; i++) {
             var strokes = [];

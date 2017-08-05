@@ -358,18 +358,13 @@ function animate(timestamp) {
             if (drawWhilePlaying && layers[last].frames.length > 1 && layers[last].frames[layers[last].previousFrame].length > 0) {
                 var lastStroke = layers[last].frames[layers[last].previousFrame][layers[last].frames[layers[last].previousFrame].length - 1];
                 var points = getPoints(lastStroke);
-                clearTempStroke();
-                for (var pts = parseInt(points.length / drawTrailLength); pts < points.length - 1; pts++) {
-                    //layerList[currentLayer].frameList[layerList[currentLayer].currentFrame].brushStrokeList[layerList[currentLayer].frameList[layerList[currentLayer].currentFrame].brushStrokeList.Count - 1].points.Add(lastStroke.points[pts]);
+
+                for (var pts = parseInt(points.length / drawTrailLength) + 1; pts < points.length - 1; pts++) {
                     createTempStroke(points[pts].x, points[pts].y, points[pts].z);
                 }
                 layers[last].frames[layers[last].counter].push(tempStroke);
                 //~
-                socket.emit("clientStrokeToServer", tempStrokeToJson());
-                //~
-                refreshFrameLast();
-                strokeCounter++;
-                                clearTempStroke();
+                endStroke();
 
                 beginStroke(mouse3D.x, mouse3D.y, mouse3D.z);
             }

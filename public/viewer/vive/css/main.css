@@ -1,0 +1,11 @@
+body {
+	font-family: Monospace;
+	background-color: #101010;
+	color: #fff;
+	margin: 0px;
+	overflow: hidden;
+}
+
+a {
+	color: #f00;
+}

@@ -658,23 +658,24 @@ function writeJson() {
     //var globalScale = new THREE.Vector3(0.01, 0.01, 0.01);
     //var globalOffset = new THREE.Vector3(0, 0, 0);
 
-    var sg = "{" + "\n";
-    sg += "\t\"creator\": \"webvr\"," + "\n";
-    sg += "\t\"grease_pencil\": [" + "\n";
-    sg += "\t\t{" + "\n";
-    sg += "\t\t\t\"layers\": [" + "\n";
-    var sl = "";
+    var sg = [];
+    sg.push("{");
+    sg.push("\t\"creator\": \"webvr\",");
+    sg.push("\t\"grease_pencil\": [");
+    sg.push("\t\t{");
+    sg.push("\t\t\t\"layers\": [");
+    var sl = [];
     for (var f=0; f<layers.length; f++) {// gp.layers.length, f++) { 
-        var sb = "";
+        var sb = [];
         var layer = layers[f]; //gp.layers[f] 
         for (var h=0; h<layer.frames.length; h++) { //layer.frames.length, h++) { 
             var currentFrame = h;
-            sb += "\t\t\t\t\t\t{" + "\n"; // one frame
-            sb += "\t\t\t\t\t\t\t\"strokes\": [" + "\n";
+            sb.push("\t\t\t\t\t\t{"); // one frame
+            sb.push("\t\t\t\t\t\t\t\"strokes\": [");
             if (layer.frames[currentFrame].length > 0) {
-                sb += "\t\t\t\t\t\t\t\t{" + "\n"; // one stroke
+                sb.push("\t\t\t\t\t\t\t\t{"); // one stroke
             } else {
-                sb += "\t\t\t\t\t\t\t]" + "\n"; // no strokes
+                sb.push("\t\t\t\t\t\t\t]"); // no strokes
             }
             for (var i=0; i<layer.frames[currentFrame].length; i++) { //layer.frames[currentFrame].strokes.length) { 
                 var color = defaultColor;
@@ -684,8 +685,8 @@ function writeJson() {
                 } catch (e) {
                     //
                 }
-                sb += "\t\t\t\t\t\t\t\t\t\"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "]," + "\n";
-                sb += "\t\t\t\t\t\t\t\t\t\"points\": [" + "\n";
+                sb.push("\t\t\t\t\t\t\t\t\t\"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "],");
+                sb.push("\t\t\t\t\t\t\t\t\t\"points\": [");
                 for (var j=0; j<layer.frames[currentFrame][i].geometry.attributes.position.array.length; j += 6 ) { //layer.frames[currentFrame].strokes[i].points.length) { 
                     var x = 0.0;
                     var y = 0.0;
@@ -707,53 +708,56 @@ function writeJson() {
                     }
                     //~
                     if (roundValues) {
-                        sb += "\t\t\t\t\t\t\t\t\t\t{\"co\": [" + roundVal(x, numPlaces) + ", " + roundVal(y, numPlaces) + ", " + roundVal(z, numPlaces) + "]";
+                        sb.push("\t\t\t\t\t\t\t\t\t\t{\"co\": [" + roundVal(x, numPlaces) + ", " + roundVal(y, numPlaces) + ", " + roundVal(z, numPlaces) + "]");
                     } else {
-                        sb += "\t\t\t\t\t\t\t\t\t\t{\"co\": [" + x + ", " + z + ", " + y + "]";                  
+                        sb.push("\t\t\t\t\t\t\t\t\t\t{\"co\": [" + x + ", " + z + ", " + y + "]");                  
                     }
                     //~
                     if (j >= layer.frames[currentFrame][i].geometry.attributes.position.array.length - 6) {  //layer.frames[currentFrame].strokes[i].points.length - 1) { 
-                        sb += "}" + "\n";
-                        sb += "\t\t\t\t\t\t\t\t\t]" + "\n";
+                        sb[sb.length-1] += "}";
+                        sb.push("\t\t\t\t\t\t\t\t\t]");
                         if (i == layer.frames[currentFrame].length - 1) { //layer.frames[currentFrame].strokes.length - 1) { 
-                            sb += "\t\t\t\t\t\t\t\t}" + "\n"; // last stroke for this frame
+                            sb.push("\t\t\t\t\t\t\t\t}"); // last stroke for this frame
                         } else {
-                            sb += "\t\t\t\t\t\t\t\t}," + "\n"; // end stroke
-                            sb += "\t\t\t\t\t\t\t\t{" + "\n"; // begin stroke
+                            sb.push("\t\t\t\t\t\t\t\t},"); // end stroke
+                            sb.push("\t\t\t\t\t\t\t\t{"); // begin stroke
                         }
                     } else {
-                        sb += "}," + "\n";
+                        sb[sb.length-1] += "},";
                     }
                 }
                 if (i == layer.frames[currentFrame].length - 1) { //layer.frames[currentFrame].strokes.length - 1) { 
-                    sb += "                            ]" + "\n";
+                    sb.push("\t\t\t\t\t\t\t]");
                 }
             }
             if (h == layer.frames.length - 1) { //layer.frames.length - 1) { 
-                sb += "\t\t\t\t\t\t}" + "\n";
+                sb.push("\t\t\t\t\t\t}");
             } else {
-                sb += "\t\t\t\t\t\t}," + "\n";
+                sb.push("\t\t\t\t\t\t},");
             }
         }
         //~
-        var sf = "\t\t\t\t{" + "\n";
-        sf += "\t\t\t\t\t\"name\": \"" + layer.name + "\"," + "\n"; //layer.info + "\"," + "\n" 
-        sf += "\t\t\t\t\t\"frames\": [" + "\n" + sb + "\t\t\t\t\t]" + "\n";
-        if (f == layers.length-1) { //gp.layers.length-1) { 
-            sf += "\t\t\t\t}" + "\n";
+        var sf = [];
+        sf.push("\t\t\t\t{");
+        sf.push("\t\t\t\t\t\"name\": \"" + layer.name + "\","); //layer.info + "\"," 
+        sf.push("\t\t\t\t\t\"frames\": [");
+        sf.push(sb.join("\n"));
+        sf.push("\t\t\t\t\t]");
+        if (f == layers.length-1) { 
+            sf.push("\t\t\t\t}");
         } else {
-            sf += "\t\t\t\t}," + "\n";
+            sf.push("\t\t\t\t},");
         }
-        sl += sf;
+        sl.push(sf.join("\n"));
         //~
     }
-    sg += sl;
-    sg += "\t\t\t]" + "\n";
-    sg += "\t\t}"+ "\n";
-    sg += "\t]"+ "\n";
-    sg += "}"+ "\n";
+    sg.push(sl.join("\n"));
+    sg.push("\t\t\t]");
+    sg.push("\t\t}");
+    sg.push("\t]");
+    sg.push("}");
 
-    var uriContent = "data:text/plain;charset=utf-8," + encodeURIComponent(sg);
+    var uriContent = "data:text/plain;charset=utf-8," + encodeURIComponent(sg.join("\n"));
     //pauseAnimation = false;
     window.open(uriContent);
 }
@@ -824,8 +828,8 @@ function createUniqueMtl(color) {
     if (mtlIndex === -1) {
         var mtl = createMtl(color, defaultOpacity, defaultLineWidth/1.5);
         palette.push(mtl);
-        return palette[palette.length-1];
         if (latkDebug) console.log("Creating new color, " + palette.length + " total colors");
+        return palette[palette.length-1];
     } else {
         if (latkDebug) console.log("Reusing color " + mtlIndex + ", " + palette.length + " total colors");
         return palette[mtlIndex];

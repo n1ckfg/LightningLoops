@@ -1,7 +1,6 @@
 "use strict";
 
 var renderer, scene, camera, controls, effect, clock, light;
-//var composer, renderPass, bloomPass, copyPass;
 var boxWidth, params, manager, lastRender;
 
 var sprites = [];
@@ -55,8 +54,6 @@ function init() {
 
     lastRender = 0;
 
-    //setupComposer();
-
     setupPlayer();
 }
 
@@ -68,29 +65,6 @@ function render(timestamp) {
 
     controls.update();
     manager.render(scene, camera, timestamp);
-
-    //updateComposer(timestamp);
-}
-
-function setupComposer() {
-    /*
-    composer = new THREE.EffectComposer(renderer);
-    renderPass = new THREE.RenderPass(scene, camera);
-    composer.addPass(renderPass);
-    bloomPass = new THREE.BloomPass(3, 25, 1, 512);
-    composer.addPass(bloomPass);
-    copyPass = new THREE.ShaderPass(THREE.CopyShader);
-    copyPass.renderToScreen = true;
-    composer.addPass(copyPass);  
-    */
-}
-
-function updateComposer(_timestamp) {
-    /*
-    if (!effect.vrHMD) {
-        composer.render(_timestamp);
-    }
-    */
 }
 
 function setupControls() {
@@ -105,19 +79,19 @@ function setupControls() {
     */
     
     window.addEventListener("keydown", function(event) {
-        if (getKeyCode() == 'w') isWalking = true;
-        if (getKeyCode() == 'o') armSaveJson = true;
-        //if (getKeyCode() == 'j') armFrameBack = true;
-        if (getKeyCode() == 'p') armTogglePause = true;
-        //if (getKeyCode() == 'l') armFrameForward = true;        
+        if (getKeyCode(event) == 'w') isWalking = true;
+        if (getKeyCode(event) == 'o') armSaveJson = true;
+        //if (getKeyCode(event) == 'j') armFrameBack = true;
+        if (getKeyCode(event) == 'p') armTogglePause = true;
+        //if (getKeyCode(event) == 'l') armFrameForward = true;        
     });
 
     window.addEventListener("keyup", function(event) {
-        if (getKeyCode() == 'w') isWalking = false;
+        if (getKeyCode(event) == 'w') isWalking = false;
     });
 }
 
-function getKeyCode() {
+function getKeyCode(event) {
     var k = event.charCode || event.keyCode;
     var c = String.fromCharCode(k).toLowerCase();
     return c;

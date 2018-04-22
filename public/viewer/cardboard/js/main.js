@@ -122,9 +122,9 @@ function main() {
     var numPlaces = 7;
 
     var useAudioSync = false;
-    var soundPath = "../sounds/avlt.mp3";
-    var animationPath = "../animations/jellyfish.json";
-    var brushPath = "../images/brush_cardboard.png";
+    var soundPath = "../../sounds/avlt.mp3";
+    var animationPath = "../../animations/jellyfish.json";
+    var brushPath = "../../images/brush_cardboard.png";
 
     init();
     showReading();

@@ -593,48 +593,35 @@ function roundVal(value, decimals) {
 function tempStrokeToJson() {
     try {
         var color = defaultColor;
-        var sb = "{\n";
-        sb += "    \"timestamp\": " + new Date().getTime() + ",\n";
-        sb += "    \"index\": " + layers[layers.length-1].counter + ",\n";
-        sb += "    \"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "]," + "\n";
-        sb += "    \"points\": [" + "\n";
-        for (var j=0; j<tempStroke.geometry.attributes.position.array.length; j += 6 ) { //layer.frames[currentFrame].strokes[i].points.length) { 
+        var sb = [];
+        sb.push("{");
+        sb.push("\"timestamp\": " + new Date().getTime() + ",");
+        sb.push("\"index\": " + layers[layers.length-1].counter + ",");
+        sb.push("\"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "],");
+        sb.push("\"points\": [");
+        for (var j=0; j<tempStroke.geometry.attributes.position.array.length; j += 6 ) { 
             var x = 0.0;
             var y = 0.0;
             var z = 0.0;
-
             var point = new THREE.Vector3(tempStroke.geometry.attributes.position.array[j], tempStroke.geometry.attributes.position.array[j+1], tempStroke.geometry.attributes.position.array[j+2]);
 
-            //~
-            //if (useScaleAndOffset) {
-                //x = (point.x * globalScale.x) + globalOffset.x;
-                //y = (point.y * globalScale.y) + globalOffset.y;
-                //z = (point.z * globalScale.z) + globalOffset.z;
-            //} else {
-                x = point.x;
-                y = point.y;
-                z = point.z;
-                //console.log(x + " " + y + " " + z);
-            //}
-            //~
+            x = point.x;
+            y = point.y;
+            z = point.z;
+
             if (x!=NaN && y!=NaN && z!=NaN) {
-                //if (roundValues) {
-                    //sb += "        {\"co\": [" + roundVal(x, numPlaces) + ", " + roundVal(y, numPlaces) + ", " + roundVal(z, numPlaces) + "]";
-                //} else {
-                    sb += "        {\"co\": [" + x + ", " + y + ", " + z + "]";                  
-                //}
-                //~
-                if (j >= tempStroke.geometry.attributes.position.array.length - 6) {  //layer.frames[currentFrame].strokes[i].points.length - 1) { 
-                    sb += "}" + "\n"
+                sb.push("{\"co\": [" + x + ", " + y + ", " + z + "]");                  
+                if (j >= tempStroke.geometry.attributes.position.array.length - 6) {
+                    sb[sb.length-1] += "}";
                 } else {
-                    sb += "}," + "\n";
+                    sb[sb.length-1] += "},";
                 }
             }
         }
-        sb += "    ]" + "\n";
-        sb += "}" + "\n";
+        sb.push("]");
+        sb.push("}");
 
-        return JSON.parse(sb);
+        return JSON.parse(sb.join(""));
     } catch (e) {
         console.log("Something went wrong sending a stroke.")
     }
@@ -672,22 +659,22 @@ function writeJson() {
     //var globalOffset = new THREE.Vector3(0, 0, 0);
 
     var sg = "{" + "\n";
-    sg += "    \"creator\": \"webvr\"," + "\n";
-    sg += "    \"grease_pencil\": [" + "\n";
-    sg += "        {" + "\n";
-    sg += "            \"layers\": [" + "\n";
+    sg += "\t\"creator\": \"webvr\"," + "\n";
+    sg += "\t\"grease_pencil\": [" + "\n";
+    sg += "\t\t{" + "\n";
+    sg += "\t\t\t\"layers\": [" + "\n";
     var sl = "";
     for (var f=0; f<layers.length; f++) {// gp.layers.length, f++) { 
         var sb = "";
         var layer = layers[f]; //gp.layers[f] 
         for (var h=0; h<layer.frames.length; h++) { //layer.frames.length, h++) { 
             var currentFrame = h;
-            sb += "                        {" + "\n"; // one frame
-            sb += "                            \"strokes\": [" + "\n";
+            sb += "\t\t\t\t\t\t{" + "\n"; // one frame
+            sb += "\t\t\t\t\t\t\t\"strokes\": [" + "\n";
             if (layer.frames[currentFrame].length > 0) {
-                sb += "                                {" + "\n"; // one stroke
+                sb += "\t\t\t\t\t\t\t\t{" + "\n"; // one stroke
             } else {
-                sb += "                            ]" + "\n"; // no strokes
+                sb += "\t\t\t\t\t\t\t]" + "\n"; // no strokes
             }
             for (var i=0; i<layer.frames[currentFrame].length; i++) { //layer.frames[currentFrame].strokes.length) { 
                 var color = defaultColor;
@@ -697,8 +684,8 @@ function writeJson() {
                 } catch (e) {
                     //
                 }
-                sb += "                                    \"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "]," + "\n";
-                sb += "                                    \"points\": [" + "\n";
+                sb += "\t\t\t\t\t\t\t\t\t\"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "]," + "\n";
+                sb += "\t\t\t\t\t\t\t\t\t\"points\": [" + "\n";
                 for (var j=0; j<layer.frames[currentFrame][i].geometry.attributes.position.array.length; j += 6 ) { //layer.frames[currentFrame].strokes[i].points.length) { 
                     var x = 0.0;
                     var y = 0.0;
@@ -720,19 +707,19 @@ function writeJson() {
                     }
                     //~
                     if (roundValues) {
-                        sb += "                                        {\"co\": [" + roundVal(x, numPlaces) + ", " + roundVal(y, numPlaces) + ", " + roundVal(z, numPlaces) + "]";
+                        sb += "\t\t\t\t\t\t\t\t\t\t{\"co\": [" + roundVal(x, numPlaces) + ", " + roundVal(y, numPlaces) + ", " + roundVal(z, numPlaces) + "]";
                     } else {
-                        sb += "                                        {\"co\": [" + x + ", " + z + ", " + y + "]";                  
+                        sb += "\t\t\t\t\t\t\t\t\t\t{\"co\": [" + x + ", " + z + ", " + y + "]";                  
                     }
                     //~
                     if (j >= layer.frames[currentFrame][i].geometry.attributes.position.array.length - 6) {  //layer.frames[currentFrame].strokes[i].points.length - 1) { 
                         sb += "}" + "\n";
-                        sb += "                                    ]" + "\n";
+                        sb += "\t\t\t\t\t\t\t\t\t]" + "\n";
                         if (i == layer.frames[currentFrame].length - 1) { //layer.frames[currentFrame].strokes.length - 1) { 
-                            sb += "                                }" + "\n"; // last stroke for this frame
+                            sb += "\t\t\t\t\t\t\t\t}" + "\n"; // last stroke for this frame
                         } else {
-                            sb += "                                }," + "\n"; // end stroke
-                            sb += "                                {" + "\n"; // begin stroke
+                            sb += "\t\t\t\t\t\t\t\t}," + "\n"; // end stroke
+                            sb += "\t\t\t\t\t\t\t\t{" + "\n"; // begin stroke
                         }
                     } else {
                         sb += "}," + "\n";
@@ -743,27 +730,27 @@ function writeJson() {
                 }
             }
             if (h == layer.frames.length - 1) { //layer.frames.length - 1) { 
-                sb += "                        }" + "\n";
+                sb += "\t\t\t\t\t\t}" + "\n";
             } else {
-                sb += "                        }," + "\n";
+                sb += "\t\t\t\t\t\t}," + "\n";
             }
         }
         //~
-        var sf = "                {" + "\n";
-        sf += "                    \"name\": \"" + layer.name + "\"," + "\n"; //layer.info + "\"," + "\n" 
-        sf += "                    \"frames\": [" + "\n" + sb + "                    ]" + "\n";
+        var sf = "\t\t\t\t{" + "\n";
+        sf += "\t\t\t\t\t\"name\": \"" + layer.name + "\"," + "\n"; //layer.info + "\"," + "\n" 
+        sf += "\t\t\t\t\t\"frames\": [" + "\n" + sb + "\t\t\t\t\t]" + "\n";
         if (f == layers.length-1) { //gp.layers.length-1) { 
-            sf += "                }" + "\n";
+            sf += "\t\t\t\t}" + "\n";
         } else {
-            sf += "                }," + "\n";
+            sf += "\t\t\t\t}," + "\n";
         }
         sl += sf;
         //~
     }
     sg += sl;
-    sg += "            ]" + "\n";
-    sg += "        }"+ "\n";
-    sg += "    ]"+ "\n";
+    sg += "\t\t\t]" + "\n";
+    sg += "\t\t}"+ "\n";
+    sg += "\t]"+ "\n";
     sg += "}"+ "\n";
 
     var uriContent = "data:text/plain;charset=utf-8," + encodeURIComponent(sg);
@@ -964,6 +951,7 @@ function createTempStroke(x, y , z) {
     tempStroke.name = "stroke" + strokeCounter;
     scene.add(tempStroke);
 }
+
 // ~ ~ ~ 
 
 function refreshFrame(index) {
@@ -996,7 +984,6 @@ function clearTempStroke() {
 }
 
 function redrawFrame(index) {
-	//console.log(index + " " + layers[index].frames.length);
     if (index === 0) clearFrame();
     refreshFrame(index);
 }
@@ -1074,12 +1061,6 @@ function visibilityChanged() {
 }
 
 function latkStart() {
-    //viveMode = false;
-    
-    //soundPath = "../sounds/avlt.ogg";
-    //animationPath = "../animations/jellyfish_onelayer.json";
-    //brushPath = "../images/brush_vive.png";
-
     player = new Tone.Player({
         "url": soundPath
     }).toMaster();

@@ -6,8 +6,14 @@ var boxWidth, params, manager, lastRender;
 var sprites = [];
 var colliders = [];
 
-var isWalking = false;
-var isFlying = false;
+var isWalkingForward = false;
+var isWalkingBackward = false;
+var isWalkingLeft = false;
+var isWalkingRight = false;
+var isFlyingUp = false;
+var isFlyingDown = false;
+
+var flyingAllowed = true;
 var flyingThreshold = 0.15;
 var movingSpeed = 0;
 var movingSpeedMax = 0.25;
@@ -70,16 +76,22 @@ function render(timestamp) {
 function setupControls() {
     /*
     window.addEventListener("touchstart", function(event) {
-        isWalking = true;
+        isWalkingForward = true;
     });
 
     window.addEventListener("touchend", function(event) {
-        isWalking = false;
+        isWalkingForward = false;
     })
     */
     
     window.addEventListener("keydown", function(event) {
-        if (getKeyCode(event) == 'w') isWalking = true;
+        if (getKeyCode(event) == 'w') isWalkingForward = true;
+        if (getKeyCode(event) == 'a') isWalkingLeft = true;
+        if (getKeyCode(event) == 's') isWalkingBackward = true;
+        if (getKeyCode(event) == 'd') isWalkingRight = true;
+        if (getKeyCode(event) == 'q') isFlyingDown = true;
+        if (getKeyCode(event) == 'e') isFlyingUp = true;
+
         if (getKeyCode(event) == 'o') armSaveJson = true;
         //if (getKeyCode(event) == 'j') armFrameBack = true;
         if (getKeyCode(event) == 'p') armTogglePause = true;
@@ -87,7 +99,12 @@ function setupControls() {
     });
 
     window.addEventListener("keyup", function(event) {
-        if (getKeyCode(event) == 'w') isWalking = false;
+        if (getKeyCode(event) == 'w') isWalkingForward = false;
+        if (getKeyCode(event) == 'a') isWalkingLeft = false;
+        if (getKeyCode(event) == 's') isWalkingBackward = false;
+        if (getKeyCode(event) == 'd') isWalkingRight = false;
+        if (getKeyCode(event) == 'q') isFlyingDown = false;
+        if (getKeyCode(event) == 'e') isFlyingUp = false;
     });
 }
 
@@ -106,22 +123,20 @@ function setupPlayer() {
 }
 
 function updatePlayer() {
+    /*
     if (camera.rotation.x > flyingThreshold) {
-        isFlying = true;
+        flyingAllowed = true;
     } else {
-        isFlying = false;
+        flyingAllowed = false;
     }
+    */
 
     var cameraPos = camera.position.clone();
     var targetPos = cameraPos.clone();
     var aimPos = cameraGaze.getWorldPosition();
 
-    if (isWalking) {
-        if (movingSpeed < movingSpeedMax) {
-            movingSpeed += movingDelta;
-        } else if (movingSpeed > movingSpeedMax) {
-            movingSpeed = movingSpeedMax;
-        }
+    if ((isWalkingForward || isWalkingBackward || isWalkingLeft || isWalkingRight || isFlyingUp || isFlyingDown) && movingSpeed < movingSpeedMax) {
+        movingSpeed += movingDelta;
     } else {
         if (movingSpeed > 0) {
             movingSpeed -= movingDelta;
@@ -131,19 +146,45 @@ function updatePlayer() {
     }
 
     if (movingSpeed > 0) {
-        targetPos.x += ( aimPos.x - cameraPos.x ) * (movingSpeed / 1000);
-        if (isFlying) targetPos.y += ( aimPos.y - cameraPos.y ) * (movingSpeed / 1000);
-        targetPos.z += ( aimPos.z - cameraPos.z ) * (movingSpeed / 1000);
+    	if (isWalkingForward) {
+	        targetPos.x += ( aimPos.x - cameraPos.x ) * (movingSpeed / 1000);
+	        if (flyingAllowed) targetPos.y += ( aimPos.y - cameraPos.y ) * (movingSpeed / 1000);
+	        targetPos.z += ( aimPos.z - cameraPos.z ) * (movingSpeed / 1000);
+    	}
+
+    	if (isWalkingBackward) {
+	        targetPos.x -= ( aimPos.x - cameraPos.x ) * (movingSpeed / 1000);
+	        if (flyingAllowed) targetPos.y -= ( aimPos.y - cameraPos.y ) * (movingSpeed / 1000);
+	        targetPos.z -= ( aimPos.z - cameraPos.z ) * (movingSpeed / 1000);    		
+    	} 
+
+    	if (isWalkingLeft) {
+    		//targetPos.x += (aimPos.z - cameraPos.z ) * (movingSpeed / 1000);
+    	}
+
+    	if (isWalkingRight) {
+    		//targetPos.x -= (aimPos.z - cameraPos.z ) * (movingSpeed / 1000);
+    	}
+
+    	if (isFlyingUp) {
+    		//if (flyingAllowed) targetPos.y += ( aimPos.y - cameraPos.y ) * (movingSpeed / 1000);
+    	}
+
+    	if (isFlyingDown) {
+    		//if (flyingAllowed) targetPos.y -= ( aimPos.y - cameraPos.y ) * (movingSpeed / 1000);
+    	}
 
         camera.position.set(targetPos.x, targetPos.y, targetPos.z);
         camera.updateMatrixWorld();
         camera.lookAt(aimPos);
     }
 
-    if (!isWalking && camera.position.y > floor) {
+    /*
+    if (!isWalkingForward && camera.position.y > floor) {
         camera.position.y -= gravity;
         if (camera.position.y < floor) camera.position.y = floor;
     }
+    */
 }
 
 function spriteAnimator(texture, tilesHoriz, tilesVert, numTiles, tileDispDuration) {          

@@ -1,5 +1,6 @@
 "use strict";
 
+var latk;
 var layers = [];
 var soundPath = "../sounds/avlt.ogg";
 var animationPath = "../animations/jellyfish.json";
@@ -724,13 +725,48 @@ function latkStart() {
     init();
     if (!viveMode) showReading();
 
-    loadJSON(animationPath, function(response) {
-        jsonToGp(JSON.parse(response).grease_pencil[0]);
-    });
-
+    latk = new Latk(animationPath);
 }    
 
-class Stroke {
+class LatkThree {
+
+    constructor(filepath) {
+
+    }
+
+}
+
+class LatkLayerThree {
+
+    constructor() {
+        this.frames = [];
+        // ~ ~
+        this.name = "";
+        this.strokeX = [];
+        this.strokeY = [];
+        this.strokeZ = [];
+        this.frameX = [];
+        this.frameY = [];
+        this.frameZ = [];
+        this.strokeColors = [];
+        this.frameColors = [];
+        this.frames = [];
+        this.counter = 0;
+        this.loopCounter = 0;
+        this.previousFrame = 0;
+    }
+
+}
+
+class LatkFrameThree {
+
+    constructor() {
+        this.strokes = [];
+    }
+    
+}
+
+class LatkStrokeThree {
 
     constructor(x, y, z) {
         this.points = [];

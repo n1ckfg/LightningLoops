@@ -22,26 +22,36 @@ class Latk {
         for (var h=0; h<data.layers.length; h++) {
             // ~ ~ ~
             var layer = new LatkLayer();
+            var strokeX = [];
+        	var strokeY = [];
+        	var strokeZ = [];
+        	var frameX = [];
+        	var frameY = [];
+        	var frameZ = [];
+        	var strokeColors = [];
+        	var frameColors = [];
+
             if (data.layers[h].name != null) {
                 layer.name = data.layers[h].name;
             } else {
                 layer.name = "WebVR Layer " + (h+1);
             }
-            var frameCount = data.layers[h].frames.length;
-            var strokeCount = 0;
-            var pointCount = 0;
-            for (var i=0; i<data.layers[h].frames.length; i++) {
-                //strokeCount += data.layers[h].frames[i].strokes.length;
-                for (var j=0; j<data.layers[h].frames[i].strokes.length; j++) {
-                    //pointCount += data.layers[h].frames[i].strokes[j].points.length;
-                }
-            }
-            var firstPoint = "*";
-            try {
-                firstPoint = data.layers[h].frames[0].strokes[0].points[0].co[0] * 100;
-            } catch (e) { }
             
             if (latkDebug) {
+            	var frameCount = data.layers[h].frames.length;
+	            var strokeCount = 0;
+	            var pointCount = 0;
+	            for (var i=0; i<data.layers[h].frames.length; i++) {
+	                strokeCount += data.layers[h].frames[i].strokes.length;
+	                for (var j=0; j<data.layers[h].frames[i].strokes.length; j++) {
+	                    pointCount += data.layers[h].frames[i].strokes[j].points.length;
+	                }
+	            }
+	            var firstPoint = "*";
+	            try {
+	                firstPoint = data.layers[h].frames[0].strokes[0].points[0].co[0] * 100;
+	            } catch (e) { }
+	            
                 console.log("***********************");
                 console.log("~INPUT~")
                 console.log("total frames: " + frameCount);
@@ -94,9 +104,6 @@ class Latk {
             var oldStrokes = [];
 
             texture = THREE.ImageUtils.loadTexture(brushPath);
-
-            //special_mtl = createMtl(defaultColor, defaultOpacity, defaultLineWidth/1.5);
-            //server_mtl = createMtl(serverColor, defaultOpacity, defaultLineWidth/1.5);
 
             for (var i=0; i<layer.frameX.length; i++) {
                 var strokes = [];
@@ -154,16 +161,16 @@ class Latk {
     }
 
     write() {
-        var frameCount = layers[getLongestLayer()].frames.length;
+        var frameCount = this.layers[getLongestLayer()].frames.length;
         var strokeCount = 0;
         var pointCount = 0;
         // http://stackoverflow.com/questions/35370483/geometries-on-vertex-of-buffergeometry-in-three-js
-        var firstPoint = layers[getLongestLayer()].frames[0][0].geometry.attributes.position.array[0];
-        for (var h=0; h<layers.length; h++) {
-            for (var i=0; i<layers[h].frames.length; i++) {
-                strokeCount += layers[h].frames[i].length;
-                for (var j=0; j<layers[h].frames[i].length; j++) {
-                    for (var l=0; l<layers[h].frames[i][j].geometry.attributes.position.array.length; l += 6) {//l += 2) {
+        var firstPoint = this.layers[getLongestLayer()].frames[0][0].geometry.attributes.position.array[0];
+        for (var h=0; h<this.layers.length; h++) {
+            for (var i=0; i<this.layers[h].frames.length; i++) {
+                strokeCount += this.layers[h].frames[i].length;
+                for (var j=0; j<this.layers[h].frames[i].length; j++) {
+                    for (var l=0; l<this.layers[h].frames[i][j].geometry.attributes.position.array.length; l += 6) {//l += 2) {
                         pointCount++;
                     }
                 }
@@ -180,10 +187,6 @@ class Latk {
             console.log("***********************");
         }
 
-        //var useScaleAndOffset = true;
-        //var globalScale = new THREE.Vector3(0.01, 0.01, 0.01);
-        //var globalOffset = new THREE.Vector3(0, 0, 0);
-
         var sg = [];
         sg.push("{");
         sg.push("\t\"creator\": \"webvr\",");
@@ -191,10 +194,10 @@ class Latk {
         sg.push("\t\t{");
         sg.push("\t\t\t\"layers\": [");
         var sl = [];
-        for (var f=0; f<layers.length; f++) {// gp.layers.length, f++) { 
+        for (var f=0; f<this.layers.length; f++) {
             var sb = [];
-            var layer = layers[f]; //gp.layers[f] 
-            for (var h=0; h<layer.frames.length; h++) { //layer.frames.length, h++) { 
+            var layer = this.layers[f];
+            for (var h=0; h<layer.frames.length; h++) { 
                 var currentFrame = h;
                 sb.push("\t\t\t\t\t\t{"); // one frame
                 sb.push("\t\t\t\t\t\t\t\"strokes\": [");
@@ -203,25 +206,20 @@ class Latk {
                 } else {
                     sb.push("\t\t\t\t\t\t\t]"); // no strokes
                 }
-                for (var i=0; i<layer.frames[currentFrame].length; i++) { //layer.frames[currentFrame].strokes.length) { 
+                for (var i=0; i<layer.frames[currentFrame].length; i++) { 
                     var color = defaultColor;
                     try {
-                       //color = frames[currentFrame].strokes[i].color.color; //layer.frames[currentFrame].strokes[i].color.color 
                        color = [layer.frameColors[currentFrame][i][0], layer.frameColors[currentFrame][i][1], layer.frameColors[currentFrame][i][2]];
-                    } catch (e) {
-                        //
-                    }
+                    } catch (e) { }
                     sb.push("\t\t\t\t\t\t\t\t\t\"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "],");
                     sb.push("\t\t\t\t\t\t\t\t\t\"points\": [");
-                    for (var j=0; j<layer.frames[currentFrame][i].geometry.attributes.position.array.length; j += 6 ) { //layer.frames[currentFrame].strokes[i].points.length) { 
+                    for (var j=0; j<layer.frames[currentFrame][i].geometry.attributes.position.array.length; j += 6 ) { 
                         var x = 0.0;
                         var y = 0.0;
                         var z = 0.0;
 
                         var point = new THREE.Vector3(layer.frames[currentFrame][i].geometry.attributes.position.array[j], layer.frames[currentFrame][i].geometry.attributes.position.array[j+1], layer.frames[currentFrame][i].geometry.attributes.position.array[j+2]);
 
-                        //~
-                        //var point = frames[currentFrame][i].geometry.attributes.position[j]; //layer.frames[currentFrame].strokes[i].points[j].co 
                         if (useScaleAndOffset) {
                             x = (point.x * globalScale.x) + globalOffset.x
                             y = (point.y * globalScale.y) + globalOffset.y
@@ -230,19 +228,18 @@ class Latk {
                             x = point.x;
                             y = point.y;
                             z = point.z;
-                            //console.log(x + " " + y + " " + z);
                         }
-                        //~
+
                         if (roundValues) {
                             sb.push("\t\t\t\t\t\t\t\t\t\t{\"co\": [" + roundVal(x, numPlaces) + ", " + roundVal(y, numPlaces) + ", " + roundVal(z, numPlaces) + "]");
                         } else {
                             sb.push("\t\t\t\t\t\t\t\t\t\t{\"co\": [" + x + ", " + z + ", " + y + "]");                  
                         }
-                        //~
-                        if (j >= layer.frames[currentFrame][i].geometry.attributes.position.array.length - 6) {  //layer.frames[currentFrame].strokes[i].points.length - 1) { 
+
+                        if (j >= layer.frames[currentFrame][i].geometry.attributes.position.array.length - 6) { 
                             sb[sb.length-1] += "}";
                             sb.push("\t\t\t\t\t\t\t\t\t]");
-                            if (i == layer.frames[currentFrame].length - 1) { //layer.frames[currentFrame].strokes.length - 1) { 
+                            if (i == layer.frames[currentFrame].length - 1) { 
                                 sb.push("\t\t\t\t\t\t\t\t}"); // last stroke for this frame
                             } else {
                                 sb.push("\t\t\t\t\t\t\t\t},"); // end stroke
@@ -252,11 +249,11 @@ class Latk {
                             sb[sb.length-1] += "},";
                         }
                     }
-                    if (i == layer.frames[currentFrame].length - 1) { //layer.frames[currentFrame].strokes.length - 1) { 
+                    if (i == layer.frames[currentFrame].length - 1) { 
                         sb.push("\t\t\t\t\t\t\t]");
                     }
                 }
-                if (h == layer.frames.length - 1) { //layer.frames.length - 1) { 
+                if (h == layer.frames.length - 1) { 
                     sb.push("\t\t\t\t\t\t}");
                 } else {
                     sb.push("\t\t\t\t\t\t},");
@@ -265,11 +262,11 @@ class Latk {
             //~
             var sf = [];
             sf.push("\t\t\t\t{");
-            sf.push("\t\t\t\t\t\"name\": \"" + layer.name + "\","); //layer.info + "\"," 
+            sf.push("\t\t\t\t\t\"name\": \"" + layer.name + "\","); 
             sf.push("\t\t\t\t\t\"frames\": [");
             sf.push(sb.join("\n"));
             sf.push("\t\t\t\t\t]");
-            if (f == layers.length-1) { 
+            if (f == this.layers.length-1) { 
                 sf.push("\t\t\t\t}");
             } else {
                 sf.push("\t\t\t\t},");
@@ -284,7 +281,6 @@ class Latk {
         sg.push("}");
 
         var uriContent = "data:text/plain;charset=utf-8," + encodeURIComponent(sg.join("\n"));
-        //pauseAnimation = false;
         window.open(uriContent);
     }
 
@@ -323,17 +319,7 @@ JSZipUtils.getBinaryContent(animationPath, function(err, data) {
 class LatkLayer {
 
     constructor() {
-        this.frames = [];
-        // ~ ~
         this.name = "";
-        this.strokeX = [];
-        this.strokeY = [];
-        this.strokeZ = [];
-        this.frameX = [];
-        this.frameY = [];
-        this.frameZ = [];
-        this.strokeColors = [];
-        this.frameColors = [];
         this.frames = [];
         this.counter = 0;
         this.loopCounter = 0;

@@ -1,7 +1,6 @@
 "use strict";
 
 var latk;
-var layers = [];
 var soundPath = "../sounds/avlt.ogg";
 var animationPath = "../animations/jellyfish.json";
 var brushPath = "../images/brush_vive.png";
@@ -548,14 +547,14 @@ function updateStroke(x, y, z) {
 function endStroke() {  // TODO draw on new layer
     //if (isDrawing) {
 	isDrawing = false;
-    var last = layers.length-1;
-    layers[last].frames[layers[last].counter].push(tempStroke);
+    var last = latk.layers.length-1;
+    latk.layers[last].frames[layers[last].counter].push(tempStroke);
     //~
     socket.emit("clientStrokeToServer", tempStrokeToJson());
     //~
     clearTempStroke();
     refreshFrameLast();
-    if (latkDebug) console.log("End " + layers[last].frames[layers[last].counter][layers[last].frames[layers[last].counter].length-1].name + ".");
+    if (latkDebug) console.log("End " + latk.layers[last].frames[layers[last].counter][layers[last].frames[layers[last].counter].length-1].name + ".");
     strokeCounter++;
 	//}
 }
@@ -739,21 +738,7 @@ class LatkThree {
 class LatkLayerThree {
 
     constructor() {
-        this.frames = [];
-        // ~ ~
-        this.name = "";
-        this.strokeX = [];
-        this.strokeY = [];
-        this.strokeZ = [];
-        this.frameX = [];
-        this.frameY = [];
-        this.frameZ = [];
-        this.strokeColors = [];
-        this.frameColors = [];
-        this.frames = [];
-        this.counter = 0;
-        this.loopCounter = 0;
-        this.previousFrame = 0;
+    	this.frames = [];
     }
 
 }

@@ -730,7 +730,8 @@ function latkStart() {
 class LatkThree {
 
     constructor(filepath) {
-
+        this.latk;
+        this.layers = [];
     }
 
 }

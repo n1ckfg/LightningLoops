@@ -1,6 +1,6 @@
 "use strict";
 
-var latk;
+var latkThree;
 var soundPath = "../sounds/avlt.ogg";
 var animationPath = "../animations/jellyfish.json";
 var brushPath = "../images/brush_vive.png";
@@ -31,7 +31,6 @@ var mouse3D = new THREE.Vector3(0, 0, 0);
 // ~ ~ ~ 
 var subtitleText, readingText;
 var firstTextUse = true;
-var texture;
 
 // http://threejs.org/examples/webgl_materials_blending_custom.html
 var blendSrc = [ "ZeroFactor", "OneFactor", "SrcAlphaFactor", "OneMinusSrcAlphaFactor", "DstAlphaFactor", "OneMinusDstAlphaFactor", "DstColorFactor", "OneMinusDstColorFactor", "SrcAlphaSaturateFactor" ];
@@ -616,7 +615,7 @@ function redrawFrame(index) {
 }
 
 function frameMain() {
-    for (var h=0; h<layers.length; h++) {
+    for (var h=0; h<latkThree.layers.length; h++) {
         redrawFrame(h);
         layers[h].previousFrame = layers[h].counter;
         layers[h].counter++;
@@ -724,7 +723,25 @@ function latkStart() {
     init();
     if (!viveMode) showReading();
 
-    latk = new Latk(animationPath);
+    latkThree = new LatkThree(animationPath);
+
+    if (useAudioSync) {
+	    Tone.Buffer.on("load", function(){
+	        player.loop = true;
+	        player.loopStart = 0;
+	        player.loopEnd = this.layers[getLongestLayer()].frames.length * frameInterval;
+	        player.sync();
+	        Tone.Transport.start();
+	        
+	        Tone.Transport.scheduleRepeat(function(time){
+	                frameDelta = frameInterval;
+	        }, frameInterval);
+
+	        scheduleSubtitles();
+	    });
+	}
+	    
+	animate();
 }    
 
 class LatkThree {
@@ -749,7 +766,45 @@ class LatkFrameThree {
     constructor() {
         this.strokes = [];
     }
-    
+
+    buildNewStroke() {
+        var oldStrokes = [];
+
+        var texture = THREE.ImageUtils.loadTexture(brushPath);
+
+        for (var i=0; i<layer.frameX.length; i++) {
+            var strokes = [];
+            for (var j=0; j<layer.frameX[i].length; j++) {
+                var geometry = new THREE.Geometry();
+                geometry.dynamic = true;
+
+                var origVerts = [];
+
+                for (var l=0; l<layer.frameX[i][j].length; l++) {
+                    origVerts.push(new THREE.Vector3(layer.frameX[i][j][l], layer.frameY[i][j][l], layer.frameZ[i][j][l]));
+
+                    if (l === 0 || !useMinDistance || (useMinDistance && origVerts[l].distanceTo(origVerts[l-1]) > minDistance)) {
+                        geometry.vertices.push(origVerts[l]);
+                    }
+                }
+
+                geometry.verticesNeedUpdate = true;
+                
+                var line = new THREE.MeshLine();
+                line.setGeometry(geometry);
+                var meshLine = new THREE.Mesh(line.geometry, createUniqueMtl([layer.frameColors[i][j][0], layer.frameColors[i][j][1], layer.frameColors[i][j][2]]));
+                //rotateAroundWorldAxis(meshLine, new THREE.Vector3(1,0,0), laRot.y * Math.PI/180); 
+                //rotateAroundWorldAxis(meshLine, new THREE.Vector3(0,1,0), laRot.x * Math.PI/180); 
+                strokes.push(meshLine);//line);
+            }
+            if (strokes.length !== 0) {
+                oldStrokes = strokes;
+                layer.frames.push(strokes);  
+            } else if (strokes.length === 0 && oldStrokes) {
+                layer.frames.push(oldStrokes);
+            }            
+        }
+    }
 }
 
 class LatkStrokeThree {

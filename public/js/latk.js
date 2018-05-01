@@ -22,14 +22,6 @@ class Latk {
         for (var h=0; h<data.layers.length; h++) {
             // ~ ~ ~
             var layer = new LatkLayer();
-            var strokeX = [];
-        	var strokeY = [];
-        	var strokeZ = [];
-        	var frameX = [];
-        	var frameY = [];
-        	var frameZ = [];
-        	var strokeColors = [];
-        	var frameColors = [];
 
             if (data.layers[h].name != null) {
                 layer.name = data.layers[h].name;
@@ -62,11 +54,12 @@ class Latk {
             }
 
             for (var i=0; i<data.layers[h].frames.length; i++) { // frame
-                layer.strokeX = [];
-                layer.strokeY = [];
-                layer.strokeZ = [];
-                layer.strokeColors = [];
+            	var frame = new LatkFrame();
+
                 for (var j=0; j<data.layers[h].frames[i].strokes.length; j++) { // stroke 
+                	var stroke = new LatkStroke();
+
+                    /*
                     var bufferX = new ArrayBuffer(data.layers[h].frames[i].strokes[j].points.length * 4);
                     var bufferY = new ArrayBuffer(data.layers[h].frames[i].strokes[j].points.length * 4);
                     var bufferZ = new ArrayBuffer(data.layers[h].frames[i].strokes[j].points.length * 4);
@@ -74,93 +67,44 @@ class Latk {
                     var bufferXf = new Float32Array(bufferX);
                     var bufferYf = new Float32Array(bufferY);
                     var bufferZf = new Float32Array(bufferZ);
-                    
+                    */
+
                     for (var l=0; l<data.layers[h].frames[i].strokes[j].points.length; l++) { // point
+                        /*
                         bufferXf[l] = (data.layers[h].frames[i].strokes[j].points[l].co[0] * laScale) + laOffset.x;
                         bufferYf[l] = (data.layers[h].frames[i].strokes[j].points[l].co[1] * laScale) + laOffset.y;
                         bufferZf[l] = (data.layers[h].frames[i].strokes[j].points[l].co[2] * laScale) + laOffset.z;
+                        */
+                    	var buffer = new Float32Array(new ArrayBuffer[12]);
+                    	buffer[0] = (data.layers[h].frames[i].strokes[j].points[l].co[0] * laScale) + laOffset.x;
+                        buffer[1] = (data.layers[h].frames[i].strokes[j].points[l].co[1] * laScale) + laOffset.y;
+                        buffer[2] = (data.layers[h].frames[i].strokes[j].points[l].co[2] * laScale) + laOffset.z;
+
+                        stroke.points.push(buffer);
                     }
 
-                    layer.strokeX.push(bufferXf);
-                    layer.strokeY.push(bufferYf);
-                    layer.strokeZ.push(bufferZf);
                     var newColor = defaultColor;
                     try {
                         newColor = data.layers[h].frames[i].strokes[j].color;
                     } catch (e) { }
-                    layer.strokeColors.push(newColor);
+                    stroke.color = newColor;
+                	
+                	frame.strokes(push(stroke));
                 }
 
-                layer.frameX.push(layer.strokeX);
-                layer.frameY.push(layer.strokeY);
-                layer.frameZ.push(layer.strokeZ);
-                layer.frameColors.push(layer.strokeColors);
+                layer.frames.push(frame);
             }
 
             if (latkDebug) console.log("* * * color check: " + layer.frameX.length + " " + layer.frameColors.length + " " + layer.frameX[0].length + " " + layer.frameColors[0].length);
 
-            layer.frames = [];
-
-            var oldStrokes = [];
-
-            texture = THREE.ImageUtils.loadTexture(brushPath);
-
-            for (var i=0; i<layer.frameX.length; i++) {
-                var strokes = [];
-                for (var j=0; j<layer.frameX[i].length; j++) {
-                    var geometry = new THREE.Geometry();
-                    geometry.dynamic = true;
-
-                    var origVerts = [];
-
-                    for (var l=0; l<layer.frameX[i][j].length; l++) {
-                        origVerts.push(new THREE.Vector3(layer.frameX[i][j][l], layer.frameY[i][j][l], layer.frameZ[i][j][l]));
-
-                        if (l === 0 || !useMinDistance || (useMinDistance && origVerts[l].distanceTo(origVerts[l-1]) > minDistance)) {
-                            geometry.vertices.push(origVerts[l]);
-                        }
-                    }
-
-                    geometry.verticesNeedUpdate = true;
-                    
-                    var line = new THREE.MeshLine();
-                    line.setGeometry(geometry);
-                    var meshLine = new THREE.Mesh(line.geometry, createUniqueMtl([layer.frameColors[i][j][0], layer.frameColors[i][j][1], layer.frameColors[i][j][2]]));
-                    //rotateAroundWorldAxis(meshLine, new THREE.Vector3(1,0,0), laRot.y * Math.PI/180); 
-                    //rotateAroundWorldAxis(meshLine, new THREE.Vector3(0,1,0), laRot.x * Math.PI/180); 
-                    strokes.push(meshLine);//line);
-                }
-                if (strokes.length !== 0) {
-                    oldStrokes = strokes;
-                    layer.frames.push(strokes);  
-                } else if (strokes.length === 0 && oldStrokes) {
-                    layer.frames.push(oldStrokes);
-                }            
-            }
             // ~ ~ ~
             this.layers.push(layer);
         }
 
-        if (useAudioSync) {
-            Tone.Buffer.on("load", function(){
-                player.loop = true;
-                player.loopStart = 0;
-                player.loopEnd = this.layers[getLongestLayer()].frames.length * frameInterval;
-                player.sync();
-                Tone.Transport.start();
-                
-                Tone.Transport.scheduleRepeat(function(time){
-                        frameDelta = frameInterval;
-                }, frameInterval);
-
-                scheduleSubtitles();
-            });
-        }
-            
-        animate();
     }
 
     write() {
+    	/*
         var frameCount = this.layers[getLongestLayer()].frames.length;
         var strokeCount = 0;
         var pointCount = 0;
@@ -282,6 +226,7 @@ class Latk {
 
         var uriContent = "data:text/plain;charset=utf-8," + encodeURIComponent(sg.join("\n"));
         window.open(uriContent);
+        */
     }
 
     loadJSON() { 
@@ -332,6 +277,14 @@ class LatkFrame {
 
     constructor() {
         this.strokes = [];
+       	this.strokeX = [];
+    	this.strokeY = [];
+    	this.strokeZ = [];
+    	this.frameX = [];
+    	this.frameY = [];
+    	this.frameZ = [];
+    	this.strokeColors = [];
+    	this.frameColors = [];
     }
 
 }

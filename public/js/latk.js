@@ -1,136 +1,98 @@
 "use strict";
 
-class Latk {
+class LatkThree {
 
     constructor(filepath) {
-        this.filepath = filepath;
-        this.data;
+        this.latk = new Latk(filepath);
+        
+        this.latk.ready(function(data)) 
+        console.log(this.latk.data);
         this.layers = [];
-        this.read(filepath);
-    }
+        this.palette = [];
+        this.counter = 0;
+        this.loopCounter = 0;
+        this.previousFrame = 0;
 
-    read(filepath) {
-        this.filepath = filepath;
-        this.loadJSON(this.filepath, function(response) {
-            this.data = JSON.parse(response).grease_pencil[0];
-            console.log(this.data);
-            this.parseJSON(this.data);
-        });
-    }
+        var oldStrokes = [];
 
-    parseJSON(data) {
-        for (var h=0; h<data.layers.length; h++) {
-            // ~ ~ ~
-            var layer = new LatkLayer();
+        var texture = THREE.ImageUtils.loadTexture(brushPath);
 
-            if (data.layers[h].name != null) {
-                layer.name = data.layers[h].name;
-            } else {
-                layer.name = "WebVR Layer " + (h+1);
-            }
-            
-            if (latkDebug) {
-            	var frameCount = data.layers[h].frames.length;
-	            var strokeCount = 0;
-	            var pointCount = 0;
-	            for (var i=0; i<data.layers[h].frames.length; i++) {
-	                strokeCount += data.layers[h].frames[i].strokes.length;
-	                for (var j=0; j<data.layers[h].frames[i].strokes.length; j++) {
-	                    pointCount += data.layers[h].frames[i].strokes[j].points.length;
-	                }
-	            }
-	            var firstPoint = "*";
-	            try {
-	                firstPoint = data.layers[h].frames[0].strokes[0].points[0].co[0] * 100;
-	            } catch (e) { }
-	            
-                console.log("***********************");
-                console.log("~INPUT~")
-                console.log("total frames: " + frameCount);
-                console.log("total strokes: " + strokeCount);
-                console.log("total points: " + pointCount);
-                console.log("first point: " + firstPoint);
-                console.log("***********************");
-            }
+        for (var h=0; h<this.latk.data.layers; h++) {
+            for (var i=0; i<latk.data.layers[0].frames.length; i++) {
+                var strokes = [];
+                for (var j=0; j<latk.data.layers[0].frames[i].strokes.length; j++) {
+                    var geometry = new THREE.Geometry();
+                    geometry.dynamic = true;
 
-            for (var i=0; i<data.layers[h].frames.length; i++) { // frame
-            	var frame = new LatkFrame();
+                    var origVerts = [];
 
-                for (var j=0; j<data.layers[h].frames[i].strokes.length; j++) { // stroke 
-                	var stroke = new LatkStroke();
+                    for (var l=0; l<layer.frameX[i][j].length; l++) {
+                        origVerts.push(new THREE.Vector3(layer.frameX[i][j][l], layer.frameY[i][j][l], layer.frameZ[i][j][l]));
 
-                    /*
-                    var bufferX = new ArrayBuffer(data.layers[h].frames[i].strokes[j].points.length * 4);
-                    var bufferY = new ArrayBuffer(data.layers[h].frames[i].strokes[j].points.length * 4);
-                    var bufferZ = new ArrayBuffer(data.layers[h].frames[i].strokes[j].points.length * 4);
-                    
-                    var bufferXf = new Float32Array(bufferX);
-                    var bufferYf = new Float32Array(bufferY);
-                    var bufferZf = new Float32Array(bufferZ);
-                    */
-
-                    for (var l=0; l<data.layers[h].frames[i].strokes[j].points.length; l++) { // point
-                        /*
-                        bufferXf[l] = (data.layers[h].frames[i].strokes[j].points[l].co[0] * laScale) + laOffset.x;
-                        bufferYf[l] = (data.layers[h].frames[i].strokes[j].points[l].co[1] * laScale) + laOffset.y;
-                        bufferZf[l] = (data.layers[h].frames[i].strokes[j].points[l].co[2] * laScale) + laOffset.z;
-                        */
-                    	var buffer = new Float32Array(new ArrayBuffer[12]);
-                    	buffer[0] = (data.layers[h].frames[i].strokes[j].points[l].co[0] * laScale) + laOffset.x;
-                        buffer[1] = (data.layers[h].frames[i].strokes[j].points[l].co[1] * laScale) + laOffset.y;
-                        buffer[2] = (data.layers[h].frames[i].strokes[j].points[l].co[2] * laScale) + laOffset.z;
-
-                        stroke.points.push(buffer);
+                        if (l === 0 || !useMinDistance || (useMinDistance && origVerts[l].distanceTo(origVerts[l-1]) > minDistance)) {
+                            geometry.vertices.push(origVerts[l]);
+                        }
                     }
 
-                    var newColor = defaultColor;
-                    try {
-                        newColor = data.layers[h].frames[i].strokes[j].color;
-                    } catch (e) { }
-                    stroke.color = newColor;
-                	
-                	frame.strokes(push(stroke));
+                    geometry.verticesNeedUpdate = true;
+                    
+                    var line = new THREE.MeshLine();
+                    line.setGeometry(geometry);
+                    var meshLine = new THREE.Mesh(line.geometry, createUniqueMtl([layer.frameColors[i][j][0], layer.frameColors[i][j][1], layer.frameColors[i][j][2]]));
+                    strokes.push(meshLine);
                 }
-
-                layer.frames.push(frame);
+                if (strokes.length !== 0) {
+                    oldStrokes = strokes;
+                    layer.frames.push(strokes);  
+                } else if (strokes.length === 0 && oldStrokes) {
+                    layer.frames.push(oldStrokes);
+                }            
             }
-
-            if (latkDebug) console.log("* * * color check: " + layer.frameX.length + " " + layer.frameColors.length + " " + layer.frameX[0].length + " " + layer.frameColors[0].length);
-
-            // ~ ~ ~
-            this.layers.push(layer);
         }
+    }
 
+    roundVal(value, decimals) {
+        return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+    } 
+
+    tempStrokeToJson() {
+        try {
+            var color = defaultColor;
+            var sb = [];
+            sb.push("{");
+            sb.push("\"timestamp\": " + new Date().getTime() + ",");
+            sb.push("\"index\": " + layers[layers.length-1].counter + ",");
+            sb.push("\"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "],");
+            sb.push("\"points\": [");
+            for (var j=0; j<tempStroke.geometry.attributes.position.array.length; j += 6 ) { 
+                var x = 0.0;
+                var y = 0.0;
+                var z = 0.0;
+                var point = new THREE.Vector3(tempStroke.geometry.attributes.position.array[j], tempStroke.geometry.attributes.position.array[j+1], tempStroke.geometry.attributes.position.array[j+2]);
+
+                x = point.x;
+                y = point.y;
+                z = point.z;
+
+                if (x!=NaN && y!=NaN && z!=NaN) {
+                    sb.push("{\"co\": [" + x + ", " + y + ", " + z + "]");                  
+                    if (j >= tempStroke.geometry.attributes.position.array.length - 6) {
+                        sb[sb.length-1] += "}";
+                    } else {
+                        sb[sb.length-1] += "},";
+                    }
+                }
+            }
+            sb.push("]");
+            sb.push("}");
+
+            return JSON.parse(sb.join(""));
+        } catch (e) {
+            console.log("Something went wrong sending a stroke.")
+        }
     }
 
     write() {
-    	/*
-        var frameCount = this.layers[getLongestLayer()].frames.length;
-        var strokeCount = 0;
-        var pointCount = 0;
-        // http://stackoverflow.com/questions/35370483/geometries-on-vertex-of-buffergeometry-in-three-js
-        var firstPoint = this.layers[getLongestLayer()].frames[0][0].geometry.attributes.position.array[0];
-        for (var h=0; h<this.layers.length; h++) {
-            for (var i=0; i<this.layers[h].frames.length; i++) {
-                strokeCount += this.layers[h].frames[i].length;
-                for (var j=0; j<this.layers[h].frames[i].length; j++) {
-                    for (var l=0; l<this.layers[h].frames[i][j].geometry.attributes.position.array.length; l += 6) {//l += 2) {
-                        pointCount++;
-                    }
-                }
-            }
-        }
-
-        if (latkDebug) {
-            console.log("***********************");
-            console.log("~OUTPUT~")
-            console.log("total frames: " + frameCount);
-            console.log("total strokes: " + strokeCount);
-            console.log("total points: " + pointCount);
-            console.log("first point: " + firstPoint);
-            console.log("***********************");
-        }
-
         var sg = [];
         sg.push("{");
         sg.push("\t\"creator\": \"webvr\",");
@@ -226,7 +188,164 @@ class Latk {
 
         var uriContent = "data:text/plain;charset=utf-8," + encodeURIComponent(sg.join("\n"));
         window.open(uriContent);
-        */
+    }
+
+    createUniqueMtl(color) {
+        var mtlIndex = -1;
+        for (var i=0; i<this.palette.length; i++) {
+            var paletteColor = [this.palette[i].uniforms.color.value.r, this.palette[i].uniforms.color.value.g, this.palette[i].uniforms.color.value.b];
+            if (compareColor(color, paletteColor, 5)) {
+                mtlIndex = i;
+                if (latkDebug) console.log("Found palette match at index " + i);
+                break;
+            }
+        }
+        if (mtlIndex === -1) {
+            var mtl = createMtl(color, defaultOpacity, defaultLineWidth/1.5);
+            this.palette.push(mtl);
+            if (latkDebug) console.log("Creating new color, " + this.palette.length + " total colors");
+            return this.palette[this.palette.length-1];
+        } else {
+            if (latkDebug) console.log("Reusing color " + mtlIndex + ", " + this.palette.length + " total colors");
+            return this.palette[mtlIndex];
+        }
+    }
+
+    compareColor(c1, c2, numPlaces) {
+        var r1 = roundVal(c1[0], numPlaces);
+        var r2 = roundVal(c2[0], numPlaces);
+        var g1 = roundVal(c1[1], numPlaces);
+        var g2 = roundVal(c2[1], numPlaces);
+        var b1 = roundVal(c1[2], numPlaces);
+        var b2 = roundVal(c2[2], numPlaces);
+        if (r1 === r2 && g1 === g2 && b1 === b2) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+}
+
+class LatkLayerThree {
+
+    constructor() {
+        this.name = "";
+        this.frames = [];
+    }
+
+}
+
+class LatkFrameThree {
+
+    constructor() {
+        this.strokes = [];
+    }
+
+}
+
+class LatkStrokeThree {
+
+    constructor(x, y, z) {
+        this.points = [];
+        this.smoothReps = 10;
+        this.splitReps = 2;
+        this.geometry;
+        this.mesh;
+        this.addPoints(x, y, z);
+        this.createStroke();
+    }
+
+    rebuildGeometry() {
+        this.geometry = new THREE.Geometry();
+        this.geometry.dynamic = true;
+        for (var i=0; i<this.points.length; i++) {
+            this.geometry.vertices.push(this.points[i]);
+        }
+        this.geometry.verticesNeedUpdate = true;
+        this.geometry.__dirtyVertices = true; 
+    }
+
+    addPoints(x, y, z) {
+        this.points.push(new THREE.Vector3(x, y, z));
+        this.rebuildGeometry();
+    }
+
+    clearStroke() {
+        try {
+            scene.remove(this.mesh);
+        } catch (e) { }       
+    }
+
+    createStroke() {
+        var line = new THREE.MeshLine();
+        line.setGeometry(this.geometry);
+        this.mesh = new THREE.Mesh(line.geometry, createUniqueMtl([0.667, 0.667, 1]));
+        this.mesh.name = "stroke" + strokeCounter;
+        scene.add(this.mesh);
+    }
+
+    updateMesh(x, y, z) {
+        this.clearStroke();
+        this.addPoints(x, y, z);
+        this.createStroke();
+    }
+
+    refreshMesh() {
+        this.clearStroke();
+        this.rebuildGeometry();
+        this.createStroke();   
+    }
+
+    smooth() {
+        var weight = 18;
+        var scale = 1.0 / (weight + 2);
+        var nPointsMinusTwo = this.points.length - 2;
+        var lower, upper, center;
+
+        for (var i = 1; i < nPointsMinusTwo; i++) {
+            lower = this.points[i-1];
+            center = this.points[i];
+            upper = this.points[i+1];
+
+            center.x = (lower.x + weight * center.x + upper.x) * scale;
+            center.y = (lower.y + weight * center.y + upper.y) * scale;
+            center.z = (lower.z + weight * center.z + upper.z) * scale;
+            this.points[i] = center;
+        }
+    }
+
+    split() {
+        for (var i = 1; i < this.points.length; i+=2) {
+            var x = (this.points[i].x + this.points[i-1].x) / 2;
+            var y = (this.points[i].y + this.points[i-1].y) / 2;
+            var z = (this.points[i].z + this.points[i-1].z) / 2;
+            var p = new THREE.Vector3(x, y, z);
+            this.points.splice(i, 0, p);
+        }
+    }
+
+    refine() {
+        for (var i=0; i<this.splitReps; i++){
+            this.split();   
+            this.smooth();  
+        }
+        for (var i=0; i<this.smoothReps - this.splitReps; i++){
+            this.smooth();      
+        }
+        this.refreshMesh();   
+    }
+
+}
+
+
+class Latk {
+
+    constructor(filepath) {
+        this.filepath = filepath;
+        this.data;
+        this.read(filepath);
+        this.ready = false;
     }
 
     loadJSON() { 
@@ -242,57 +361,31 @@ class Latk {
         xobj.send(null);  
     }
 
-}
+    read(filepath) {
+        this.filepath = filepath;
+        /* TODO if extension is zip {
+            JSZipUtils.getBinaryContent(animationPath, function(err, data) {
+                if (err) {
+                    throw err; // or handle err
+                }
 
-/*
-JSZipUtils.getBinaryContent(animationPath, function(err, data) {
-    if (err) {
-        throw err; // or handle err
-    }
-
-    var zip = new JSZip();
-    zip.loadAsync(data).then(function () {
-        var fileNameOrig = animationPath.split('\\').pop().split('/').pop();
-        var fileName = fileNameOrig.split('.')[0] + ".json";
-        zip.file(fileName).async("string").then(function(response) {
-            jsonToGp(JSON.parse(response).grease_pencil[0]);
+                var zip = new JSZip();
+                zip.loadAsync(data).then(function () {
+                    var fileNameOrig = animationPath.split('\\').pop().split('/').pop();
+                    var fileName = fileNameOrig.split('.')[0] + ".json";
+                    zip.file(fileName).async("string").then(function(response) {
+                        jsonToGp(JSON.parse(response).grease_pencil[0]);
+                    });
+                });
+            });    
+        } else { }
+        */
+        this.loadJSON(this.filepath, function(response) {
+            this.data = JSON.parse(response).grease_pencil[0];
+            console.log(this.data);
+            this.ready = true;
         });
-    });
-});
-*/
-
-class LatkLayer {
-
-    constructor() {
-        this.name = "";
-        this.frames = [];
-        this.counter = 0;
-        this.loopCounter = 0;
-        this.previousFrame = 0;
     }
 
 }
 
-class LatkFrame {
-
-    constructor() {
-        this.strokes = [];
-       	this.strokeX = [];
-    	this.strokeY = [];
-    	this.strokeZ = [];
-    	this.frameX = [];
-    	this.frameY = [];
-    	this.frameZ = [];
-    	this.strokeColors = [];
-    	this.frameColors = [];
-    }
-
-}
-
-class LatkStroke {
-
-    constructor() {
-        this.points = [];
-    }
-    
-}

@@ -52,8 +52,6 @@ var defaultColor = [0.667, 0.667, 1];
 var serverColor = [1, 0.5, 0.25];
 var defaultOpacity = 0.85;
 var defaultLineWidth = 0.05;
-//var strokes = [];
-var palette = [];
 
 var strokeCounter = 0;
 var isDrawing = false;
@@ -121,17 +119,17 @@ function animate(timestamp) {
         }
 
         if (isDrawing) {
-            var last = layers.length - 1;
+            var last = latkThree.layers.length - 1;
             var drawTrailLength = 4;
 
-            if (drawWhilePlaying && layers[last].frames.length > 1 && layers[last].frames[layers[last].previousFrame].length > 0) {
-                var lastStroke = layers[last].frames[layers[last].previousFrame][layers[last].frames[layers[last].previousFrame].length - 1];
+            if (drawWhilePlaying && latkThree.layers[last].frames.length > 1 && latkThree.layers[last].frames[layers[last].previousFrame].length > 0) {
+                var lastStroke = latkThree.layers[last].frames[latkThree.layers[last].previousFrame][latkThree.layers[last].frames[latkThree.layers[last].previousFrame].length - 1];
                 var points = getPoints(lastStroke);
 
                 for (var pts = parseInt(points.length / drawTrailLength) + 1; pts < points.length - 1; pts++) {
                     createTempStroke(points[pts].x, points[pts].y, points[pts].z);
                 }
-                layers[last].frames[layers[last].counter].push(tempStroke);
+                latkThree.layers[last].frames[latkThree.layers[last].counter].push(tempStroke);
                 //~
                 endStroke();
 
@@ -186,7 +184,7 @@ function animate(timestamp) {
     }   
     
     if (viveMode) {
-        effect.requestAnimationFrame( animate );
+        effect.requestAnimationFrame(animate);
         render();
     } else {
         render(timestamp);
@@ -342,48 +340,6 @@ function scheduleSubtitles() {
     */
 }
 
-function roundVal(value, decimals) {
-    return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
-} 
-
-function tempStrokeToJson() {
-    try {
-        var color = defaultColor;
-        var sb = [];
-        sb.push("{");
-        sb.push("\"timestamp\": " + new Date().getTime() + ",");
-        sb.push("\"index\": " + layers[layers.length-1].counter + ",");
-        sb.push("\"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "],");
-        sb.push("\"points\": [");
-        for (var j=0; j<tempStroke.geometry.attributes.position.array.length; j += 6 ) { 
-            var x = 0.0;
-            var y = 0.0;
-            var z = 0.0;
-            var point = new THREE.Vector3(tempStroke.geometry.attributes.position.array[j], tempStroke.geometry.attributes.position.array[j+1], tempStroke.geometry.attributes.position.array[j+2]);
-
-            x = point.x;
-            y = point.y;
-            z = point.z;
-
-            if (x!=NaN && y!=NaN && z!=NaN) {
-                sb.push("{\"co\": [" + x + ", " + y + ", " + z + "]");                  
-                if (j >= tempStroke.geometry.attributes.position.array.length - 6) {
-                    sb[sb.length-1] += "}";
-                } else {
-                    sb[sb.length-1] += "},";
-                }
-            }
-        }
-        sb.push("]");
-        sb.push("}");
-
-        return JSON.parse(sb.join(""));
-    } catch (e) {
-        console.log("Something went wrong sending a stroke.")
-    }
-}
-
-
 // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
 var dropZone;
@@ -405,8 +361,8 @@ function onDrop(e) {
             pauseAnimation = true;
             clearFrame();
             subsCounter = 0;
-            layers = [];
-            jsonToGp(JSON.parse(e2.target.result).grease_pencil[0]);
+            latkThree.layers = [];
+            jsonToGp(JSON.parse(e2.target.result).grease_pencil[0]); // TODO fix
             pauseAnimation = false;
         }
         reader.readAsText(file, 'UTF-8');
@@ -435,41 +391,6 @@ function createMtl(color, opacity, lineWidth) {
         */
     });
     return mtl;
-}
-
-function createUniqueMtl(color) {
-    var mtlIndex = -1;
-    for (var i=0; i<palette.length; i++) {
-        var paletteColor = [palette[i].uniforms.color.value.r, palette[i].uniforms.color.value.g, palette[i].uniforms.color.value.b];
-        if (compareColor(color, paletteColor, 5)) {
-            mtlIndex = i;
-            if (latkDebug) console.log("Found palette match at index " + i);
-            break;
-        }
-    }
-    if (mtlIndex === -1) {
-        var mtl = createMtl(color, defaultOpacity, defaultLineWidth/1.5);
-        palette.push(mtl);
-        if (latkDebug) console.log("Creating new color, " + palette.length + " total colors");
-        return palette[palette.length-1];
-    } else {
-        if (latkDebug) console.log("Reusing color " + mtlIndex + ", " + palette.length + " total colors");
-        return palette[mtlIndex];
-    }
-}
-
-function compareColor(c1, c2, numPlaces) {
-    var r1 = roundVal(c1[0], numPlaces);
-    var r2 = roundVal(c2[0], numPlaces);
-    var g1 = roundVal(c1[1], numPlaces);
-    var g2 = roundVal(c2[1], numPlaces);
-    var b1 = roundVal(c1[2], numPlaces);
-    var b2 = roundVal(c2[2], numPlaces);
-    if (r1 === r2 && g1 === g2 && b1 === b2) {
-        return true;
-    } else {
-        return false;
-    }
 }
 
 function onMouseDown(event) {
@@ -744,159 +665,3 @@ function latkStart() {
 	animate();
 }    
 
-class LatkThree {
-
-    constructor(filepath) {
-        this.latk;
-        this.layers = [];
-    }
-
-}
-
-class LatkLayerThree {
-
-    constructor() {
-    	this.frames = [];
-    }
-
-}
-
-class LatkFrameThree {
-
-    constructor() {
-        this.strokes = [];
-    }
-
-    buildNewStroke() {
-        var oldStrokes = [];
-
-        var texture = THREE.ImageUtils.loadTexture(brushPath);
-
-        for (var i=0; i<layer.frameX.length; i++) {
-            var strokes = [];
-            for (var j=0; j<layer.frameX[i].length; j++) {
-                var geometry = new THREE.Geometry();
-                geometry.dynamic = true;
-
-                var origVerts = [];
-
-                for (var l=0; l<layer.frameX[i][j].length; l++) {
-                    origVerts.push(new THREE.Vector3(layer.frameX[i][j][l], layer.frameY[i][j][l], layer.frameZ[i][j][l]));
-
-                    if (l === 0 || !useMinDistance || (useMinDistance && origVerts[l].distanceTo(origVerts[l-1]) > minDistance)) {
-                        geometry.vertices.push(origVerts[l]);
-                    }
-                }
-
-                geometry.verticesNeedUpdate = true;
-                
-                var line = new THREE.MeshLine();
-                line.setGeometry(geometry);
-                var meshLine = new THREE.Mesh(line.geometry, createUniqueMtl([layer.frameColors[i][j][0], layer.frameColors[i][j][1], layer.frameColors[i][j][2]]));
-                //rotateAroundWorldAxis(meshLine, new THREE.Vector3(1,0,0), laRot.y * Math.PI/180); 
-                //rotateAroundWorldAxis(meshLine, new THREE.Vector3(0,1,0), laRot.x * Math.PI/180); 
-                strokes.push(meshLine);//line);
-            }
-            if (strokes.length !== 0) {
-                oldStrokes = strokes;
-                layer.frames.push(strokes);  
-            } else if (strokes.length === 0 && oldStrokes) {
-                layer.frames.push(oldStrokes);
-            }            
-        }
-    }
-}
-
-class LatkStrokeThree {
-
-    constructor(x, y, z) {
-        this.points = [];
-        this.smoothReps = 10;
-        this.splitReps = 2;
-        this.geometry;
-        this.mesh;
-   	    this.addPoints(x, y, z);
-        this.createStroke();
-    }
-
-	rebuildGeometry() {
-	    this.geometry = new THREE.Geometry();
-	    this.geometry.dynamic = true;
-	    for (var i=0; i<this.points.length; i++) {
-	        this.geometry.vertices.push(this.points[i]);
-	    }
-	    this.geometry.verticesNeedUpdate = true;
-	    this.geometry.__dirtyVertices = true; 
-	}
-
-	addPoints(x, y, z) {
-	    this.points.push(new THREE.Vector3(x, y, z));
-	    this.rebuildGeometry();
-	}
-
-	clearStroke() {
-	    try {
-	        scene.remove(this.mesh);
-	    } catch (e) { }       
-	}
-
-	createStroke() {
-	    var line = new THREE.MeshLine();
-	    line.setGeometry(this.geometry);
-	    this.mesh = new THREE.Mesh(line.geometry, createUniqueMtl([0.667, 0.667, 1]));
-	    this.mesh.name = "stroke" + strokeCounter;
-	    scene.add(this.mesh);
-	}
-
-	updateMesh(x, y, z) {
-        this.clearStroke();
-	    this.addPoints(x, y, z);
-        this.createStroke();
-	}
-
-	refreshMesh() {
-        this.clearStroke();
-        this.rebuildGeometry();
-        this.createStroke();   
-	}
-
-    smooth() {
-        var weight = 18;
-        var scale = 1.0 / (weight + 2);
-        var nPointsMinusTwo = this.points.length - 2;
-        var lower, upper, center;
-
-        for (var i = 1; i < nPointsMinusTwo; i++) {
-            lower = this.points[i-1];
-            center = this.points[i];
-            upper = this.points[i+1];
-
-            center.x = (lower.x + weight * center.x + upper.x) * scale;
-            center.y = (lower.y + weight * center.y + upper.y) * scale;
-            center.z = (lower.z + weight * center.z + upper.z) * scale;
-            this.points[i] = center;
-        }
-    }
-
-    split() {
-        for (var i = 1; i < this.points.length; i+=2) {
-            var x = (this.points[i].x + this.points[i-1].x) / 2;
-            var y = (this.points[i].y + this.points[i-1].y) / 2;
-            var z = (this.points[i].z + this.points[i-1].z) / 2;
-            var p = new THREE.Vector3(x, y, z);
-            this.points.splice(i, 0, p);
-        }
-    }
-
-    refine() {
-        for (var i=0; i<this.splitReps; i++){
-            this.split();   
-            this.smooth();  
-        }
-        for (var i=0; i<this.smoothReps - this.splitReps; i++){
-            this.smooth();      
-        }
-		this.refreshMesh();   
-    }
-
-}

@@ -1,22 +1,18 @@
+
 "use strict";
 
+// https://github.com/mrdoob/three.js/wiki/Drawing-lines
+// https://github.com/mrdoob/three.js/blob/master/examples/webgl_geometry_dynamic.html
+
 function main() {
+    
+    viveMode = false;
+    soundPath = "./sounds/avlt.mp3";
+    animationPath = "./animations/arena.json";
+    brushPath = "./images/brush_cardboard.png";
 
-    checkVersion();	
+    latkStart();
 
-}
-
-function checkVersion() {
-	// TODO proper Chromium/Chrome/other detection; UserAgent-based?
-	try {
-		if (WEBVR.isLatestAvailable() === false) {
-			window.open("./cardboard/", "_self");
-		} else {
-			window.open("./vive", "_self");
-		}
-	} catch (err){
-		window.open("menu.html", "_self");
-	}
 }
 
 window.onload = main;

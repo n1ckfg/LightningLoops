@@ -8,7 +8,7 @@ function main() {
     
     viveMode = false;
     soundPath = "./sounds/avlt.mp3";
-    animationPath = "./animations/arena.json";
+    animationPath = "./animations/arena.latk";
     brushPath = "./images/brush_cardboard.png";
 
     latkStart();

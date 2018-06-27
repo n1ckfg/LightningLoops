@@ -402,15 +402,36 @@ function onDrop(e) {
     var files = e.dataTransfer.files; // Array of all files
     for (var i=0, file; file=files[i]; i++) {
         var reader = new FileReader();
+        var droppedFileName = files[i].name;
+        var isBinary = false;
         reader.onload = function(e2) {
             pauseAnimation = true;
             clearFrame();
             subsCounter = 0;
             layers = [];
-            jsonToGp(JSON.parse(e2.target.result).grease_pencil[0]);
+
+            if (droppedFileName.split(".")[droppedFileName.split(".").length-1] === "json") {
+                jsonToGp(JSON.parse(e2.target.result).grease_pencil[0]);
+            } else {
+                isBinary = true;
+                var zip = new JSZip();
+                zip.loadAsync(e2.target.result).then(function() {
+                    var fileNameOrig = droppedFileName.split('\\').pop().split('/').pop();
+                    var fileName = fileNameOrig.split('.')[0] + ".json";
+                    zip.file(fileName).async("string").then(function(response) {
+                        jsonToGp(JSON.parse(response).grease_pencil[0]);
+                    });
+                });
+            }
+
             pauseAnimation = false;
         }
-        reader.readAsText(file, 'UTF-8');
+        
+        if (!isBinary) {
+            reader.readAsText(file, 'UTF-8');
+        } else {
+            reader.readAsArrayBuffer(file);            
+        }
     }      
 }
 

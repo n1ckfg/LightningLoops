@@ -16,7 +16,7 @@ var laOffset = new THREE.Vector3(0, 0, 0);//100, -20, 150);//95, -22, 50);//(100
 var laRot = new THREE.Vector3(0, 0, 0);//145, 10, 0);
 
 var useScaleAndOffset = true;
-var globalScale = new THREE.Vector3(0.01, 0.01, 0.01);
+var globalScale = new THREE.Vector3(0.1, 0.1, 0.1);
 var globalOffset = new THREE.Vector3(0, 0, 0);
 
 var subsCounter = 0;

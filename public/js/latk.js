@@ -196,29 +196,22 @@ function writeJson() {
                 sb.push("\t\t\t\t\t\t\t\t\t\"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "],");
                 sb.push("\t\t\t\t\t\t\t\t\t\"points\": [");
                 for (var j=0; j<layer.frames[currentFrame][i].geometry.attributes.position.array.length; j += 6 ) { //layer.frames[currentFrame].strokes[i].points.length) { 
-                    var x = 0.0;
-                    var y = 0.0;
-                    var z = 0.0;
-
-                    var point = new THREE.Vector3(layer.frames[currentFrame][i].geometry.attributes.position.array[j], layer.frames[currentFrame][i].geometry.attributes.position.array[j+1], layer.frames[currentFrame][i].geometry.attributes.position.array[j+2]);
-
+                    var x = layer.frames[currentFrame][i].geometry.attributes.position.array[j];
+                    var y = layer.frames[currentFrame][i].geometry.attributes.position.array[j+1];
+                    var z = layer.frames[currentFrame][i].geometry.attributes.position.array[j+2];
+                    var point = cleanPoint(x, y, z);
                     //~
                     //var point = frames[currentFrame][i].geometry.attributes.position[j]; //layer.frames[currentFrame].strokes[i].points[j].co 
                     if (useScaleAndOffset) {
-                        x = (point.x * globalScale.x) + globalOffset.x
-                        y = (point.y * globalScale.y) + globalOffset.y
-                        z = (point.z * globalScale.z) + globalOffset.z
-                    } else {
-                        x = point.x;
-                        y = point.y;
-                        z = point.z;
-                        //console.log(x + " " + y + " " + z);
+                        point.x = (point.x * globalScale.x) + globalOffset.x
+                        point.y = (point.y * globalScale.y) + globalOffset.y
+                        point.z = (point.z * globalScale.z) + globalOffset.z
                     }
                     //~
                     if (roundValues) {
-                        sb.push("\t\t\t\t\t\t\t\t\t\t{\"co\": [" + roundVal(x, numPlaces) + ", " + roundVal(y, numPlaces) + ", " + roundVal(z, numPlaces) + "]");
+                        sb.push("\t\t\t\t\t\t\t\t\t\t{\"co\": [" + roundVal(point.x, numPlaces) + ", " + roundVal(point.y, numPlaces) + ", " + roundVal(point.z, numPlaces) + "]");
                     } else {
-                        sb.push("\t\t\t\t\t\t\t\t\t\t{\"co\": [" + x + ", " + z + ", " + y + "]");                  
+                        sb.push("\t\t\t\t\t\t\t\t\t\t{\"co\": [" + point.x + ", " + point.y + ", " + point.z + "]");                  
                     }
                     //~
                     if (j >= layer.frames[currentFrame][i].geometry.attributes.position.array.length - 6) {  //layer.frames[currentFrame].strokes[i].points.length - 1) { 
@@ -269,6 +262,19 @@ function writeJson() {
     //pauseAnimation = false;
     //window.open(uriContent);
     download("saved_" + Date.now() + ".json", sg.join("\n"));
+}
+
+function cleanPoint(x, y, z) {
+    return new THREE.Vector3(checkPoint(x), checkPoint(y), checkPoint(z));
+}
+
+function checkPoint(coord) {
+    var temp = "" + coord;
+    if (temp.charAt(0) === "N") {
+        return 0.0;
+    } else {
+        return coord;
+    }
 }
 
 function download(filename, text) {

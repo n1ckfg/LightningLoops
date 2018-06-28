@@ -265,9 +265,23 @@ function writeJson() {
     sg.push("\t]");
     sg.push("}");
 
-    var uriContent = "data:text/plain;charset=utf-8," + encodeURIComponent(sg.join("\n"));
+    //var uriContent = "data:text/plain;charset=utf-8," + encodeURIComponent(sg.join("\n"));
     //pauseAnimation = false;
-    window.open(uriContent);
+    //window.open(uriContent);
+    download("test.json", sg.join("\n"));
+}
+
+function download(filename, text) {
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
 }
 
 function loadJSON(filepath, callback) { 

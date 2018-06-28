@@ -265,15 +265,18 @@ function writeJson() {
 }
 
 function cleanPoint(x, y, z) {
-    return new THREE.Vector3(checkPoint(x), checkPoint(y), checkPoint(z));
+    return new THREE.Vector3(cleanCoord(x), cleanCoord(y), cleanCoord(z));
 }
 
-function checkPoint(coord) {
-    var temp = "" + coord;
-    if (temp.charAt(0) === "N") {
+function cleanCoord(coord) {
+    try {
+        if (isNaN(coord) || coord.toString()[0] === 'N') {
+            return 0.0;
+        } else {
+            return coord;
+        }
+    } catch (e) {
         return 0.0;
-    } else {
-        return coord;
     }
 }
 

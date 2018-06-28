@@ -357,22 +357,17 @@ function tempStrokeToJson() {
         sb.push("\"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "],");
         sb.push("\"points\": [");
         for (var j=0; j<tempStroke.geometry.attributes.position.array.length; j += 6 ) { 
-            var x = 0.0;
-            var y = 0.0;
-            var z = 0.0;
-            var point = new THREE.Vector3(tempStroke.geometry.attributes.position.array[j], tempStroke.geometry.attributes.position.array[j+1], tempStroke.geometry.attributes.position.array[j+2]);
+            var x = tempStroke.geometry.attributes.position.array[j];
+            var y = tempStroke.geometry.attributes.position.array[j+1];
+            var z = tempStroke.geometry.attributes.position.array[j+2];
 
-            x = point.x;
-            y = point.y;
-            z = point.z;
+            var point = cleanPoint(x, y, z);
 
-            if (x!=NaN && y!=NaN && z!=NaN) {
-                sb.push("{\"co\": [" + x + ", " + y + ", " + z + "]");                  
-                if (j >= tempStroke.geometry.attributes.position.array.length - 6) {
-                    sb[sb.length-1] += "}";
-                } else {
-                    sb[sb.length-1] += "},";
-                }
+            sb.push("{\"co\": [" + point.x + ", " + point.y + ", " + point.z + "]");                  
+            if (j >= tempStroke.geometry.attributes.position.array.length - 6) {
+                sb[sb.length-1] += "}";
+            } else {
+                sb[sb.length-1] += "},";
             }
         }
         sb.push("]");
@@ -383,7 +378,6 @@ function tempStrokeToJson() {
         console.log("Something went wrong sending a stroke.")
     }
 }
-
 
 // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 

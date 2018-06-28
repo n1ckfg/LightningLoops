@@ -397,23 +397,28 @@ function onDragOver(e) {
 }
 
 function onDrop(e) {
+    //showReading();
+
     e.stopPropagation();
     e.preventDefault();
     var files = e.dataTransfer.files; // Array of all files
     for (var i=0, file; file=files[i]; i++) {
         var reader = new FileReader();
         var droppedFileName = files[i].name;
-        var isBinary = false;
-        reader.onload = function(e2) {
-            pauseAnimation = true;
-            clearFrame();
-            subsCounter = 0;
-            layers = [];
+                
+        pauseAnimation = true;
+        clearFrame();
+        subsCounter = 0;
+        layers = [];
 
-            if (droppedFileName.split(".")[droppedFileName.split(".").length-1] === "json") {
+        if (droppedFileName.split(".")[droppedFileName.split(".").length-1] === "json") {
+            reader.onload = function(e2) {
                 jsonToGp(JSON.parse(e2.target.result).grease_pencil[0]);
-            } else {
-                isBinary = true;
+            }
+        
+            reader.readAsText(file, 'UTF-8');
+        } else {            
+            reader.onload = function(e2) {
                 var zip = new JSZip();
                 zip.loadAsync(e2.target.result).then(function() {
                     var fileNameOrig = droppedFileName.split('\\').pop().split('/').pop();
@@ -424,14 +429,10 @@ function onDrop(e) {
                 });
             }
 
-            pauseAnimation = false;
+            reader.readAsBinaryString(file);
         }
-        
-        if (!isBinary) {
-            reader.readAsText(file, 'UTF-8');
-        } else {
-            reader.readAsArrayBuffer(file);            
-        }
+
+        pauseAnimation = false; 
     }      
 }
 

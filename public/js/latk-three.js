@@ -407,7 +407,7 @@ function onDrop(e) {
 
         if (droppedFileName.split(".")[droppedFileName.split(".").length-1] === "json") {
             reader.onload = function(e2) {
-                jsonToGp(JSON.parse(e2.target.result).grease_pencil[0]);
+                jsonToGp(JSON.parse(e2.target.result.replace("NaN", "0.0")).grease_pencil[0]);
             }
         
             reader.readAsText(file, 'UTF-8');
@@ -418,7 +418,7 @@ function onDrop(e) {
                     var fileNameOrig = droppedFileName.split('\\').pop().split('/').pop();
                     var fileName = fileNameOrig.split('.')[0] + ".json";
                     zip.file(fileName).async("string").then(function(response) {
-                        jsonToGp(JSON.parse(response).grease_pencil[0]);
+                        jsonToGp(JSON.parse(response.replace("NaN", "0.0")).grease_pencil[0]);
                     });
                 });
             }

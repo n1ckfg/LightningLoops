@@ -48,9 +48,15 @@ function jsonToGp(data) {
                 var bufferZf = new Float32Array(bufferZ);
                 
                 for (var l=0; l<data.layers[h].frames[i].strokes[j].points.length; l++) { // point
-                    bufferXf[l] = (data.layers[h].frames[i].strokes[j].points[l].co[0] * laScale) + laOffset.x;
-                    bufferYf[l] = (data.layers[h].frames[i].strokes[j].points[l].co[1] * laScale) + laOffset.y;
-                    bufferZf[l] = (data.layers[h].frames[i].strokes[j].points[l].co[2] * laScale) + laOffset.z;
+                    var x = data.layers[h].frames[i].strokes[j].points[l].co[0];
+                    var y = data.layers[h].frames[i].strokes[j].points[l].co[1];
+                    var z = data.layers[h].frames[i].strokes[j].points[l].co[2];
+
+                    if (!isNaN(x) && !isNaN(y) && !isNaN(z)) {
+                        bufferXf[l] = (x * laScale) + laOffset.x;
+                        bufferYf[l] = (y * laScale) + laOffset.y;
+                        bufferZf[l] = (z * laScale) + laOffset.z;
+                    }
                 }
 
                 layer.strokeX.push(bufferXf);
@@ -269,14 +275,10 @@ function cleanPoint(x, y, z) {
 }
 
 function cleanCoord(coord) {
-    try {
-        if (isNaN(coord) || coord.toString()[0] === 'N') {
-            return 0.0;
-        } else {
-            return coord;
-        }
-    } catch (e) {
+    if (isNaN(coord)) {
         return 0.0;
+    } else {
+        return coord;
     }
 }
 

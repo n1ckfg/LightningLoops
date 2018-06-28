@@ -268,7 +268,7 @@ function writeJson() {
     //var uriContent = "data:text/plain;charset=utf-8," + encodeURIComponent(sg.join("\n"));
     //pauseAnimation = false;
     //window.open(uriContent);
-    download("test.json", sg.join("\n"));
+    download("saved_" + Date.now() + ".json", sg.join("\n"));
 }
 
 function download(filename, text) {

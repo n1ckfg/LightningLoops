@@ -93,9 +93,9 @@ function setupControls() {
         if (getKeyCode(event) == 'e') isFlyingUp = true;
 
         if (getKeyCode(event) == 'o') armSaveJson = true;
-        //if (getKeyCode(event) == 'j') armFrameBack = true;
+        if (getKeyCode(event) == 'j') armFrameBack = true;
         if (getKeyCode(event) == 'p') armTogglePause = true;
-        //if (getKeyCode(event) == 'l') armFrameForward = true;        
+        if (getKeyCode(event) == 'l') armFrameForward = true;        
     });
 
     window.addEventListener("keyup", function(event) {

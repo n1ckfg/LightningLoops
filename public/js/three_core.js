@@ -140,7 +140,11 @@ function updatePlayer() {
     var aimPos = cameraGaze.getWorldPosition();
 
     if ((isWalkingForward || isWalkingBackward || isWalkingLeft || isWalkingRight || isFlyingUp || isFlyingDown) && movingSpeed < movingSpeedMax) {
-        movingSpeed += movingDelta;
+        if (movingSpeed < movingSpeedMax) {
+            movingSpeed += movingDelta;
+        } else if (movingSpeed > movingSpeedMax) {
+            movingSpeed = movingSpeedMax;
+        }
     } else {
         if (movingSpeed > 0) {
             movingSpeed -= movingDelta;

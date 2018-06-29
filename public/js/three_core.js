@@ -16,8 +16,8 @@ var isFlyingDown = false;
 var flyingAllowed = true;
 var flyingThreshold = 0.15;
 var movingSpeed = 0;
-var movingSpeedMax = 0.25;
-var movingDelta = 0.02;
+var movingSpeedMax = 0.025;
+var movingDelta = 0.001;
 var floor = 0;
 var gravity = 0.01;
 var cameraGaze;
@@ -122,6 +122,10 @@ function setupPlayer() {
     setupControls();
 }
 
+var tmpQuaternion = new THREE.Quaternion();
+var moveVector = new THREE.Vector3( 0, 0, 0 );
+var rotationVector = new THREE.Vector3( 0, 0, 0 );
+
 function updatePlayer() {
     /*
     if (camera.rotation.x > flyingThreshold) {
@@ -147,34 +151,30 @@ function updatePlayer() {
 
     if (movingSpeed > 0) {
     	if (isWalkingForward) {
-	        targetPos.x += ( aimPos.x - cameraPos.x ) * (movingSpeed / 1000);
-	        if (flyingAllowed) targetPos.y += ( aimPos.y - cameraPos.y ) * (movingSpeed / 1000);
-	        targetPos.z += ( aimPos.z - cameraPos.z ) * (movingSpeed / 1000);
+            camera.translateZ(-movingSpeed);
     	}
 
     	if (isWalkingBackward) {
-	        targetPos.x -= ( aimPos.x - cameraPos.x ) * (movingSpeed / 1000);
-	        if (flyingAllowed) targetPos.y -= ( aimPos.y - cameraPos.y ) * (movingSpeed / 1000);
-	        targetPos.z -= ( aimPos.z - cameraPos.z ) * (movingSpeed / 1000);    		
+            camera.translateZ(movingSpeed);		
     	} 
 
     	if (isWalkingLeft) {
-    		//targetPos.x += (aimPos.z - cameraPos.z ) * (movingSpeed / 1000);
+    		camera.translateX(-movingSpeed);
     	}
 
     	if (isWalkingRight) {
-    		//targetPos.x -= (aimPos.z - cameraPos.z ) * (movingSpeed / 1000);
+            camera.translateX(movingSpeed);
     	}
 
     	if (isFlyingUp) {
-    		//if (flyingAllowed) targetPos.y += ( aimPos.y - cameraPos.y ) * (movingSpeed / 1000);
+            camera.translateY(movingSpeed);
     	}
 
     	if (isFlyingDown) {
-    		//if (flyingAllowed) targetPos.y -= ( aimPos.y - cameraPos.y ) * (movingSpeed / 1000);
+            camera.translateY(-movingSpeed);
     	}
 
-        camera.position.set(targetPos.x, targetPos.y, targetPos.z);
+        //camera.position.set(targetPos.x, targetPos.y, targetPos.z);
         camera.updateMatrixWorld();
         camera.lookAt(aimPos);
     }

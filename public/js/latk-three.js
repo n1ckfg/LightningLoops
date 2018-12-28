@@ -415,9 +415,16 @@ function onDrop(e) {
             reader.onload = function(e2) {
                 var zip = new JSZip();
                 zip.loadAsync(e2.target.result).then(function() {
-                    var fileNameOrig = droppedFileName.split('\\').pop().split('/').pop();
-                    var fileName = fileNameOrig.split('.')[0] + ".json";
-                    zip.file(fileName).async("string").then(function(response) {
+                    //var fileNameOrig = droppedFileName.split('\\').pop().split('/').pop();
+                    //var fileName = fileNameOrig.split('.')[0] + ".json";
+                    //zip.file(fileName).async("string").then(function(response) {
+
+                    // https://github.com/Stuk/jszip/issues/375
+                    var entries = Object.keys(zip.files).map(function (name) {
+                      return zip.files[name];
+                    });
+
+                    zip.file(entries[0].name).async("string").then(function(response) {
                         jsonToGp(JSON.parse(response.replace("NaN", "0.0")).grease_pencil[0]);
                     });
                 });

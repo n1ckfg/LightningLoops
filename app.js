@@ -8,12 +8,20 @@ var WebSocketServer = require("websocket").server;
 var express = require("express");
 var app = express();
 var port = 8080;
-var server = app.listen(port, function() {
-	console.log("\nNode app started. Listening on port " + port);
-});
-var wsServer = new WebSocketServer({ httpServer : server });
-app.use(express.static(__dirname + "public")); 
 
+app.use(express.static(__dirname + "public/")); 
+
+// https://stackoverflow.com/questions/21317981/cannot-get-nodejs-error
+
+app.get("/", function(req, res) {
+    res.sendFile(__dirname + "/public/");
+});
+
+var server = app.listen(port, function() {
+    console.log("\nNode app started. Listening on port " + port);
+});
+
+var wsServer = new WebSocketServer({ httpServer : server });
 
 /*
 var io = require("socket.io")(http, { 
@@ -24,9 +32,7 @@ var io = require("socket.io")(http, {
 	pingTimeout: 1000 * 60
 });
 
-app.get("/", function(req, res) {
-	res.sendFile(__dirname + "/public/index.html");
-});
+
 
 http.listen(port, function() {
 	console.log("\nNode app started. Listening on port " + port);

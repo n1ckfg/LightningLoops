@@ -1,12 +1,21 @@
 "use strict";
 
+// https://stackoverflow.com/questions/20919947/serve-websocket-and-http-server-at-same-address-on-node-js
+
 var strokeLifetime = 10000;
 
+var WebSocketServer = require("websocket").server;
 var express = require("express");
 var app = express();
-var http = require("http").Server(app);
 var port = 8080;
+var server = app.listen(port, function() {
+	console.log("\nNode app started. Listening on port " + port);
+});
+var wsServer = new WebSocketServer({ httpServer : server });
+app.use(express.static(__dirname + "public")); 
 
+
+/*
 var io = require("socket.io")(http, { 
 	// default -- pingInterval: 1000 * 25, pingTimeout: 1000 * 60
 	// low latency -- pingInterval: 1000 * 5, pingTimeout: 1000 * 10
@@ -15,10 +24,6 @@ var io = require("socket.io")(http, {
 	pingTimeout: 1000 * 60
 });
 
-// ~ ~ ~ ~
-	
-app.use(express.static("public")); 
-
 app.get("/", function(req, res) {
 	res.sendFile(__dirname + "/public/index.html");
 });
@@ -26,6 +31,7 @@ app.get("/", function(req, res) {
 http.listen(port, function() {
 	console.log("\nNode app started. Listening on port " + port);
 });
+*/
 
 // ~ ~ ~ ~
 
@@ -88,7 +94,7 @@ setInterval(function() {
 
 // https://socket.io/get-started/chat/
 
-io.on('connection', function(socket){
+wsServer.on('connection', function(socket){
     console.log('A user connected.');
     //~
     socket.on('disconnect', function(){

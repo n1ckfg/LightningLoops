@@ -104,4 +104,21 @@ socket.on('connection', client => {
         }
     });
 
+    client.on('clientStrokeToServer', function(data) {
+        layer.addStroke(data);
+    });
+
+    client.on('clientRequestFrame', function(data) {
+        var index = data["num"];
+        if (index != NaN) {
+            var frame = layer.getFrame(index);
+            if (frame && frame.strokes.length > 0) {
+                socket.emit("newFrameFromServer", frame.strokes);
+                if (process.env.LOGGING_VERBOSE) {
+                    console.log(chalk.bold.blue("> > > Sending a new frame " + frame.strokes[0]["index"] + " with " + frame.strokes.length + " strokes."));
+                }
+            }
+        }
+    });
+
 });

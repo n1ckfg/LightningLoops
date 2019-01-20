@@ -1,7 +1,7 @@
 'use strict';
 
 const dotenv = require('dotenv').config();
-const PORT = process.env.PORT || 5555;
+const PORT = 8080;
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);

@@ -1,5 +1,7 @@
 'use strict';
 
+var strokeLifetime = 10000;
+
 const dotenv = require('dotenv').config();
 const PORT = 8080;
 const express = require('express');
@@ -27,6 +29,65 @@ let userCounter = 0;
 app.get('/', (req, res)=>{
     // res.render('debug.html');
 });
+
+// ~ ~ ~ ~
+
+class Frame {
+	constructor() {
+		this.strokes = [];
+	}
+}
+
+class Layer {
+    constructor() {
+        this.frames = [];
+    }
+
+    getFrame(index) {
+    	if (!this.frames[index]) {
+    		//console.log("Client asked for frame " + index +", but it's missing.");
+    		for (var i=0; i<index+1; i++) {
+    			if (!this.frames[i]) {
+    				var frame = new Frame();
+    				this.frames.push(frame); 
+    				//console.log("* Created frame " + i + ".");
+    			}
+    		}
+    	}
+        //console.log("Retrieving frame " + index + " of " + this.frames.length + ".");
+        return this.frames[index];
+    }
+
+    addStroke(data) {
+        try {
+    	var index = data["index"];
+    	if (!isNaN(index)) {
+    		this.getFrame(index); 
+    		this.frames[index].strokes.push(data); 
+            console.log("<<< Received a stroke with color (" + data["color"] + ") and " + data["points"].length + " points.");
+    	}
+        } catch (e) {
+            console.log(e.data);
+        }
+    }
+}
+
+var layer = new Layer();
+
+setInterval(function() {
+	var time = new Date().getTime();
+
+	for (var i=0; i<layer.frames.length; i++) {
+		for (var j=0; j<layer.frames[i].strokes.length; j++) {
+			if (time > layer.frames[i].strokes[j]["timestamp"] + strokeLifetime) {
+				layer.frames[i].strokes.splice(j, 1);
+				console.log("X Removing frame " + i + ", stroke " + j + ".");
+			}
+		}
+	}
+}, strokeLifetime);
+
+// ~ ~ ~ ~
 
 socket.on('connection', client => {
     

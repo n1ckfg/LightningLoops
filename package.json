@@ -1,8 +1,13 @@
 {
-    "name": "LightningArtist",
-    "version": "0.0.1",
-    "dependencies": {
-        "express": "4.10.2",
-        "socket.io": "1.2.0"
-    }
+				"name": "LightningArtist",
+				"version": "0.0.1",
+				"dependencies": {
+								"chalk": "^2.4.1",
+								"dotenv": "^6.2.0",
+								"ejs": "^2.6.1",
+								"express": "^4.16.4",
+								"http": "0.0.0",
+								"socket.io": "^0.9",
+								"socket.io-client": "^2.2.0"
+				}
 }

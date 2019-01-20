@@ -89,7 +89,7 @@ setInterval(function() {
 
 // ~ ~ ~ ~
 
-socket.on('connection', client => {
+socket.on('connection', function(client) {
     
     userCounter++;
     if (process.env.LOGGING_VERBOSE) {
@@ -98,7 +98,7 @@ socket.on('connection', client => {
     
     client.emit('variable-name', 'value here');
     
-    client.on('disconnect', ()=>{
+    client.on('disconnect', function() {
         if (process.env.LOGGING_VERBOSE) {
             console.log(chalk.bold.white('A user disconnected, we currently have ' + userCounter + ' users connected'))
         }
@@ -115,7 +115,7 @@ socket.on('connection', client => {
             if (frame && frame.strokes.length > 0) {
                 socket.emit("newFrameFromServer", frame.strokes);
                 if (process.env.LOGGING_VERBOSE) {
-                    console.log(chalk.bold.blue("> > > Sending a new frame " + frame.strokes[0]["index"] + " with " + frame.strokes.length + " strokes."));
+                    console.log(chalk.bold.red("> > > Sending a new frame " + frame.strokes[0]["index"] + " with " + frame.strokes.length + " strokes."));
                 }
             }
         }

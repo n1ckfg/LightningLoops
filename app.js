@@ -1,29 +1,12 @@
 "use strict";
 
-// https://stackoverflow.com/questions/20919947/serve-websocket-and-http-server-at-same-address-on-node-js
-
 var strokeLifetime = 10000;
 
-var WebSocketServer = require("websocket").server;
 var express = require("express");
 var app = express();
+var http = require("http").Server(app);
 var port = 8080;
 
-app.use(express.static(__dirname + "public/")); 
-
-// https://stackoverflow.com/questions/21317981/cannot-get-nodejs-error
-
-app.get("/", function(req, res) {
-    res.sendFile(__dirname + "/public/");
-});
-
-var server = app.listen(port, function() {
-    console.log("\nNode app started. Listening on port " + port);
-});
-
-var wsServer = new WebSocketServer({ httpServer : server });
-
-/*
 var io = require("socket.io")(http, { 
 	// default -- pingInterval: 1000 * 25, pingTimeout: 1000 * 60
 	// low latency -- pingInterval: 1000 * 5, pingTimeout: 1000 * 10
@@ -32,12 +15,17 @@ var io = require("socket.io")(http, {
 	pingTimeout: 1000 * 60
 });
 
+// ~ ~ ~ ~
+	
+app.use(express.static("public")); 
 
+app.get("/", function(req, res) {
+	res.sendFile(__dirname + "/public/index.html");
+});
 
 http.listen(port, function() {
 	console.log("\nNode app started. Listening on port " + port);
 });
-*/
 
 // ~ ~ ~ ~
 
@@ -100,7 +88,7 @@ setInterval(function() {
 
 // https://socket.io/get-started/chat/
 
-wsServer.on('connection', function(socket){
+io.on('connection', function(socket){
     console.log('A user connected.');
     //~
     socket.on('disconnect', function(){

@@ -2,18 +2,30 @@
 
 var strokeLifetime = 10000;
 
-const express = require("express");
-const app = express();
-const http = require("http").createServer(app);
-const port = 8080;
-const server = app.listen(port)
-const ejs = require('ejs');
-const io = require('socket.io').listen(server);
+var express = require("express");
+var app = express();
+var http = require("http").Server(app);
+var port = 8080;
 
-app.set('views', __dirname + '/views');
-app.engine('.html', ejs.__express);
-app.set('view-engine', 'html');
-app.use(express.static(__dirname + '/public'));
+var io = require("socket.io")(http, { 
+	// default -- pingInterval: 1000 * 25, pingTimeout: 1000 * 60
+	// low latency -- pingInterval: 1000 * 5, pingTimeout: 1000 * 10
+
+	pingInterval: 1000 * 25,
+	pingTimeout: 1000 * 60
+});
+
+// ~ ~ ~ ~
+	
+app.use(express.static("public")); 
+
+app.get("/", function(req, res) {
+	res.sendFile(__dirname + "/public/index.html");
+});
+
+http.listen(port, function() {
+	console.log("\nNode app started. Listening on port " + port);
+});
 
 // ~ ~ ~ ~
 

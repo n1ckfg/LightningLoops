@@ -96,7 +96,7 @@ io.on('connection', function(socket){
     });
     //~
     socket.on("clientStrokeToServer", function(data) { 
-    	//console.log(data);
+    	console.log(data);
     	layer.addStroke(data);
     });
     //~

@@ -1,33 +1,30 @@
-'use strict';
+"use strict";
 
 var strokeLifetime = 10000;
 
-const dotenv = require('dotenv').config();
-const PORT = 8080;
-const express = require('express');
-const app = express();
-const http = require('http').createServer(app);
-const server = app.listen(PORT);
-const chalk = require('chalk');
-const socket = require('socket.io').listen(server);
-// socket.set('log level', 0);
-const ejs = require('ejs');
+var express = require("express");
+var app = express();
+var http = require("http").Server(app);
+var port = 8080;
 
-console.log(chalk.underline.green('Server is running on port ' + PORT));
+var io = require("socket.io")(http, { 
+	// default -- pingInterval: 1000 * 25, pingTimeout: 1000 * 60
+	// low latency -- pingInterval: 1000 * 5, pingTimeout: 1000 * 10
 
-app.set('views', __dirname + '/views');
-app.engine('.html', ejs.__express);
-app.set('view-engine', 'html');
-app.use(express.static(__dirname + '/public'));
+	pingInterval: 1000 * 25,
+	pingTimeout: 1000 * 60
+});
 
-let isConnected = false;
-let isStreaming = false;
-let currentTimeSinceStreamStarted = 0.0;
-let currentFrameSinceStreamStarted = 0;
-let userCounter = 0;
+// ~ ~ ~ ~
+	
+app.use(express.static("public")); 
 
-app.get('/', (req, res)=>{
-    // res.render('debug.html');
+app.get("/", function(req, res) {
+	res.sendFile(__dirname + "/public/index.html");
+});
+
+http.listen(port, function() {
+	console.log("\nNode app started. Listening on port " + port);
 });
 
 // ~ ~ ~ ~
@@ -59,16 +56,17 @@ class Layer {
     }
 
     addStroke(data) {
-        try {
+        //try {
     	var index = data["index"];
     	if (!isNaN(index)) {
     		this.getFrame(index); 
+
     		this.frames[index].strokes.push(data); 
             console.log("<<< Received a stroke with color (" + data["color"] + ") and " + data["points"].length + " points.");
     	}
-        } catch (e) {
-            console.log(e.data);
-        }
+        //} catch (e) {
+            //console.log(e.data);
+        //}
     }
 }
 
@@ -89,36 +87,34 @@ setInterval(function() {
 
 // ~ ~ ~ ~
 
-socket.on('connection', function(client) {
-    
-    userCounter++;
-    if (process.env.LOGGING_VERBOSE) {
-        console.log(chalk.bold.white('A user connected, we currently have ' + userCounter + ' users connected'));
-    }
-    
-    client.emit('variable-name', 'value here');
-    
-    client.on('disconnect', function() {
-        if (process.env.LOGGING_VERBOSE) {
-            console.log(chalk.bold.white('A user disconnected, we currently have ' + userCounter + ' users connected'))
+// https://socket.io/get-started/chat/
+
+io.on('connection', function(socket){
+    console.log('A user connected.');
+    //~
+    socket.on('disconnect', function(){
+        console.log('A user disconnected.');
+    });
+    //~
+    socket.on("clientStrokeToServer", function(data) { 
+    	//console.log(data);
+        try { // json coming from Unity needs to be parsed...
+            var newData = JSON.parse(data);
+            layer.addStroke(newData);
+        } catch (e) { // ...but json coming from JS client does not need to be
+            layer.addStroke(data);
         }
     });
-
-    client.on('clientStrokeToServer', function(data) {
-        layer.addStroke(data);
-    });
-
-    client.on('clientRequestFrame', function(data) {
+    //~
+    socket.on("clientRequestFrame", function(data) {
+        //console.log(data["num"]);
         var index = data["num"];
         if (index != NaN) {
-            var frame = layer.getFrame(index);
-            if (frame && frame.strokes.length > 0) {
-                socket.emit("newFrameFromServer", frame.strokes);
-                if (process.env.LOGGING_VERBOSE) {
-                    console.log(chalk.bold.red("> > > Sending a new frame " + frame.strokes[0]["index"] + " with " + frame.strokes.length + " strokes."));
-                }
-            }
-        }
+        	var frame = layer.getFrame(index);
+        	if (frame && frame.strokes.length > 0) {
+        		io.emit("newFrameFromServer", frame.strokes);
+                console.log("> > > Sending a new frame " + frame.strokes[0]["index"] + " with " + frame.strokes.length + " strokes.");
+        	}
+    	}
     });
-
 });

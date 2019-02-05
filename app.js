@@ -56,16 +56,17 @@ class Layer {
     }
 
     addStroke(data) {
-        try {
+        //try {
     	var index = data["index"];
     	if (!isNaN(index)) {
     		this.getFrame(index); 
+
     		this.frames[index].strokes.push(data); 
             console.log("<<< Received a stroke with color (" + data["color"] + ") and " + data["points"].length + " points.");
     	}
-        } catch (e) {
-            console.log(e.data);
-        }
+        //} catch (e) {
+            //console.log(e.data);
+        //}
     }
 }
 
@@ -96,8 +97,13 @@ io.on('connection', function(socket){
     });
     //~
     socket.on("clientStrokeToServer", function(data) { 
-    	console.log(data);
-    	layer.addStroke(data);
+    	//console.log(data);
+        try { // json coming from Unity needs to be parsed...
+            var newData = JSON.parse(data);
+            layer.addStroke(newData);
+        } catch (e) { // ...but json coming from JS client does not need to be
+            layer.addStroke(data);
+        }
     });
     //~
     socket.on("clientRequestFrame", function(data) {

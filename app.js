@@ -11,8 +11,8 @@ var io = require("socket.io")(http, {
 	// default -- pingInterval: 1000 * 25, pingTimeout: 1000 * 60
 	// low latency -- pingInterval: 1000 * 5, pingTimeout: 1000 * 10
 
-	pingInterval: 1000 * 25,
-	pingTimeout: 1000 * 60
+	pingInterval: 1000 * 5,
+	pingTimeout: 1000 * 10
 });
 
 // ~ ~ ~ ~

@@ -1,5 +1,6 @@
 public/uploads/*
 *.csr
+*.crt
 *.key
 .env
 

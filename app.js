@@ -12,13 +12,22 @@ var options = {
 };
 var https = require("https").createServer(options, app);
 
-var io = require("socket.io")(http, { 
-    // default -- pingInterval: 1000 * 25, pingTimeout: 1000 * 60
-    // low latency -- pingInterval: 1000 * 5, pingTimeout: 1000 * 10
+var debug = process.env.DEBUG;
 
-    pingInterval: 1000 * 5,
-    pingTimeout: 1000 * 10
-});
+// default -- pingInterval: 1000 * 25, pingTimeout: 1000 * 60
+// low latency -- pingInterval: 1000 * 5, pingTimeout: 1000 * 10
+var io;
+if (debug) {
+    io = require("socket.io")(http, { 
+        pingInterval: 1000 * 5,
+        pingTimeout: 1000 * 10
+    });
+} else {
+    io = require("socket.io")(https, { 
+        pingInterval: 1000 * 5,
+        pingTimeout: 1000 * 10
+    });
+}
 
 // ~ ~ ~ ~
     
@@ -28,8 +37,8 @@ app.get("/", function(req, res) {
     res.sendFile(__dirname + "/public/index.html");
 });
 
-var port = 8080;
-var port_s = 443;
+var port = process.env.PORT;
+var port_s = process.env.PORT_S;
 
 http.listen(port, function() {
     console.log("\nNode app listening on port " + port);

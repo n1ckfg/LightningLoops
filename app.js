@@ -2,7 +2,9 @@
 
 var express = require("express");
 var app = express();
-var http = require("http").Server(app);
+//var redirectToHTTPS = require("express-http-to-https").redirectToHTTPS;
+// Don't redirect if the hostname is `localhost:port` or the route is `/insecure`
+//app.use(redirectToHTTPS([/localhost:(\d{4})/], [/\/insecure/], 301));
 
 var fs = require("fs");
 var dotenv = require('dotenv').config();
@@ -11,22 +13,32 @@ var options = {
     cert: fs.readFileSync(process.env.CERT_PATH)
 };
 var https = require("https").createServer(options, app);
-var redirectToHTTPS = require('express-http-to-https').redirectToHTTPS;
 
 var debug = process.env.DEBUG === "true";
 
 // default -- pingInterval: 1000 * 25, pingTimeout: 1000 * 60
 // low latency -- pingInterval: 1000 * 5, pingTimeout: 1000 * 10
-var io;
+var io, http;
 var ping_interval = 1000 * 5;
 var ping_timeout = 1000 * 10;
+var port = process.env.PORT;
+var port_s = process.env.PORT_S;
 
 if (!debug) {
+    http = require('http');
+
+    http.createServer(function(req, res) {
+        res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+        res.end();
+    }).listen(port);
+
     io = require("socket.io")(https, { 
         pingInterval: ping_interval,
         pingTimeout: ping_timeout
     });
 } else {
+    http = require("http").Server(app);
+
     io = require("socket.io")(http, { 
         pingInterval: ping_interval,
         pingTimeout: ping_timeout
@@ -41,13 +53,7 @@ app.get("/", function(req, res) {
     res.sendFile(__dirname + "/public/index.html");
 });
 
-// Don't redirect if the hostname is `localhost:port` or the route is `/insecure`
-app.use(redirectToHTTPS([/localhost:(\d{4})/], [/\/insecure/], 301));
-
 // ~ ~ ~ ~
-
-var port = process.env.PORT;
-var port_s = process.env.PORT_S;
 
 if (!debug) {
     https.listen(port_s, function() {
@@ -55,7 +61,7 @@ if (!debug) {
     });
 } else {
     http.listen(port, function() {
-        console.log("\nNode app listening on port " + port);
+        console.log("\nNode app listening on http port " + port);
     });
 }
 

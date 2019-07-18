@@ -4,13 +4,12 @@ var express = require("express");
 var https = require("https");
 var http = require("http");
 var fs = require("fs");
+var dotenv = require('dotenv').config();
 
-/*
 var options = {
-  key: fs.readFileSync('test/fixtures/keys/agent2-key.pem'),
-  cert: fs.readFileSync('test/fixtures/keys/agent2-cert.cert')
+  key: fs.readFileSync(KEY_PATH),
+  cert: fs.readFileSync(CERT_PATH)
 };
-*/
 
 var app = express();
 

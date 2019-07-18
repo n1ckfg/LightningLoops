@@ -39,7 +39,7 @@ app.get("/", function(req, res) {
 });
 
 http.listen(port, function() {
-	console.log("\nNode app started. Listening on port " + port);
+	console.log("\nNode app started. Listening on http port " + http_port + "/ https port " + https_port);
 });
 
 // ~ ~ ~ ~

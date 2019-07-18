@@ -12,7 +12,7 @@ var options = {
 };
 var https = require("https").createServer(options, app);
 
-var debug = process.env.DEBUG;
+var debug = process.env.DEBUG === "true";
 
 // default -- pingInterval: 1000 * 25, pingTimeout: 1000 * 60
 // low latency -- pingInterval: 1000 * 5, pingTimeout: 1000 * 10

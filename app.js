@@ -49,13 +49,15 @@ app.use(redirectToHTTPS([/localhost:(\d{4})/], [/\/insecure/], 301));
 var port = process.env.PORT;
 var port_s = process.env.PORT_S;
 
-http.listen(port, function() {
-    console.log("\nNode app listening on port " + port);
-});
-
-https.listen(port_s, function() {
-    console.log("\nNode app listening on https port " + port_s);
-});
+if (!debug) {
+    https.listen(port_s, function() {
+        console.log("\nNode app listening on https port " + port_s);
+    });
+} else {
+    http.listen(port, function() {
+        console.log("\nNode app listening on port " + port);
+    });
+}
 
 // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 

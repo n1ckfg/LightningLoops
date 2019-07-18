@@ -7,8 +7,8 @@ var fs = require("fs");
 var dotenv = require('dotenv').config();
 
 var options = {
-  key: fs.readFileSync(KEY_PATH),
-  cert: fs.readFileSync(CERT_PATH)
+  key: fs.readFileSync(process.env.KEY_PATH),
+  cert: fs.readFileSync(process.env.CERT_PATH)
 };
 
 var app = express();

@@ -17,11 +17,9 @@ var app = express();
 var http_port = 8080;
 var https_port = 443;
 
-http.createServer(app).listen(http_port);
-
-//https.createServer(options, app).listen(https_port);
-
-var strokeLifetime = 10000;
+http.createServer(app).listen(http_port, function() {
+	console.log("\nNode app http started. Listening on http port " + http_port);
+});
 
 var io = require("socket.io")(http, { 
 	// default -- pingInterval: 1000 * 25, pingTimeout: 1000 * 60
@@ -30,19 +28,15 @@ var io = require("socket.io")(http, {
 	pingTimeout: 1000 * 10
 });
 
-// ~ ~ ~ ~
-	
 app.use(express.static("public")); 
 
 app.get("/", function(req, res) {
 	res.sendFile(__dirname + "/public/index.html");
 });
 
-http.listen(port, function() {
-	console.log("\nNode app started. Listening on http port " + http_port + "/ https port " + https_port);
-});
-
 // ~ ~ ~ ~
+
+var strokeLifetime = 10000;
 
 class Frame {
 	constructor() {

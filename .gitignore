@@ -1,4 +1,6 @@
 public/uploads/*
+*.csr
+*.key
 
 # Logs
 logs

@@ -2,9 +2,6 @@
 
 var express = require("express");
 var app = express();
-//var redirectToHTTPS = require("express-http-to-https").redirectToHTTPS;
-// Don't redirect if the hostname is `localhost:port` or the route is `/insecure`
-//app.use(redirectToHTTPS([/localhost:(\d{4})/], [/\/insecure/], 301));
 
 var fs = require("fs");
 var dotenv = require('dotenv').config();
@@ -126,8 +123,6 @@ setInterval(function() {
 }, strokeLifetime);
 
 // ~ ~ ~ ~
-
-// https://socket.io/get-started/chat/
 
 io.on('connection', function(socket){
     console.log('A user connected.');

@@ -11,6 +11,7 @@ var options = {
     cert: fs.readFileSync(process.env.CERT_PATH)
 };
 var https = require("https").createServer(options, app);
+var redirectToHTTPS = require('express-http-to-https').redirectToHTTPS;
 
 var debug = process.env.DEBUG === "true";
 
@@ -40,13 +41,10 @@ app.get("/", function(req, res) {
     res.sendFile(__dirname + "/public/index.html");
 });
 
-if (!debug) {
-    app.use(function(request, response) {
-        if (!request.secure) {
-            response.redirect("https://" + request.headers.host + request.url);
-        }
-    });
-}
+// Don't redirect if the hostname is `localhost:port` or the route is `/insecure`
+app.use(redirectToHTTPS([/localhost:(\d{4})/], [/\/insecure/], 301));
+
+// ~ ~ ~ ~
 
 var port = process.env.PORT;
 var port_s = process.env.PORT_S;
@@ -59,7 +57,7 @@ https.listen(port_s, function() {
     console.log("\nNode app listening on https port " + port_s);
 });
 
-// ~ ~ ~ ~
+// ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
 var strokeLifetime = 10000;
 

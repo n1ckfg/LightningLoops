@@ -24,7 +24,7 @@ https.createServer(app).listen(https_port, function() {
     console.log("\nNode app http started. Listening on https port " + https_port);
 });
 
-var io = require("socket.io")(http, { 
+var io = require("socket.io")(https, { 
 	// default -- pingInterval: 1000 * 25, pingTimeout: 1000 * 60
 	// low latency -- pingInterval: 1000 * 5, pingTimeout: 1000 * 10
 	pingInterval: 1000 * 5,

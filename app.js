@@ -17,15 +17,18 @@ var debug = process.env.DEBUG === "true";
 // default -- pingInterval: 1000 * 25, pingTimeout: 1000 * 60
 // low latency -- pingInterval: 1000 * 5, pingTimeout: 1000 * 10
 var io;
-if (debug) {
-    io = require("socket.io")(http, { 
-        pingInterval: 1000 * 5,
-        pingTimeout: 1000 * 10
+var ping_interval = 1000 * 5;
+var ping_timeout = 1000 * 10;
+
+if (!debug) {
+    io = require("socket.io")(https, { 
+        pingInterval: ping_interval,
+        pingTimeout: ping_timeout
     });
 } else {
-    io = require("socket.io")(https, { 
-        pingInterval: 1000 * 5,
-        pingTimeout: 1000 * 10
+    io = require("socket.io")(http, { 
+        pingInterval: ping_interval,
+        pingTimeout: ping_timeout
     });
 }
 
@@ -36,6 +39,14 @@ app.use(express.static("public"));
 app.get("/", function(req, res) {
     res.sendFile(__dirname + "/public/index.html");
 });
+
+if (!debug) {
+    app.use(function(request, response) {
+        if (!request.secure) {
+            response.redirect("https://" + request.headers.host + request.url);
+        }
+    });
+}
 
 var port = process.env.PORT;
 var port_s = process.env.PORT_S;

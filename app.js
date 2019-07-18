@@ -1,16 +1,31 @@
 "use strict";
 
-var strokeLifetime = 10000;
-
 var express = require("express");
+var https = require("https");
+var http = require("http");
+var fs = require("fs");
+
+/*
+var options = {
+  key: fs.readFileSync('test/fixtures/keys/agent2-key.pem'),
+  cert: fs.readFileSync('test/fixtures/keys/agent2-cert.cert')
+};
+*/
+
 var app = express();
-var http = require("http").Server(app);
-var port = 8080;
+
+var http_port = 8080;
+var https_port = 443;
+
+http.createServer(app).listen(http_port);
+
+//https.createServer(options, app).listen(https_port);
+
+var strokeLifetime = 10000;
 
 var io = require("socket.io")(http, { 
 	// default -- pingInterval: 1000 * 25, pingTimeout: 1000 * 60
 	// low latency -- pingInterval: 1000 * 5, pingTimeout: 1000 * 10
-
 	pingInterval: 1000 * 5,
 	pingTimeout: 1000 * 10
 });

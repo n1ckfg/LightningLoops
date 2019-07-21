@@ -93,17 +93,17 @@ class Layer {
     }
 
     addStroke(data) {
-        //try {
-        var index = data["index"];
-        if (!isNaN(index)) {
-            this.getFrame(index); 
+        try {
+            var index = data["index"];
+            if (!isNaN(index)) {
+                this.getFrame(index); 
 
-            this.frames[index].strokes.push(data); 
-            console.log("<<< Received a stroke with color (" + data["color"] + ") and " + data["points"].length + " points.");
+                this.frames[index].strokes.push(data); 
+                console.log("<<< Received a stroke with color (" + data["color"] + ") and " + data["points"].length + " points.");
+            }
+        } catch (e) {
+            console.log("Error adding stroke" + e.data);
         }
-        //} catch (e) {
-            //console.log(e.data);
-        //}
     }
 }
 

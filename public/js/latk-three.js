@@ -544,7 +544,7 @@ function updateTouchPos(event) {
         var touch = event.targetTouches[0];
         mouse3D = new THREE.Vector3((touch.pageX / window.innerWidth) * 2 - 1, -(touch.pageY / window.innerHeight) * 2 + 1, 0.5);
         mouse3D.unproject(camera);   
-        if (debug) console.log(mouse3D);    
+        //if (debug) console.log(mouse3D);    
     }
 }
 

@@ -4,7 +4,7 @@ const express = require("express");
 const app = express();
 
 const fs = require("fs");
-const dotenv = require('dotenv').config();
+const dotenv = require("dotenv").config();
 const debug = process.env.DEBUG === "true";
 
 var options;
@@ -26,13 +26,13 @@ const port_http = process.env.PORT_HTTP;
 const port_https = process.env.PORT_HTTPS;
 const port_ws = process.env.PORT_WS;
 
-const WebSocket = require('ws');
-const wss = new WebSocket.Server({ port: port_ws, pingInterval: ping_interval, pingTimeout: ping_timeout }, function() {
+const WebSocket = require("ws");
+const ws = new WebSocket.Server({ port: port_ws, pingInterval: ping_interval, pingTimeout: ping_timeout }, function() {
     console.log("\nNode.js listening on websocket port " + port_ws);
 });
 
 if (!debug) {
-    http = require('http');
+    http = require("http");
 
     http.createServer(function(req, res) {
         res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
@@ -135,10 +135,10 @@ setInterval(function() {
 // ~ ~ ~ ~
 
 io.on("connection", function(socket) {
-    console.log("A user connected using socket.io.");
+    console.log("A socket.io user connected.");
     //~
-    socket.on("disconnect", function() {
-        console.log("A user disconnected.");
+    socket.on("disconnect", function(event) {
+        console.log("A socket.io user disconnected.");
     });
     //~
     socket.on("clientStrokeToServer", function(data) { 
@@ -164,32 +164,14 @@ io.on("connection", function(socket) {
     });
 });
 
-wss.on('connection', socket => {
-    console.log("A user connected using ws.");
+ws.on("connection", function(socket) {
+    console.log("A ws user connected.");
     //~
-    socket.on("disconnect", function() {
-        console.log("A user disconnected.");
-    });
+    socket.onclose = function(event) {
+        console.log("A ws user disconnected.");
+    };
     //~
-    socket.on("clientStrokeToServer", function(data) { 
-        //console.log(data);
-        try { // json coming from Unity needs to be parsed...
-            var newData = JSON.parse(data);
-            layer.addStroke(newData);
-        } catch (e) { // ...but json coming from JS client does not need to be
-            layer.addStroke(data);
-        }
-    });
-    //~
-    socket.on("clientRequestFrame", function(data) {
-        //console.log(data["num"]);
-        var index = data["num"];
-        if (index != NaN) {
-            var frame = layer.getFrame(index);
-            if (frame && frame.strokes.length > 0) {
-                wss.emit("newFrameFromServer", frame.strokes);
-                console.log("> > > Sending a new frame " + frame.strokes[0]["index"] + " with " + frame.strokes.length + " strokes.");
-            }
-        }
-    });
+    socket.onmessage = function(event) {
+        //console.log(event.data);
+    };
 });

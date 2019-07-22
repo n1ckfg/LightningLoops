@@ -5,13 +5,17 @@ var app = express();
 
 var fs = require("fs");
 var dotenv = require('dotenv').config();
-var options = {
-    key: fs.readFileSync(process.env.KEY_PATH),
-    cert: fs.readFileSync(process.env.CERT_PATH)
-};
-var https = require("https").createServer(options, app);
-
 var debug = process.env.DEBUG === "true";
+
+var options;
+if (!debug) {
+	options = {
+	    key: fs.readFileSync(process.env.KEY_PATH),
+	    cert: fs.readFileSync(process.env.CERT_PATH)
+	};
+}
+
+var https = require("https").createServer(options, app);
 
 // default -- pingInterval: 1000 * 25, pingTimeout: 1000 * 60
 // low latency -- pingInterval: 1000 * 5, pingTimeout: 1000 * 10

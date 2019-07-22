@@ -1,11 +1,11 @@
 "use strict";
 
-var express = require("express");
-var app = express();
+const express = require("express");
+const app = express();
 
-var fs = require("fs");
-var dotenv = require('dotenv').config();
-var debug = process.env.DEBUG === "true";
+const fs = require("fs");
+const dotenv = require('dotenv').config();
+const debug = process.env.DEBUG === "true";
 
 var options;
 if (!debug) {
@@ -15,15 +15,21 @@ if (!debug) {
 	};
 }
 
-var https = require("https").createServer(options, app);
+const https = require("https").createServer(options, app);
 
 // default -- pingInterval: 1000 * 25, pingTimeout: 1000 * 60
 // low latency -- pingInterval: 1000 * 5, pingTimeout: 1000 * 10
 var io, http;
-var ping_interval = 1000 * 5;
-var ping_timeout = 1000 * 10;
-var port = process.env.PORT;
-var port_s = process.env.PORT_S;
+const ping_interval = 1000 * 5;
+const ping_timeout = 1000 * 10;
+const port_http = process.env.PORT_HTTP;
+const port_https = process.env.PORT_HTTPS;
+const port_ws = process.env.PORT_WS;
+
+const WebSocket = require('ws');
+const wss = new WebSocket.Server({ port: port_ws, pingInterval: ping_interval, pingTimeout: ping_timeout }, function() {
+    console.log("\nNode.js listening on websocket port " + port_ws);
+});
 
 if (!debug) {
     http = require('http');
@@ -31,7 +37,7 @@ if (!debug) {
     http.createServer(function(req, res) {
         res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
         res.end();
-    }).listen(port);
+    }).listen(port_http);
 
     io = require("socket.io")(https, { 
         pingInterval: ping_interval,
@@ -57,12 +63,12 @@ app.get("/", function(req, res) {
 // ~ ~ ~ ~
 
 if (!debug) {
-    https.listen(port_s, function() {
-        console.log("\nNode app listening on https port " + port_s);
+    https.listen(port_https, function() {
+        console.log("\nNode.js listening on https port " + port_https);
     });
 } else {
-    http.listen(port, function() {
-        console.log("\nNode app listening on http port " + port);
+    http.listen(port_http, function() {
+        console.log("\nNode.js listening on http port " + port_http);
     });
 }
 
@@ -128,11 +134,11 @@ setInterval(function() {
 
 // ~ ~ ~ ~
 
-io.on('connection', function(socket){
-    console.log('A user connected.');
+io.on("connection", function(socket) {
+    console.log("A user connected using socket.io.");
     //~
-    socket.on('disconnect', function(){
-        console.log('A user disconnected.');
+    socket.on("disconnect", function() {
+        console.log("A user disconnected.");
     });
     //~
     socket.on("clientStrokeToServer", function(data) { 
@@ -152,6 +158,36 @@ io.on('connection', function(socket){
             var frame = layer.getFrame(index);
             if (frame && frame.strokes.length > 0) {
                 io.emit("newFrameFromServer", frame.strokes);
+                console.log("> > > Sending a new frame " + frame.strokes[0]["index"] + " with " + frame.strokes.length + " strokes.");
+            }
+        }
+    });
+});
+
+wss.on('connection', socket => {
+    console.log("A user connected using ws.");
+    //~
+    socket.on("disconnect", function() {
+        console.log("A user disconnected.");
+    });
+    //~
+    socket.on("clientStrokeToServer", function(data) { 
+        //console.log(data);
+        try { // json coming from Unity needs to be parsed...
+            var newData = JSON.parse(data);
+            layer.addStroke(newData);
+        } catch (e) { // ...but json coming from JS client does not need to be
+            layer.addStroke(data);
+        }
+    });
+    //~
+    socket.on("clientRequestFrame", function(data) {
+        //console.log(data["num"]);
+        var index = data["num"];
+        if (index != NaN) {
+            var frame = layer.getFrame(index);
+            if (frame && frame.strokes.length > 0) {
+                wss.emit("newFrameFromServer", frame.strokes);
                 console.log("> > > Sending a new frame " + frame.strokes[0]["index"] + " with " + frame.strokes.length + " strokes.");
             }
         }

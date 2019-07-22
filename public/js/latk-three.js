@@ -123,13 +123,14 @@ function animate(timestamp) {
 
         if (isDrawing) {
             var last = layers.length - 1;
-            var drawTrailLength = 4;
+            var drawTrailLength = 3;
 
-            if (drawWhilePlaying && layers[last].frames.length > 1 && layers[last].frames[layers[last].previousFrame].length > 0) {
+            if (drawWhilePlaying && frameDelta === 0 && layers[last].frames.length > 1 && layers[last].frames[layers[last].previousFrame].length > 0) {
                 var lastStroke = layers[last].frames[layers[last].previousFrame][layers[last].frames[layers[last].previousFrame].length - 1];
                 var points = getPoints(lastStroke);
-
-                for (var pts = parseInt(points.length / drawTrailLength) + 1; pts < points.length - 1; pts++) {
+                var startIdx = parseInt(points.length - drawTrailLength);
+                if (startIdx < 0) startIdx = 0;
+                for (var pts = startIdx; pts < points.length-1; pts++) {
                     createTempStroke(points[pts].x, points[pts].y, points[pts].z);
                 }
                 layers[last].frames[layers[last].counter].push(tempStroke);

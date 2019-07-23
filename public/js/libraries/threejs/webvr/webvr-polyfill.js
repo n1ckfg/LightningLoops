@@ -487,7 +487,7 @@ FusionPositionSensorVRDevice.prototype.onDeviceMotionChange_ = function(deviceMo
 
   // Firefox Android timeStamp returns one thousandth of a millisecond.
   if (this.isFirefoxAndroid) {
-    //timestampS /= 1000;
+    timestampS /= 1000;
   }
 
   var deltaS = timestampS - this.previousTimestampS;

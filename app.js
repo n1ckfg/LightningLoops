@@ -134,6 +134,8 @@ setInterval(function() {
 
 // ~ ~ ~ ~
 
+var lastIndex = 0;  // for ws
+
 io.on("connection", function(socket) {
     console.log("A socket.io user connected.");
     //~
@@ -155,6 +157,7 @@ io.on("connection", function(socket) {
         //console.log(data["num"]);
         var index = data["num"];
         if (index != NaN) {
+        	lastIndex = index; // for ws
             var frame = layer.getFrame(index);
             if (frame && frame.strokes.length > 0) {
                 io.emit("newFrameFromServer", frame.strokes);
@@ -172,6 +175,14 @@ ws.on("connection", function(socket) {
     };
     //~
     socket.onmessage = function(event) {
-        //console.log(event.data);
+        //console.log(data["num"]);
+        var index = lastIndex; //data["num"];
+        if (index != NaN) {
+            var frame = layer.getFrame(index);
+            if (frame && frame.strokes.length > 0) {
+                socket.send(JSON.stringify(frame.strokes));
+                console.log("> WS > Sending a new frame " + frame.strokes[0]["index"] + " with " + frame.strokes.length + " strokes.");
+            }
+        }
     };
 });

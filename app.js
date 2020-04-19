@@ -9,10 +9,10 @@ const debug = process.env.DEBUG === "true";
 
 var options;
 if (!debug) {
-	options = {
-	    key: fs.readFileSync(process.env.KEY_PATH),
-	    cert: fs.readFileSync(process.env.CERT_PATH)
-	};
+    options = {
+        key: fs.readFileSync(process.env.KEY_PATH),
+        cert: fs.readFileSync(process.env.CERT_PATH)
+    };
 }
 
 const https = require("https").createServer(options, app);
@@ -157,7 +157,7 @@ io.on("connection", function(socket) {
         //console.log(data["num"]);
         var index = data["num"];
         if (index != NaN) {
-        	lastIndex = index; // for ws
+            lastIndex = index; // for ws
             var frame = layer.getFrame(index);
             if (frame && frame.strokes.length > 0) {
                 io.emit("newFrameFromServer", frame.strokes);

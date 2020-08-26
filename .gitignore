@@ -1,4 +1,6 @@
 public/uploads/*
+public/sounds/sgm_plus/*
+
 *.csr
 *.crt
 *.key

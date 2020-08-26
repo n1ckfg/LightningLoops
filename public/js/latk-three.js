@@ -281,16 +281,20 @@ function createTextAlt(_text, x, y, z) {
 }
 
 function doSubtitle(_frame) {
+    /*
     Tone.Transport.scheduleOnce(function(time){
         subtitleText = createText(subtitlesArray[subsCounter], 1300, -1200, -2800);
         subsCounter++;
     }, getLoopFrame(_frame));
+    */
 }
 
 function clearSubtitle(_frame) {
+    /*
     Tone.Transport.scheduleOnce(function(time){
         if (subtitleText) scene.remove(subtitleText);
     }, getLoopFrame(_frame));
+    */
 }
 
 function getLoopFrame(_frame) {
@@ -712,10 +716,11 @@ function visibilityChanged() {
 }
 
 function latkStart() {
+    /*
     player = new Tone.Player({
         "url": soundPath
     }).toMaster();
-
+    */
     // ~ ~ ~ ~ ~ ~ 
     document.addEventListener("visibilitychange", visibilityChanged);
 

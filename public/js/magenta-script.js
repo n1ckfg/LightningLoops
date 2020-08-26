@@ -1,3 +1,5 @@
+"use strict";
+
 /*************************
  * Consts for everyone!
  ************************/
@@ -25,9 +27,9 @@ let sustainingNotes = [];
 // in another, so you're going to lose that original element and never mouse it up.
 let mouseDownButton = null;
 
-const player = new Player();
+const mplayer = new Player();
 const genie = new mm.PianoGenie(CONSTANTS.GENIE_CHECKPOINT);
-const painter = new FloatyNotes();
+//const painter = new FloatyNotes();
 const piano = new Piano();
 let isUsingMakey = false;
 initEverything();
@@ -38,22 +40,22 @@ initEverything();
 function initEverything() {
   genie.initialize().then(() => {
     console.log('🧞‍♀️ ready!');
-    playBtn.textContent = 'Play';
-    playBtn.removeAttribute('disabled');
-    playBtn.classList.remove('loading');
+    //playBtn.textContent = 'Play';
+    //playBtn.removeAttribute('disabled');
+    //playBtn.classList.remove('loading');
   });
 
   // Start the drawing loop.
-  onWindowResize();
-  updateButtonText();
-  window.requestAnimationFrame(() => painter.drawLoop());
+  //onWindowResize();
+  //updateButtonText();
+  //window.requestAnimationFrame(() => painter.drawLoop());
 
   // Event listeners.
-  document.getElementById('numButtons4').addEventListener('change', (event) => event.target.checked && updateNumButtons(4));
-  document.getElementById('numButtons8').addEventListener('change', (event) => event.target.checked && updateNumButtons(8));
+  //document.getElementById('numButtons4').addEventListener('change', (event) => event.target.checked && updateNumButtons(4));
+  //document.getElementById('numButtons8').addEventListener('change', (event) => event.target.checked && updateNumButtons(8));
   
-  window.addEventListener('resize', onWindowResize);
-  window.addEventListener('orientationchange', onWindowResize);
+  //window.addEventListener('resize', onWindowResize);
+  //window.addEventListener('orientationchange', onWindowResize);
   window.addEventListener('hashchange', () => TEMPERATURE = getTemperature());
 }
 
@@ -69,8 +71,8 @@ function updateNumButtons(num) {
 }
 
 function showMainScreen() {
-  document.querySelector('.splash').hidden = true;
-  document.querySelector('.loaded').hidden = false;
+  //document.querySelector('.splash').hidden = true;
+  //document.querySelector('.loaded').hidden = false;
 
   document.addEventListener('keydown',onKeyDown);
   
@@ -91,28 +93,28 @@ function showMainScreen() {
   
   // Output.
   radioMidiOutYes.addEventListener('click', () => {
-    player.usingMidiOut = true;
+    mplayer.usingMidiOut = true;
     midiOutBox.hidden = false;
   });
   radioAudioYes.addEventListener('click', () => {
-    player.usingMidiOut = false;
+    mplayer.usingMidiOut = false;
     midiOutBox.hidden = true;
   });
   // Input.
   radioMidiInYes.addEventListener('click', () => {
-    player.usingMidiIn = true;
+    mplayer.usingMidiIn = true;
     midiInBox.hidden = false;
     isUsingMakey = false;
     updateButtonText();
   });
   radioDeviceYes.addEventListener('click', () => {
-    player.usingMidiIn = false;
+    mplayer.usingMidiIn = false;
     midiInBox.hidden = true;
     isUsingMakey = false;
     updateButtonText();
   });
   radioMakeyYes.addEventListener('click', () => {
-    player.usingMidiIn = false;
+    mplayer.usingMidiIn = false;
     midiInBox.hidden = true;
     isUsingMakey = true;
     updateButtonText();
@@ -125,7 +127,7 @@ function showMainScreen() {
     radioMidiOutYes.parentElement.removeAttribute('disabled');
     navigator.requestMIDIAccess()
       .then(
-          (midi) => player.midiReady(midi),
+          (midi) => mplayer.midiReady(midi),
           (err) => console.log('Something went wrong', err));
   } else {
     midiNotSupported.hidden = false;
@@ -183,7 +185,7 @@ function buttonDown(button, fromKeyDown) {
   const pitch = CONSTANTS.LOWEST_PIANO_KEY_MIDI_NOTE + note;
 
   // Hear it.
-  player.playNoteDown(pitch, button);
+  mplayer.playNoteDown(pitch, button);
   
   // See it.
   const rect = piano.highlightNote(note, button);
@@ -192,8 +194,8 @@ function buttonDown(button, fromKeyDown) {
     debugger;
   }
   // Float it.
-  const noteToPaint = painter.addNote(button, rect.getAttribute('x'), rect.getAttribute('width'));
-  heldButtonToVisualData.set(button, {rect:rect, note:note, noteToPaint:noteToPaint});
+  //const noteToPaint = painter.addNote(button, rect.getAttribute('x'), rect.getAttribute('width'));
+  //heldButtonToVisualData.set(button, {rect:rect, note:note, noteToPaint:noteToPaint});
 }
 
 function buttonUp(button) {
@@ -208,12 +210,12 @@ function buttonUp(button) {
     piano.clearNote(thing.rect);
     
     // Stop holding it down.
-    painter.stopNote(thing.noteToPaint);
+    //painter.stopNote(thing.noteToPaint);
     
     // Maybe stop hearing it.
     const pitch = CONSTANTS.LOWEST_PIANO_KEY_MIDI_NOTE + thing.note;
     if (!sustaining) {
-      player.playNoteUp(pitch, button);
+      mplayer.playNoteUp(pitch, button);
     } else {
       sustainingNotes.push(CONSTANTS.LOWEST_PIANO_KEY_MIDI_NOTE + thing.note);
     }
@@ -225,6 +227,9 @@ function buttonUp(button) {
  * Events
  ************************/
 function onKeyDown(event) {
+  mplayer.tone.context.resume();
+  console.log("key!");
+
   // Keydown fires continuously and we don't want that.
   if (event.repeat) {
     return;
@@ -247,7 +252,7 @@ function onKeyUp(event) {
     sustaining = false;
     
     // Release everything.
-    sustainingNotes.forEach((note) => player.playNoteUp(note, -1));
+    sustainingNotes.forEach((note) => mplayer.playNoteUp(note, -1));
     sustainingNotes = [];
   } else {
     const button = getButtonFromKeyCode(event.key);
@@ -269,7 +274,7 @@ function onWindowResize() {
   });
   
   piano.resize(totalWhiteNotes);
-  painter.resize(piano.config.whiteNoteHeight);
+  //painter.resize(piano.config.whiteNoteHeight);
   piano.draw();
 }
 

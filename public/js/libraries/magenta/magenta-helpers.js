@@ -1,3 +1,5 @@
+"use strict";
+
 const CONSTANTS = {
   COLORS : ['#EE2B29','#ff9800','#ffff00','#c6ff00','#00e5ff','#2979ff','#651fff','#d500f9'],
   NUM_BUTTONS : 8,
@@ -5,7 +7,7 @@ const CONSTANTS = {
   WHITE_NOTES_PER_OCTAVE : 7,
   LOWEST_PIANO_KEY_MIDI_NOTE : 21,
   //GENIE_CHECKPOINT : 'https://storage.googleapis.com/magentadata/js/checkpoints/piano_genie/model/epiano/stp_iq_auto_contour_dt_166006',  
-  GENIE_CHECKPOINT : 'models/piano_genie/v002',  
+  GENIE_CHECKPOINT : './js/libraries/magenta/models/piano_genie/v002',  
 }
 
 /*************************
@@ -13,7 +15,7 @@ const CONSTANTS = {
  ************************/
 class Player {
   constructor() {
-    this.player = new mm.SoundFontPlayer('https://storage.googleapis.com/magentadata/js/soundfonts/sgm_plus');
+    this.player = new mm.SoundFontPlayer("./sounds/sgm_plus");
     this.midiOut = [];
     this.midiIn = []
     this.usingMidiOut = false;

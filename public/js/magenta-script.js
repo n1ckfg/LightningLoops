@@ -49,6 +49,7 @@ function initEverything() {
   
     genie.initialize().then(() => {
         console.log('🧞‍♀️ ready!');
+
         showMainScreen();
     });
 }
@@ -89,9 +90,7 @@ function mButtonDown(button, fromKeyDown) {
   const pitch = CONSTANTS.LOWEST_PIANO_KEY_MIDI_NOTE + note;
 
   // Hear it.
-  mplayer.playNoteDown(pitch, button);
-  
-
+  mplayer.playNoteDown(pitch, button); 
 }
 
 function mButtonUp(button) {
@@ -112,7 +111,7 @@ function mButtonUp(button) {
  * Events
  ************************/
 function mOnKeyDown(event) {
-  //mplayer.tone.context.resume();
+  mplayer.tone.context.resume();
   console.log("key!");
 
   // Keydown fires continuously and we don't want that.

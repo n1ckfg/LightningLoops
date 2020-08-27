@@ -89,7 +89,7 @@ class Player {
     if (button === -1) button = 0;
     //const msg = [0x90 + button, pitch, 0x7f];    // note on, full velocity.
     const msg = [0x90, pitch, 0x7f];    // note on, full velocity.
-    this.midiOut[this.selectOutElement.selectedIndex].send(msg);
+    this.midiOut[0].send(msg); //this.selectOutElement.selectedIndex].send(msg);
   }
 
   sendMidiNoteOff(pitch, button) {
@@ -97,7 +97,7 @@ class Player {
     if (button === -1) button = 0;
     //const msg = [0x80 + button, pitch, 0x7f];    // note on, middle C, full velocity.
     const msg = [0x80, pitch, 0x7f];    // note on, middle C, full velocity.
-    this.midiOut[this.selectOutElement.selectedIndex].send(msg);
+    this.midiOut[0].send(msg); //this.selectOutElement.selectedIndex].send(msg);
   }
   
   getMIDIMessage(msg) {

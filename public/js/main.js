@@ -13,6 +13,8 @@ function main() {
 
     latkStart();
 
+    // magenta
+    initEverything();
 }
 
 window.onload = main;

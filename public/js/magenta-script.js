@@ -29,189 +29,74 @@ let mouseDownButton = null;
 
 const mplayer = new Player();
 const genie = new mm.PianoGenie(CONSTANTS.GENIE_CHECKPOINT);
-//const painter = new FloatyNotes();
-const piano = new Piano();
 let isUsingMakey = false;
-initEverything();
 
 /*************************
  * Basic UI bits
  ************************/
 function initEverything() {
-  genie.initialize().then(() => {
-    console.log('🧞‍♀️ ready!');
-    //playBtn.textContent = 'Play';
-    //playBtn.removeAttribute('disabled');
-    //playBtn.classList.remove('loading');
-  });
+    BUTTON_MAPPING = MAPPING_8;
 
-  // Start the drawing loop.
-  //onWindowResize();
-  //updateButtonText();
-  //window.requestAnimationFrame(() => painter.drawLoop());
-
-  // Event listeners.
-  //document.getElementById('numButtons4').addEventListener('change', (event) => event.target.checked && updateNumButtons(4));
-  //document.getElementById('numButtons8').addEventListener('change', (event) => event.target.checked && updateNumButtons(8));
+    OCTAVES = 7;
+    const bonusNotes = 4;  // starts on an A, ends on a C.
+    const totalNotes = CONSTANTS.NOTES_PER_OCTAVE * OCTAVES + bonusNotes; 
+    const totalWhiteNotes = CONSTANTS.WHITE_NOTES_PER_OCTAVE * OCTAVES + (bonusNotes - 1); 
+    keyWhitelist = Array(totalNotes).fill().map((x,i) => {
+        if (OCTAVES > 6) return i;
+        // Starting 3 semitones up on small screens (on a C), and a whole octave up.
+        return i + 3 + CONSTANTS.NOTES_PER_OCTAVE;
+    });
   
-  //window.addEventListener('resize', onWindowResize);
-  //window.addEventListener('orientationchange', onWindowResize);
-  window.addEventListener('hashchange', () => TEMPERATURE = getTemperature());
-}
-
-function updateNumButtons(num) {
-  NUM_BUTTONS = num;
-  const buttons = document.querySelectorAll('.controls > button.color');
-  BUTTON_MAPPING = (num === 4) ? MAPPING_4 : MAPPING_8;
-  
-  // Hide the extra buttons.
-  for (let i = 0; i < buttons.length; i++) {
-    buttons[i].hidden = i >= num;
-  }
+    genie.initialize().then(() => {
+        console.log('🧞‍♀️ ready!');
+        showMainScreen();
+    });
 }
 
 function showMainScreen() {
-  //document.querySelector('.splash').hidden = true;
-  //document.querySelector('.loaded').hidden = false;
-
-  document.addEventListener('keydown',onKeyDown);
-  
-  controls.addEventListener('touchstart', (event) => doTouchStart(event), {passive: true});
-  controls.addEventListener('touchend', (event) => doTouchEnd(event), {passive: true});
-  
-  const hasTouchEvents = ('ontouchstart' in window);
-  if (!hasTouchEvents) {
-    controls.addEventListener('mousedown', (event) => doTouchStart(event));
-    controls.addEventListener('mouseup', (event) => doTouchEnd(event));
-  }
-  
-  controls.addEventListener('mouseover', (event) => doTouchMove(event, true));
-  controls.addEventListener('mouseout', (event) => doTouchMove(event, false));
-  controls.addEventListener('touchenter', (event) => doTouchMove(event, true));
-  controls.addEventListener('touchleave', (event) => doTouchMove(event, false));
-  canvas.addEventListener('mouseenter', () => mouseDownButton = null);
-  
-  // Output.
-  radioMidiOutYes.addEventListener('click', () => {
     mplayer.usingMidiOut = true;
-    midiOutBox.hidden = false;
-  });
-  radioAudioYes.addEventListener('click', () => {
-    mplayer.usingMidiOut = false;
-    midiOutBox.hidden = true;
-  });
-  // Input.
-  radioMidiInYes.addEventListener('click', () => {
+
     mplayer.usingMidiIn = true;
-    midiInBox.hidden = false;
-    isUsingMakey = false;
-    updateButtonText();
-  });
-  radioDeviceYes.addEventListener('click', () => {
-    mplayer.usingMidiIn = false;
-    midiInBox.hidden = true;
-    isUsingMakey = false;
-    updateButtonText();
-  });
-  radioMakeyYes.addEventListener('click', () => {
-    mplayer.usingMidiIn = false;
-    midiInBox.hidden = true;
-    isUsingMakey = true;
-    updateButtonText();
-  });
   
-  // Figure out if WebMidi works.
-  if (navigator.requestMIDIAccess) {
-    midiNotSupported.hidden = true;
-    radioMidiInYes.parentElement.removeAttribute('disabled');
-    radioMidiOutYes.parentElement.removeAttribute('disabled');
-    navigator.requestMIDIAccess()
-      .then(
-          (midi) => mplayer.midiReady(midi),
-          (err) => console.log('Something went wrong', err));
-  } else {
-    midiNotSupported.hidden = false;
-    radioMidiInYes.parentElement.setAttribute('disabled', true);
-    radioMidiOutYes.parentElement.setAttribute('disabled', true);
-  }
+    // Figure out if WebMidi works.
+    if (navigator.requestMIDIAccess) {
+        navigator.requestMIDIAccess().then((midi) => mplayer.midiReady(midi), (err) => console.log('Something went wrong', err));
+    } else {
+        console.log("Midi not supported.");
+    }
 
-  document.addEventListener('keyup', onKeyUp);
-
-  // Slow to start up, so do a fake prediction to warm up the model.
-  const note = genie.nextFromKeyWhitelist(0, keyWhitelist, TEMPERATURE);
-  genie.resetState();
+    // Slow to start up, so do a fake prediction to warm up the model.
+    const note = genie.nextFromKeyWhitelist(0, keyWhitelist, TEMPERATURE);
+    genie.resetState();
 }
 
-// Here touch means either touch or mouse.
-function doTouchStart(event) {
-  event.preventDefault();
-  mouseDownButton = event.target; 
-  buttonDown(event.target.dataset.id, true);
-}
-function doTouchEnd(event) {
-  event.preventDefault();
-  if (mouseDownButton && mouseDownButton !== event.target) {
-    buttonUp(mouseDownButton.dataset.id);
-  }
-  mouseDownButton = null;
-  buttonUp(event.target.dataset.id);
-}
-function doTouchMove(event, down) {
-   // If we're already holding a button down, start holding this one too.
-  if (!mouseDownButton)
-    return;
-  
-  if (down)
-    buttonDown(event.target.dataset.id, true);
-  else 
-    buttonUp(event.target.dataset.id, true);
-}
+/*
+Trigger with
+mButtonDown(event.target.dataset.id, true);
+mButtonUp(event.target.dataset.id, true);
+*/
 
 /*************************
  * Button actions
  ************************/
-function buttonDown(button, fromKeyDown) {
+function mButtonDown(button, fromKeyDown) {
   // If we're already holding this button down, nothing new to do.
   if (heldButtonToVisualData.has(button)) {
     return;
   }
-  
-  const el = document.getElementById(`btn${button}`);
-  if (!el)
-    return;
-  el.setAttribute('active', true);
-  
+    
   const note = genie.nextFromKeyWhitelist(BUTTON_MAPPING[button], keyWhitelist, TEMPERATURE);
   const pitch = CONSTANTS.LOWEST_PIANO_KEY_MIDI_NOTE + note;
 
   // Hear it.
   mplayer.playNoteDown(pitch, button);
   
-  // See it.
-  const rect = piano.highlightNote(note, button);
-  
-  if (!rect) {
-    debugger;
-  }
-  // Float it.
-  //const noteToPaint = painter.addNote(button, rect.getAttribute('x'), rect.getAttribute('width'));
-  //heldButtonToVisualData.set(button, {rect:rect, note:note, noteToPaint:noteToPaint});
+
 }
 
-function buttonUp(button) {
-  const el = document.getElementById(`btn${button}`);
-  if (!el)
-    return;
-  el.removeAttribute('active');
-  
+function mButtonUp(button) {
   const thing = heldButtonToVisualData.get(button);
-  if (thing) {
-    // Don't see it.
-    piano.clearNote(thing.rect);
-    
-    // Stop holding it down.
-    //painter.stopNote(thing.noteToPaint);
-    
+  if (thing) {   
     // Maybe stop hearing it.
     const pitch = CONSTANTS.LOWEST_PIANO_KEY_MIDI_NOTE + thing.note;
     if (!sustaining) {
@@ -226,8 +111,8 @@ function buttonUp(button) {
 /*************************
  * Events
  ************************/
-function onKeyDown(event) {
-  mplayer.tone.context.resume();
+function mOnKeyDown(event) {
+  //mplayer.tone.context.resume();
   console.log("key!");
 
   // Keydown fires continuously and we don't want that.
@@ -242,12 +127,12 @@ function onKeyDown(event) {
   } else {
     const button = getButtonFromKeyCode(event.key);
     if (button != null) {
-      buttonDown(button, true);
+      mButtonDown(button, true);
     }
   }
 }
 
-function onKeyUp(event) {
+function mOnKeyUp(event) {
   if (event.key === ' ') {  // sustain pedal
     sustaining = false;
     
@@ -257,26 +142,11 @@ function onKeyUp(event) {
   } else {
     const button = getButtonFromKeyCode(event.key);
     if (button != null) {
-      buttonUp(button);
+      mButtonUp(button);
     }
   }
 }
 
-function onWindowResize() {
-  OCTAVES = window.innerWidth > 700 ? 7 : 3;
-  const bonusNotes = OCTAVES > 6 ? 4 : 0;  // starts on an A, ends on a C.
-  const totalNotes = CONSTANTS.NOTES_PER_OCTAVE * OCTAVES + bonusNotes; 
-  const totalWhiteNotes = CONSTANTS.WHITE_NOTES_PER_OCTAVE * OCTAVES + (bonusNotes - 1); 
-  keyWhitelist = Array(totalNotes).fill().map((x,i) => {
-    if (OCTAVES > 6) return i;
-    // Starting 3 semitones up on small screens (on a C), and a whole octave up.
-    return i + 3 + CONSTANTS.NOTES_PER_OCTAVE;
-  });
-  
-  piano.resize(totalWhiteNotes);
-  //painter.resize(piano.config.whiteNoteHeight);
-  piano.draw();
-}
 
 /*************************
  * Utils and helpers
@@ -306,13 +176,4 @@ function parseHashParameters() {
     params[temp[0]] = temp[1]
   });
   return params;
-}
-
-function updateButtonText() {
-  const btns = document.querySelectorAll('.controls button.color');
-  for (let i = 0; i < btns.length; i++) {
-    btns[i].innerHTML = isUsingMakey ? 
-        `<span>${BUTTONS_MAKEY_DISPLAY[i]}</span>` : 
-        `<span>${i + 1}</span><br><span>${BUTTONS_DEVICE[i]}</span>`;
-  }
 }

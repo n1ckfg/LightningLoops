@@ -95,7 +95,9 @@ function setupControls() {
         if (getKeyCode(event) == 'o') armSaveJson = true;
         if (getKeyCode(event) == 'j') armFrameBack = true;
         if (getKeyCode(event) == 'k') armTogglePause = true;
-        if (getKeyCode(event) == 'l') armFrameForward = true;        
+        if (getKeyCode(event) == 'l') armFrameForward = true;      
+
+        mOnKeyDown(event);  
     });
 
     window.addEventListener("keyup", function(event) {
@@ -105,6 +107,8 @@ function setupControls() {
         if (getKeyCode(event) == 'd') isWalkingRight = false;
         if (getKeyCode(event) == 'q') isFlyingDown = false;
         if (getKeyCode(event) == 'e') isFlyingUp = false;
+
+        mOnKeyUp(event);
     });
 }
 

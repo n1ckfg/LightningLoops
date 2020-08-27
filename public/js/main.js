@@ -12,9 +12,6 @@ function main() {
     brushPath = "./images/brush_cardboard.png";
 
     latkStart();
-
-    // magenta
-    initEverything();
 }
 
 window.onload = main;

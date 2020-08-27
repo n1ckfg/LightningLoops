@@ -31,6 +31,8 @@ const mplayer = new Player();
 const genie = new mm.PianoGenie(CONSTANTS.GENIE_CHECKPOINT);
 let isUsingMakey = false;
 
+initEverything();
+
 /*************************
  * Basic UI bits
  ************************/
@@ -48,23 +50,28 @@ function initEverything() {
     });
   
     genie.initialize().then(() => {
-        console.log('🧞‍♀️ ready!');
-
         showMainScreen();
+        console.log('🧞‍♀️ ready!');
     });
 }
 
 function showMainScreen() {
-    mplayer.usingMidiOut = true;
+    window.addEventListener("keydown", function(event) {
+        mOnKeyDown(event);
+    });
 
-    mplayer.usingMidiIn = true;
+    //mplayer.usingMidiOut = true;
+
+    //mplayer.usingMidiIn = true;
   
     // Figure out if WebMidi works.
+    /*
     if (navigator.requestMIDIAccess) {
         navigator.requestMIDIAccess().then((midi) => mplayer.midiReady(midi), (err) => console.log('Something went wrong', err));
     } else {
         console.log("Midi not supported.");
     }
+    */
 
     // Slow to start up, so do a fake prediction to warm up the model.
     const note = genie.nextFromKeyWhitelist(0, keyWhitelist, TEMPERATURE);

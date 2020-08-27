@@ -4,7 +4,7 @@ var layers = [];
 var soundPath = "../sounds/avlt.ogg";
 var animationPath = "../animations/jellyfish.json";
 var brushPath = "../images/brush_vive.png";
-var player; // Tone.js
+//var player; // Tone.js
 var viveMode = false;
 var hidden = false;
 var drawWhilePlaying = true;

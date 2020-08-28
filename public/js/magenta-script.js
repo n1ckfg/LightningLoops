@@ -13,7 +13,7 @@ const BUTTONS_MAKEY_DISPLAY = ['↑','←','↓','→','w','a','s','d'];
 let OCTAVES = 7;
 let NUM_BUTTONS = 8;
 let BUTTON_MAPPING = MAPPING_8;
-
+let bonusNotes, totalNotes, totalWhiteNotes;
 let keyWhitelist;
 let TEMPERATURE = getTemperature();
 
@@ -32,11 +32,9 @@ initEverything();
  * Basic UI bits
  ************************/
 function initEverything() {
-  BUTTON_MAPPING = MAPPING_8;
-  OCTAVES = 7;
-  const bonusNotes = 4;  // starts on an A, ends on a C.
-  const totalNotes = CONSTANTS.NOTES_PER_OCTAVE * OCTAVES + bonusNotes; 
-  const totalWhiteNotes = CONSTANTS.WHITE_NOTES_PER_OCTAVE * OCTAVES + (bonusNotes - 1); 
+  bonusNotes = 4;  // starts on an A, ends on a C.
+  totalNotes = CONSTANTS.NOTES_PER_OCTAVE * OCTAVES + bonusNotes; 
+  totalWhiteNotes = CONSTANTS.WHITE_NOTES_PER_OCTAVE * OCTAVES + (bonusNotes - 1); 
   keyWhitelist = Array(totalNotes).fill().map((x,i) => {
     if (OCTAVES > 6) return i;
     // Starting 3 semitones up on small screens (on a C), and a whole octave up.
@@ -60,18 +58,23 @@ function initEverything() {
  * Button actions
  ************************/
 function buttonDown(button, fromKeyDown) {
-  // If we're already holding this button down, nothing new to do.
-  if (heldButtonToVisualData.has(button)) {
-    return;
-  }
-    
-  const note = genie.nextFromKeyWhitelist(BUTTON_MAPPING[button], keyWhitelist, TEMPERATURE);
-  const pitch = CONSTANTS.LOWEST_PIANO_KEY_MIDI_NOTE + note;
+    // If we're already holding this button down, nothing new to do.
+    if (heldButtonToVisualData.has(button)) {
+      return;
+    }
+      
+    const note = genie.nextFromKeyWhitelist(BUTTON_MAPPING[button], keyWhitelist, TEMPERATURE);
+    const pitch = CONSTANTS.LOWEST_PIANO_KEY_MIDI_NOTE + note;
 
-  // Hear it.
-  player.playNoteDown(pitch, button);
+    // Hear it.
+    if (pitch > totalNotes) {
+        genie.resetState();
+    } else {
+        console.log("Playing pitch " + pitch + ", button " + button);
+        player.playNoteDown(pitch, button);
 
-  heldButtonToVisualData.set(button);//, {rect:rect, note:note, noteToPaint:noteToPaint});
+        heldButtonToVisualData.set(button);//, {rect:rect, note:note, noteToPaint:noteToPaint});
+    }
 }
 
 function buttonUp(button) {  

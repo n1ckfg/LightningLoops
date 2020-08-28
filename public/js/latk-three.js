@@ -585,6 +585,7 @@ function endStroke() {  // TODO draw on new layer
     if (latkDebug) console.log("End " + layers[last].frames[layers[last].counter][layers[last].frames[layers[last].counter].length-1].name + ".");
     strokeCounter++;
 	//}
+    if (Math.random() < 0.5) getMagentaButton(tempPoints);
 }
 
 function addTempPoints(x, y, z) {
@@ -608,6 +609,20 @@ function createTempStroke(x, y , z) {
 }
 
 // ~ ~ ~ 
+
+function getMagentaButton(points) {
+    try {
+        var p1 = points[0];
+        var p2 = points[points.length-1];
+        var angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+        var button = parseInt(angle * (4.0/180.0) + 4);
+        console.log("Trigger button " + button);
+        buttonUp(button);
+        buttonDown(button, false);
+    } catch (e) { 
+        console.log(e);
+    }
+}
 
 function refreshFrame(index) {
 	if (layers[index].frames[layers[index].counter]) {

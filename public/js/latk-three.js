@@ -585,7 +585,7 @@ function endStroke() {  // TODO draw on new layer
     if (latkDebug) console.log("End " + layers[last].frames[layers[last].counter][layers[last].frames[layers[last].counter].length-1].name + ".");
     strokeCounter++;
 	//}
-    if (Math.random() < 0.5) getMagentaButton(tempPoints);
+    getMagentaButton(tempPoints);
 }
 
 function addTempPoints(x, y, z) {

@@ -4,7 +4,7 @@ var layers = [];
 var soundPath = "../sounds/avlt.ogg";
 var animationPath = "../animations/jellyfish.json";
 var brushPath = "../images/brush_vive.png";
-var player; // Tone.js
+//var player; // Tone.js
 var viveMode = false;
 var hidden = false;
 var drawWhilePlaying = true;
@@ -281,16 +281,20 @@ function createTextAlt(_text, x, y, z) {
 }
 
 function doSubtitle(_frame) {
+    /*
     Tone.Transport.scheduleOnce(function(time){
         subtitleText = createText(subtitlesArray[subsCounter], 1300, -1200, -2800);
         subsCounter++;
     }, getLoopFrame(_frame));
+    */
 }
 
 function clearSubtitle(_frame) {
+    /*
     Tone.Transport.scheduleOnce(function(time){
         if (subtitleText) scene.remove(subtitleText);
     }, getLoopFrame(_frame));
+    */
 }
 
 function getLoopFrame(_frame) {
@@ -581,6 +585,7 @@ function endStroke() {  // TODO draw on new layer
     if (latkDebug) console.log("End " + layers[last].frames[layers[last].counter][layers[last].frames[layers[last].counter].length-1].name + ".");
     strokeCounter++;
 	//}
+    getMagentaButton(tempPoints);
 }
 
 function addTempPoints(x, y, z) {
@@ -604,6 +609,20 @@ function createTempStroke(x, y , z) {
 }
 
 // ~ ~ ~ 
+
+function getMagentaButton(points) {
+    try {
+        var p1 = points[0];
+        var p2 = points[points.length-1];
+        var angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+        var button = parseInt(angle * (4.0/180.0) + 4);
+        console.log("Trigger button " + button);
+        buttonUp(button);
+        buttonDown(button, false);
+    } catch (e) { 
+        console.log(e);
+    }
+}
 
 function refreshFrame(index) {
 	if (layers[index].frames[layers[index].counter]) {
@@ -712,10 +731,11 @@ function visibilityChanged() {
 }
 
 function latkStart() {
+    /*
     player = new Tone.Player({
         "url": soundPath
     }).toMaster();
-
+    */
     // ~ ~ ~ ~ ~ ~ 
     document.addEventListener("visibilitychange", visibilityChanged);
 

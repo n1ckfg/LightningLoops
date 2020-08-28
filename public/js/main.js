@@ -12,7 +12,6 @@ function main() {
     brushPath = "./images/brush_cardboard.png";
 
     latkStart();
-
 }
 
 window.onload = main;

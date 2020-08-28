@@ -21,6 +21,8 @@ socket.on("newFrameFromServer", function(data) {
             //}
         }
 
+        getMagentaButton(origVerts);
+
         if (latkDebug) console.log("Created new geometry with " + geometry.vertices.length + " vertices.");
 
         geometry.verticesNeedUpdate = true;

@@ -23,13 +23,8 @@ const heldButtonToVisualData = new Map();
 let sustaining = false
 let sustainingNotes = [];
 
-// Mousedown/up events are weird because you can mouse down in one element and mouse up
-// in another, so you're going to lose that original element and never mouse it up.
-let mouseDownButton = null;
-
-const mplayer = new Player();
+const player = new Player();
 const genie = new mm.PianoGenie(CONSTANTS.GENIE_CHECKPOINT);
-let isUsingMakey = false;
 
 initEverything();
 
@@ -37,57 +32,34 @@ initEverything();
  * Basic UI bits
  ************************/
 function initEverything() {
-    BUTTON_MAPPING = MAPPING_8;
+  BUTTON_MAPPING = MAPPING_8;
+  OCTAVES = 7;
+  const bonusNotes = 4;  // starts on an A, ends on a C.
+  const totalNotes = CONSTANTS.NOTES_PER_OCTAVE * OCTAVES + bonusNotes; 
+  const totalWhiteNotes = CONSTANTS.WHITE_NOTES_PER_OCTAVE * OCTAVES + (bonusNotes - 1); 
+  keyWhitelist = Array(totalNotes).fill().map((x,i) => {
+    if (OCTAVES > 6) return i;
+    // Starting 3 semitones up on small screens (on a C), and a whole octave up.
+    return i + 3 + CONSTANTS.NOTES_PER_OCTAVE;
+  });
 
-    OCTAVES = 7;
-    const bonusNotes = 4;  // starts on an A, ends on a C.
-    const totalNotes = CONSTANTS.NOTES_PER_OCTAVE * OCTAVES + bonusNotes; 
-    const totalWhiteNotes = CONSTANTS.WHITE_NOTES_PER_OCTAVE * OCTAVES + (bonusNotes - 1); 
-    keyWhitelist = Array(totalNotes).fill().map((x,i) => {
-        if (OCTAVES > 6) return i;
-        // Starting 3 semitones up on small screens (on a C), and a whole octave up.
-        return i + 3 + CONSTANTS.NOTES_PER_OCTAVE;
-    });
-  
-    genie.initialize().then(() => {
-        showMainScreen();
-        console.log('🧞‍♀️ ready!');
-    });
+  window.addEventListener('hashchange', () => TEMPERATURE = getTemperature());
+  document.addEventListener('keydown',onKeyDown);
+  document.addEventListener('keyup', onKeyUp);
+
+  // Slow to start up, so do a fake prediction to warm up the model.
+  genie.initialize().then(() => {     
+      const note = genie.nextFromKeyWhitelist(0, keyWhitelist, TEMPERATURE);
+      genie.resetState();
+      console.log('🧞‍♀️ ready!');
+  });
+
 }
-
-function showMainScreen() {
-    window.addEventListener("keydown", function(event) {
-        mOnKeyDown(event);
-    });
-
-    //mplayer.usingMidiOut = true;
-
-    //mplayer.usingMidiIn = true;
-  
-    // Figure out if WebMidi works.
-    /*
-    if (navigator.requestMIDIAccess) {
-        navigator.requestMIDIAccess().then((midi) => mplayer.midiReady(midi), (err) => console.log('Something went wrong', err));
-    } else {
-        console.log("Midi not supported.");
-    }
-    */
-
-    // Slow to start up, so do a fake prediction to warm up the model.
-    const note = genie.nextFromKeyWhitelist(0, keyWhitelist, TEMPERATURE);
-    genie.resetState();
-}
-
-/*
-Trigger with
-mButtonDown(event.target.dataset.id, true);
-mButtonUp(event.target.dataset.id, true);
-*/
 
 /*************************
  * Button actions
  ************************/
-function mButtonDown(button, fromKeyDown) {
+function buttonDown(button, fromKeyDown) {
   // If we're already holding this button down, nothing new to do.
   if (heldButtonToVisualData.has(button)) {
     return;
@@ -97,16 +69,18 @@ function mButtonDown(button, fromKeyDown) {
   const pitch = CONSTANTS.LOWEST_PIANO_KEY_MIDI_NOTE + note;
 
   // Hear it.
-  mplayer.playNoteDown(pitch, button); 
+  player.playNoteDown(pitch, button);
+
+  heldButtonToVisualData.set(button);//, {rect:rect, note:note, noteToPaint:noteToPaint});
 }
 
-function mButtonUp(button) {
+function buttonUp(button) {  
   const thing = heldButtonToVisualData.get(button);
-  if (thing) {   
+  if (thing) {    
     // Maybe stop hearing it.
     const pitch = CONSTANTS.LOWEST_PIANO_KEY_MIDI_NOTE + thing.note;
     if (!sustaining) {
-      mplayer.playNoteUp(pitch, button);
+      player.playNoteUp(pitch, button);
     } else {
       sustainingNotes.push(CONSTANTS.LOWEST_PIANO_KEY_MIDI_NOTE + thing.note);
     }
@@ -117,10 +91,7 @@ function mButtonUp(button) {
 /*************************
  * Events
  ************************/
-function mOnKeyDown(event) {
-  mplayer.tone.context.resume();
-  console.log("key!");
-
+function onKeyDown(event) {
   // Keydown fires continuously and we don't want that.
   if (event.repeat) {
     return;
@@ -133,26 +104,25 @@ function mOnKeyDown(event) {
   } else {
     const button = getButtonFromKeyCode(event.key);
     if (button != null) {
-      mButtonDown(button, true);
+      buttonDown(button, true);
     }
   }
 }
 
-function mOnKeyUp(event) {
+function onKeyUp(event) {
   if (event.key === ' ') {  // sustain pedal
     sustaining = false;
     
     // Release everything.
-    sustainingNotes.forEach((note) => mplayer.playNoteUp(note, -1));
+    sustainingNotes.forEach((note) => player.playNoteUp(note, -1));
     sustainingNotes = [];
   } else {
     const button = getButtonFromKeyCode(event.key);
     if (button != null) {
-      mButtonUp(button);
+      buttonUp(button);
     }
   }
 }
-
 
 /*************************
  * Utils and helpers
@@ -163,7 +133,7 @@ function getButtonFromKeyCode(key) {
     return parseInt(key) - 1;
   } 
   
-  const index = isUsingMakey ? BUTTONS_MAKEY.indexOf(key) : BUTTONS_DEVICE.indexOf(key);
+  const index = BUTTONS_DEVICE.indexOf(key);
   return index !== -1 ? index : null;
 }
 
@@ -182,4 +152,13 @@ function parseHashParameters() {
     params[temp[0]] = temp[1]
   });
   return params;
+}
+
+function updateButtonText() {
+  const btns = document.querySelectorAll('.controls button.color');
+  for (let i = 0; i < btns.length; i++) {
+    btns[i].innerHTML = isUsingMakey ? 
+        `<span>${BUTTONS_MAKEY_DISPLAY[i]}</span>` : 
+        `<span>${i + 1}</span><br><span>${BUTTONS_DEVICE[i]}</span>`;
+  }
 }

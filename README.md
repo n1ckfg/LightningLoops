@@ -1,5 +1,5 @@
 # Lightning Loops
-## <a href="https://vr.fox-gieg.com">vr.fox-gieg.com</a>
+## Try it at <a href="https://vr.fox-gieg.com">vr.fox-gieg.com</a>
 <img src="./public/images/logo.png">
 <pre>
 Controls:

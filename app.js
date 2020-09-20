@@ -2,6 +2,8 @@
 
 const express = require("express");
 const app = express();
+const redirectToHTTPS = require('express-http-to-https').redirectToHTTPS
+app.use(redirectToHTTPS([/localhost:(\d{4})/], [/\/insecure/], 301));
 
 const fs = require("fs");
 const dotenv = require("dotenv").config();

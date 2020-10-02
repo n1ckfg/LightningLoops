@@ -1,3 +1,8 @@
+/*
+Based on Piano Genie by @chrisdonahue @iansimon @benanne
+https://magenta.tensorflow.org/pianogenie
+*/
+
 "use strict";
 
 /*************************

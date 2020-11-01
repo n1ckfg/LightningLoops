@@ -10,5 +10,12 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 cd $DIR
 
-rm -rf node_modules
+git submodule init
+git submodule update --init --recursive
+git submodule sync
+git submodule foreach git checkout master
+git submodule foreach git reset --hard
+git submodule foreach git pull origin master
+
+#rm -rf node_modules
 npm install

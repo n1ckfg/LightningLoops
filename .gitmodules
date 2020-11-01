@@ -1,0 +1,3 @@
+[submodule "public/js/libraries/util.js"]
+	path = public/js/libraries/util.js
+	url = https://github.com/n1ckfg/util.js

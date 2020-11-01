@@ -797,13 +797,14 @@ function latkStart() {
     }
 
     if (util.checkQueryInUrl("frame")) {
+        console.log("Frame query detected.");
+
         loadJSON("../animations/test.json", function(response) {
             jsonToGp(JSON.parse(response).grease_pencil[0]);
+            setTimeout(function() {
+                util.saveImage();
+            }, 2000);
         });
-        console.log("Frame query detected.");
-        setTimeout(function() {
-            util.saveImage();
-        }, 2000);
     } else {
         console.log("No frame query detected.");        
     }

@@ -796,6 +796,17 @@ function latkStart() {
         });
     }
 
+    if (util.checkQueryInUrl("frame")) {
+        loadJSON("../animations/test.json", function(response) {
+            jsonToGp(JSON.parse(response).grease_pencil[0]);
+        });
+        console.log("Frame query detected.");
+        setTimeout(function() {
+            util.saveImage();
+        }, 2000);
+    } else {
+        console.log("No frame query detected.");        
+    }
 }    
 
 class Stroke {

@@ -29,7 +29,7 @@ var armFrameBack = false;
 var armTogglePause = false;
 
 function init() {
-    renderer = new THREE.WebGLRenderer({antialias: false});
+    renderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
     renderer.setPixelRatio(window.devicePixelRatio);
 
     document.body.appendChild(renderer.domElement);

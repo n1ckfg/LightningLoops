@@ -639,12 +639,36 @@ function refreshFrameLast() {  // TODO draw on new layer
 }
 
 function clearFrame() {
+    /*
     for (var i=scene.children.length; i>=0; i--) {
         if (scene.children[i] !== camera && scene.children[i] !== subtitleText  && scene.children[i] !== room) {
             scene.remove(scene.children[i]);
         }
-    }
+    }*/
+    clearScene(scene);
 }
+
+function clearScene(obj) {
+    while (obj.children.length > 0) { 
+        clearScene(obj.children[0]);
+        obj.remove(obj.children[0]);
+    }
+    
+    if (obj.geometry) obj.geometry.dispose();
+
+    if (obj.material) { 
+        // in case of map, bumpMap, normalMap, envMap ...
+        Object.keys(obj.material).forEach(prop => {
+            if (!obj.material[prop]) {
+                return;         
+            }
+            if (obj.material[prop] !== null && typeof obj.material[prop].dispose === 'function') {
+                obj.material[prop].dispose();
+            }                                                  
+        });
+        obj.material.dispose();
+    }
+}   
 
 function clearTempStroke() {
     try {

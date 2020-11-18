@@ -1,12 +1,15 @@
-/**
- * @author James Baicoianu / http://www.baicoianu.com/
- */
-
 THREE.FlyControls = function ( object, domElement ) {
 
-	this.object = object;
+	if ( domElement === undefined ) {
 
-	this.domElement = ( domElement !== undefined ) ? domElement : document;
+		console.warn( 'THREE.FlyControls: The second parameter "domElement" is now mandatory.' );
+		domElement = document;
+
+	}
+
+	this.object = object;
+	this.domElement = domElement;
+
 	if ( domElement ) this.domElement.setAttribute( 'tabindex', - 1 );
 
 	// API
@@ -21,6 +24,10 @@ THREE.FlyControls = function ( object, domElement ) {
 
 	// internals
 
+	var scope = this;
+	var changeEvent = { type: "change" };
+	var EPS = 0.000001;
+
 	this.tmpQuaternion = new THREE.Quaternion();
 
 	this.mouseStatus = 0;
@@ -28,16 +35,6 @@ THREE.FlyControls = function ( object, domElement ) {
 	this.moveState = { up: 0, down: 0, left: 0, right: 0, forward: 0, back: 0, pitchUp: 0, pitchDown: 0, yawLeft: 0, yawRight: 0, rollLeft: 0, rollRight: 0 };
 	this.moveVector = new THREE.Vector3( 0, 0, 0 );
 	this.rotationVector = new THREE.Vector3( 0, 0, 0 );
-
-	this.handleEvent = function ( event ) {
-
-		if ( typeof this[ event.type ] == 'function' ) {
-
-			this[ event.type ]( event );
-
-		}
-
-	};
 
 	this.keydown = function ( event ) {
 
@@ -184,23 +181,37 @@ THREE.FlyControls = function ( object, domElement ) {
 
 	};
 
-	this.update = function ( delta ) {
+	this.update = function () {
 
-		var moveMult = delta * this.movementSpeed;
-		var rotMult = delta * this.rollSpeed;
+		var lastQuaternion = new THREE.Quaternion();
+		var lastPosition = new THREE.Vector3();
 
-		this.object.translateX( this.moveVector.x * moveMult );
-		this.object.translateY( this.moveVector.y * moveMult );
-		this.object.translateZ( this.moveVector.z * moveMult );
+		return function ( delta ) {
 
-		this.tmpQuaternion.set( this.rotationVector.x * rotMult, this.rotationVector.y * rotMult, this.rotationVector.z * rotMult, 1 ).normalize();
-		this.object.quaternion.multiply( this.tmpQuaternion );
+			var moveMult = delta * scope.movementSpeed;
+			var rotMult = delta * scope.rollSpeed;
 
-		// expose the rotation vector for convenience
-		this.object.rotation.setFromQuaternion( this.object.quaternion, this.object.rotation.order );
+			scope.object.translateX( scope.moveVector.x * moveMult );
+			scope.object.translateY( scope.moveVector.y * moveMult );
+			scope.object.translateZ( scope.moveVector.z * moveMult );
 
+			scope.tmpQuaternion.set( scope.rotationVector.x * rotMult, scope.rotationVector.y * rotMult, scope.rotationVector.z * rotMult, 1 ).normalize();
+			scope.object.quaternion.multiply( scope.tmpQuaternion );
 
-	};
+			if (
+				lastPosition.distanceToSquared( scope.object.position ) > EPS ||
+				8 * ( 1 - lastQuaternion.dot( scope.object.quaternion ) ) > EPS
+			) {
+
+				scope.dispatchEvent( changeEvent );
+				lastQuaternion.copy( scope.object.quaternion );
+				lastPosition.copy( scope.object.position );
+
+			}
+
+		};
+
+	}();
 
 	this.updateMovementVector = function () {
 
@@ -291,3 +302,6 @@ THREE.FlyControls = function ( object, domElement ) {
 	this.updateRotationVector();
 
 };
+
+THREE.FlyControls.prototype = Object.create( THREE.EventDispatcher.prototype );
+THREE.FlyControls.prototype.constructor = THREE.FlyControls;

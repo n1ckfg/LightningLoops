@@ -1,3 +1,6 @@
 [submodule "public/js/libraries/util.js"]
 	path = public/js/libraries/util.js
 	url = https://github.com/n1ckfg/util.js
+[submodule "public/js/libraries/latk.js"]
+	path = public/js/libraries/latk.js
+	url = https://github.com/LightningArtist/latk.js

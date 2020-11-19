@@ -1,316 +1,148 @@
 
 "use strict";
 
-"use strict";
+const renderer = new THREE.WebGLRenderer({ antialiasing: false, alpha: false, preserveDrawingBuffer: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setClearColor(0x000000);
 
-var renderer, scene, camera, controls, effect, clock, light;
-var boxWidth, params, manager, lastRender;
+const exposure = 1.2;
+renderer.toneMapping = THREE.ReinhardToneMapping;
+renderer.toneMappingExposure = Math.pow(exposure, 4.0);
 
-var sprites = [];
-var colliders = [];
+renderer.autoClear = false;
+document.body.appendChild(renderer.domElement);
 
-var isWalkingForward = false;
-var isWalkingBackward = false;
-var isWalkingLeft = false;
-var isWalkingRight = false;
-var isFlyingUp = false;
-var isFlyingDown = false;
+const cameraFov = 60;
+const cameraAspect = window.innerWidth / window.innerHeight;
+const cameraNear = 1;
+const cameraFar = 1000;
 
-var flyingAllowed = true;
-var flyingThreshold = 0.15;
-var movingSpeed = 0;
-var movingSpeedMax = 0.04;
-var movingDelta = 0.002;
-var floor = 0;
-var gravity = 0.01;
-var cameraGaze;
-var room;
+const camera = new THREE.PerspectiveCamera(cameraFov, cameraAspect, cameraNear, cameraFar);
+resetCameraPosition();
 
-var armSaveJson = false;
-var armFrameForward = false;
-var armFrameBack = false;
-var armTogglePause = false;
+const clock = new THREE.Clock();
 
-function init() {
-    renderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
+const scene = new THREE.Scene();
+const fogColor = 0x000000;
+const fogDensity = 0.00375;
+scene.fog = new THREE.FogExp2(fogColor, fogDensity);
+scene.background = new THREE.Color("#000000");  
 
-    document.body.appendChild(renderer.domElement);
+const room = new THREE.Mesh(
+    new THREE.BoxGeometry(6, 6, 6, 10, 10, 10),
+    new THREE.MeshBasicMaterial({ color: 0x202020, wireframe: true })
+);
+room.position.y = 0;
+scene.add(room);
 
-    scene = new THREE.Scene();
+let now = 0;
 
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+bloomPass.threshold = 0; //0;
+bloomPass.strength = 6; //1.5;
+bloomPass.radius = 0.8; //0.8
 
-    room = new THREE.Mesh(
-        new THREE.BoxGeometry(6, 6, 6, 10, 10, 10),
-        new THREE.MeshBasicMaterial({ color: 0x202020, wireframe: true })
-    );
-    room.position.y = 0;//3;
-    scene.add(room);
-    
-    controls = new THREE.VRControls(camera);
-    effect = new THREE.VREffect(renderer);
-    effect.setSize(window.innerWidth, window.innerHeight);
+const renderPass = new THREE.RenderPass(scene, camera);
 
-    clock = new THREE.Clock;
+const composer = new THREE.EffectComposer(renderer);
+composer.addPass(renderPass);
+composer.addPass(bloomPass);
 
-    params = {
-        hideButton: false,
-        isUndistorted: false
-    };
+let boxWidth, params, manager, lastRender;
 
-    manager = new WebVRManager(renderer, effect, params);
+let armSaveJson = false;
+let armFrameForward = false;
+let armFrameBack = false;
+let armTogglePause = false;
 
-    lastRender = 0;
-
-    setupPlayer();
-}
+setupPlayer();
 
 function render(timestamp) {
-    var delta = Math.min(timestamp - lastRender, 500);
+    let delta = Math.min(timestamp - lastRender, 500);
     lastRender = timestamp;
 
     updatePlayer();
-
-    controls.update();
-    manager.render(scene, camera, timestamp);
 }
 
-function setupControls() {
-    /*
-    window.addEventListener("touchstart", function(event) {
-        isWalkingForward = true;
-    });
+let layers = [];
+let soundPath = "../sounds/avlt.ogg";
+let animationPath = "../animations/jellyfish.json";
+let brushPath = "../images/brush_vive.png";
+//let player; // Tone.js
+let viveMode = false;
+let hidden = false;
+let drawWhilePlaying = true;
+let lightningArtistData;
+let clicked = false;
 
-    window.addEventListener("touchend", function(event) {
-        isWalkingForward = false;
-    })
-    */
-    
-    window.addEventListener("keydown", function(event) {
-        if (getKeyCode(event) == 'w') isWalkingForward = true;
-        if (getKeyCode(event) == 'a') isWalkingLeft = true;
-        if (getKeyCode(event) == 's') isWalkingBackward = true;
-        if (getKeyCode(event) == 'd') isWalkingRight = true;
-        if (getKeyCode(event) == 'q') isFlyingDown = true;
-        if (getKeyCode(event) == 'e') isFlyingUp = true;
+let laScale = 10;
+let laOffset = new THREE.Vector3(0, 0, 0);//100, -20, 150);//95, -22, 50);//(100, -20, 150);
+let laRot = new THREE.Vector3(0, 0, 0);//145, 10, 0);
 
-        if (getKeyCode(event) == 'o') armSaveJson = true;
-        if (getKeyCode(event) == 'j') armFrameBack = true;
-        if (getKeyCode(event) == 'k' || getKeyCode(event) == ' ') armTogglePause = true;
-        if (getKeyCode(event) == 'l') armFrameForward = true;      
-    });
+let useScaleAndOffset = true;
+let globalScale = new THREE.Vector3(0.1, 0.1, 0.1);
+let globalOffset = new THREE.Vector3(0, 0, 0);
 
-    window.addEventListener("keyup", function(event) {
-        if (getKeyCode(event) == 'w') isWalkingForward = false;
-        if (getKeyCode(event) == 'a') isWalkingLeft = false;
-        if (getKeyCode(event) == 's') isWalkingBackward = false;
-        if (getKeyCode(event) == 'd') isWalkingRight = false;
-        if (getKeyCode(event) == 'q') isFlyingDown = false;
-        if (getKeyCode(event) == 'e') isFlyingUp = false;
-    });
-}
-
-function getKeyCode(event) {
-    var k = event.charCode || event.keyCode;
-    var c = String.fromCharCode(k).toLowerCase();
-    return c;
-}
-
-function setupPlayer() {
-    cameraGaze = new THREE.Object3D();
-    cameraGaze.position.set(0, 0.1, -60);
-    camera.add(cameraGaze);
-
-    setupControls();
-}
-
-var tmpQuaternion = new THREE.Quaternion();
-var moveVector = new THREE.Vector3( 0, 0, 0 );
-var rotationVector = new THREE.Vector3( 0, 0, 0 );
-
-function updatePlayer() {
-    /*
-    if (camera.rotation.x > flyingThreshold) {
-        flyingAllowed = true;
-    } else {
-        flyingAllowed = false;
-    }
-    */
-
-    var cameraPos = camera.position.clone();
-    var targetPos = cameraPos.clone();
-    var aimPos = cameraGaze.getWorldPosition();
-
-    if ((isWalkingForward || isWalkingBackward || isWalkingLeft || isWalkingRight || isFlyingUp || isFlyingDown) && movingSpeed < movingSpeedMax) {
-        if (movingSpeed < movingSpeedMax) {
-            movingSpeed += movingDelta;
-        } else if (movingSpeed > movingSpeedMax) {
-            movingSpeed = movingSpeedMax;
-        }
-    } else {
-        if (movingSpeed > 0) {
-            movingSpeed -= movingDelta;
-        } else if (movingSpeed < 0) {
-            movingSpeed = 0;
-        }
-    }
-
-    if (movingSpeed > 0) {
-    	if (isWalkingForward) {
-            camera.translateZ(-movingSpeed);
-    	}
-
-    	if (isWalkingBackward) {
-            camera.translateZ(movingSpeed);		
-    	} 
-
-    	if (isWalkingLeft) {
-    		camera.translateX(-movingSpeed);
-    	}
-
-    	if (isWalkingRight) {
-            camera.translateX(movingSpeed);
-    	}
-
-    	if (isFlyingUp) {
-            camera.translateY(movingSpeed);
-    	}
-
-    	if (isFlyingDown) {
-            camera.translateY(-movingSpeed);
-    	}
-
-        //camera.position.set(targetPos.x, targetPos.y, targetPos.z);
-        camera.updateMatrixWorld();
-        camera.lookAt(aimPos);
-    }
-
-    /*
-    if (!isWalkingForward && camera.position.y > floor) {
-        camera.position.y -= gravity;
-        if (camera.position.y < floor) camera.position.y = floor;
-    }
-    */
-}
-
-function spriteAnimator(texture, tilesHoriz, tilesVert, numTiles, tileDispDuration) {          
-    this.tilesHorizontal = tilesHoriz;
-    this.tilesVertical = tilesVert;
-
-    this.numberOfTiles = numTiles;
-    texture.wrapS = texture.wrapT = THREE.RepeatWrapping; 
-    texture.repeat.set( 1 / this.tilesHorizontal, 1 / this.tilesVertical );
-
-    this.tileDisplayDuration = tileDispDuration;
-
-    this.currentDisplayTime = 0;
-
-    this.currentTile = 0;
-        
-    this.update = function( milliSec ) {
-        this.currentDisplayTime += milliSec;
-        while (this.currentDisplayTime > this.tileDisplayDuration) {
-            this.currentDisplayTime -= this.tileDisplayDuration;
-            this.currentTile++;
-            if (this.currentTile == this.numberOfTiles)
-                this.currentTile = 0;
-            var currentColumn = this.currentTile % this.tilesHorizontal;
-            texture.offset.x = currentColumn / this.tilesHorizontal;
-            var currentRow = Math.floor( this.currentTile / this.tilesHorizontal );
-            texture.offset.y = currentRow / this.tilesVertical;
-        }
-    };
-}
-
-function updateSprites() {
-    var delta = clock.getDelta(); 
-    for (var i=0; i<sprites.length; i++){
-        sprites[i].update(1000 * delta);
-    }
-}
-
-"use strict";
-
-var layers = [];
-var soundPath = "../sounds/avlt.ogg";
-var animationPath = "../animations/jellyfish.json";
-var brushPath = "../images/brush_vive.png";
-//var player; // Tone.js
-var viveMode = false;
-var hidden = false;
-var drawWhilePlaying = true;
-var lightningArtistData;
-var clicked = false;
-
-var laScale = 10;
-var laOffset = new THREE.Vector3(0, 0, 0);//100, -20, 150);//95, -22, 50);//(100, -20, 150);
-var laRot = new THREE.Vector3(0, 0, 0);//145, 10, 0);
-
-var useScaleAndOffset = true;
-var globalScale = new THREE.Vector3(0.1, 0.1, 0.1);
-var globalOffset = new THREE.Vector3(0, 0, 0);
-
-var subsCounter = 0;
-var subsFrameOffset = 44;
-var fps = 12.0;
-var frameInterval = (1.0/fps);// * 1000;
-var frameDelta = 0;
-var time = 0;
-var pTime = 0;
-var pauseAnimation = false;
-var mouse3D = new THREE.Vector3(0, 0, 0);
+let subsCounter = 0;
+let subsFrameOffset = 44;
+let fps = 12.0;
+let frameInterval = (1.0/fps);// * 1000;
+let frameDelta = 0;
+let time = 0;
+let pTime = 0;
+let pauseAnimation = false;
+let mouse3D = new THREE.Vector3(0, 0, 0);
 // ~ ~ ~ 
-var subtitleText, readingText;
-var firstTextUse = true;
-var texture;
+let subtitleText, readingText;
+let firstTextUse = true;
+let texture;
 
 // http://threejs.org/examples/webgl_materials_blending_custom.html
-var blendSrc = [ "ZeroFactor", "OneFactor", "SrcAlphaFactor", "OneMinusSrcAlphaFactor", "DstAlphaFactor", "OneMinusDstAlphaFactor", "DstColorFactor", "OneMinusDstColorFactor", "SrcAlphaSaturateFactor" ];
-var blendDst = [ "ZeroFactor", "OneFactor", "SrcColorFactor", "OneMinusSrcColorFactor", "SrcAlphaFactor", "OneMinusSrcAlphaFactor", "DstAlphaFactor", "OneMinusDstAlphaFactor" ];
-var blending = "CustomBlending";
-	
+let blendSrc = [ "ZeroFactor", "OneFactor", "SrcAlphaFactor", "OneMinusSrcAlphaFactor", "DstAlphaFactor", "OneMinusDstAlphaFactor", "DstColorFactor", "OneMinusDstColorFactor", "SrcAlphaSaturateFactor" ];
+let blendDst = [ "ZeroFactor", "OneFactor", "SrcColorFactor", "OneMinusSrcColorFactor", "SrcAlphaFactor", "OneMinusSrcAlphaFactor", "DstAlphaFactor", "OneMinusDstAlphaFactor" ];
+let blending = "CustomBlending";
 
-var line_mtl = new THREE.MeshLineMaterial();
+let line_mtl = new THREE.MeshLineMaterial();
 
-var text_mtl = new THREE.MeshBasicMaterial({ 
+let text_mtl = new THREE.MeshBasicMaterial({ 
 	color: 0xffff00,
 	depthTest: false,
 	depthWrite: true 
 });
 
-var latkDebug = false;
+let latkDebug = false;
 
-var defaultColor = [0.667, 0.667, 1];
-var serverColor = [1, 0.5, 0.25];
-var defaultOpacity = 0.85;
-var defaultLineWidth = 0.05;
-//var strokes = [];
-var palette = [];
+let defaultColor = [0.667, 0.667, 1];
+let serverColor = [1, 0.5, 0.25];
+let defaultOpacity = 0.85;
+let defaultLineWidth = 0.05;
+//let strokes = [];
+let palette = [];
 
-var strokeCounter = 0;
-var isDrawing = false;
-var isPlaying = true;
-var debugPos = false;
-var tempStroke;
-var tempStrokeGeometry;
-var tempPoints = [];
-var minDistance = 0.01;
-var useMinDistance = true;
-var roundValues = true;
-var numPlaces = 7;
-var altKeyBlock = false;
+let strokeCounter = 0;
+let isDrawing = false;
+let isPlaying = true;
+let debugPos = false;
+let tempStroke;
+let tempStrokeGeometry;
+let tempPoints = [];
+let minDistance = 0.01;
+let useMinDistance = true;
+let roundValues = true;
+let numPlaces = 7;
+let altKeyBlock = false;
 
-var useAudioSync = false;
+let useAudioSync = false;
 
-var c1b0_blocking = false;
-var c1b1_blocking = false;
-var c1b2_blocking = false;
-var c1b3_blocking = false;
-var c2b0_blocking = false;
-var c2b1_blocking = false;
-var c2b2_blocking = false;
-var c2b3_blocking = false;
+let c1b0_blocking = false;
+let c1b1_blocking = false;
+let c1b2_blocking = false;
+let c1b3_blocking = false;
+let c2b0_blocking = false;
+let c2b1_blocking = false;
+let c2b2_blocking = false;
+let c2b3_blocking = false;
 
 function animate(timestamp) {
     if (viveMode) updateControllers();
@@ -354,15 +186,15 @@ function animate(timestamp) {
         }
 
         if (isDrawing) {
-            var last = layers.length - 1;
-            var drawTrailLength = 3;
+            let last = layers.length - 1;
+            let drawTrailLength = 3;
 
             if (drawWhilePlaying && frameDelta === 0 && layers[last].frames.length > 1 && layers[last].frames[layers[last].previousFrame].length > 0) {
-                var lastStroke = layers[last].frames[layers[last].previousFrame][layers[last].frames[layers[last].previousFrame].length - 1];
-                var points = getPoints(lastStroke);
-                var startIdx = parseInt(points.length - drawTrailLength);
+                let lastStroke = layers[last].frames[layers[last].previousFrame][layers[last].frames[layers[last].previousFrame].length - 1];
+                let points = getPoints(lastStroke);
+                let startIdx = parseInt(points.length - drawTrailLength);
                 if (startIdx < 0) startIdx = 0;
-                for (var pts = startIdx; pts < points.length-1; pts++) {
+                for (let pts = startIdx; pts < points.length-1; pts++) {
                     createTempStroke(points[pts].x, points[pts].y, points[pts].z);
                 }
                 layers[last].frames[layers[last].counter].push(tempStroke);
@@ -372,38 +204,6 @@ function animate(timestamp) {
                 beginStroke(mouse3D.x, mouse3D.y, mouse3D.z);
             }
         }
-
-        /*
-        if (isDrawing) {
-            var last = layers.length - 1;
-            var drawTrailLength = 4;
-
-            if (drawWhilePlaying && layers[last].frames.length > 1 && layers[last].frames[layers[last].previousFrame].length > 0) {
-                var lastStroke = layers[last].frames[layers[last].previousFrame][layers[last].frames[layers[last].previousFrame].length - 1];
-                var points = getPoints(lastStroke);
-                console.log(points);
-                
-                for (var pts = parseInt(points.length / drawTrailLength); pts < points.length - 1; pts++) {
-                    //layerList[currentLayer].frameList[layerList[currentLayer].currentFrame].brushStrokeList[layerList[currentLayer].frameList[layerList[currentLayer].currentFrame].brushStrokeList.Count - 1].points.Add(lastStroke.points[pts]);
-                    updateStroke(points[pts].x, points[pts].y, points[pts].z);
-                }
-                    endStroke();
-                    beginStroke(mouse3D.x, mouse3D.y, mouse3D.z);
-            }
-        }
-        */
-
-        /*
-        if (clicked && !isDrawing) {
-            beginStroke();
-            if (drawWhilePlaying && isPlaying && layerList[currentLayer].frameList.Count > 1 && layerList[currentLayer].frameList[layerList[currentLayer].previousFrame].brushStrokeList.Count > 0) {
-                BrushStroke lastStroke = layerList[currentLayer].frameList[layerList[currentLayer].previousFrame].brushStrokeList[layerList[currentLayer].frameList[layerList[currentLayer].previousFrame].brushStrokeList.Count - 1];
-                for (int pts = lastStroke.points.Count / drawTrailLength; pts < lastStroke.points.Count - 1; pts++) {
-                    layerList[currentLayer].frameList[layerList[currentLayer].currentFrame].brushStrokeList[layerList[currentLayer].frameList[layerList[currentLayer].currentFrame].brushStrokeList.Count - 1].points.Add(lastStroke.points[pts]);
-                }
-            }
-        }
-        */
     }
 
     if (useAudioSync && !hidden) {
@@ -434,14 +234,14 @@ function animate(timestamp) {
 // rotateAroundWorldAxis(cube, new THREE.Vector3(1,0,0), 30 * Math.PI/180);     
 
 function rotateAroundObjectAxis(object, axis, radians) {
-    var rotObjectMatrix = new THREE.Matrix4();
+    let rotObjectMatrix = new THREE.Matrix4();
     rotObjectMatrix.makeRotationAxis(axis.normalize(), radians);
     object.matrix.multiply(rotObjectMatrix);
     object.rotation.setFromRotationMatrix(object.matrix);
 }
 
 function rotateAroundWorldAxis(object, axis, radians) {
-    var rotWorldMatrix = new THREE.Matrix4();
+    let rotWorldMatrix = new THREE.Matrix4();
     rotWorldMatrix.makeRotationAxis(axis.normalize(), radians);
     rotWorldMatrix.multiply(object.matrix);                // pre-multiply
     object.matrix = rotWorldMatrix;
@@ -449,7 +249,7 @@ function rotateAroundWorldAxis(object, axis, radians) {
 }
 
 function createText(_text, x, y, z) {
-    var textGeo = new THREE.TextGeometry(_text, {
+    let textGeo = new THREE.TextGeometry(_text, {
         size: 200,
         height: 1,
         curveSegments: 12,
@@ -464,9 +264,9 @@ function createText(_text, x, y, z) {
     });
 
     textGeo.computeBoundingBox();
-    var centerOffset = -0.5 * (textGeo.boundingBox.max.x - textGeo.boundingBox.min.x);
+    let centerOffset = -0.5 * (textGeo.boundingBox.max.x - textGeo.boundingBox.min.x);
 
-    var textMesh = new THREE.Mesh(textGeo, text_mtl);
+    let textMesh = new THREE.Mesh(textGeo, text_mtl);
     textMesh.castShadow = false;
     textMesh.receiveShadow = false;
 
@@ -479,10 +279,10 @@ function createText(_text, x, y, z) {
 }
 
 function createTextAlt(_text, x, y, z) {
-    var loader = new THREE.FontLoader();
+    let loader = new THREE.FontLoader();
 
     loader.load("./fonts/helvetiker_bold.typeface.json", function (font) {
-        var textGeo = new THREE.TextGeometry(_text, {
+        let textGeo = new THREE.TextGeometry(_text, {
             size: 200,
             height: 1,
             curveSegments: 12,
@@ -497,9 +297,9 @@ function createTextAlt(_text, x, y, z) {
         });
 
         textGeo.computeBoundingBox();
-        var centerOffset = -0.5 * (textGeo.boundingBox.max.x - textGeo.boundingBox.min.x);
+        let centerOffset = -0.5 * (textGeo.boundingBox.max.x - textGeo.boundingBox.min.x);
 
-        var textMesh = new THREE.Mesh(textGeo, text_mtl);
+        let textMesh = new THREE.Mesh(textGeo, text_mtl);
         textMesh.castShadow = false;
         textMesh.receiveShadow = false;
 
@@ -512,23 +312,6 @@ function createTextAlt(_text, x, y, z) {
     });
 }
 
-function doSubtitle(_frame) {
-    /*
-    Tone.Transport.scheduleOnce(function(time){
-        subtitleText = createText(subtitlesArray[subsCounter], 1300, -1200, -2800);
-        subsCounter++;
-    }, getLoopFrame(_frame));
-    */
-}
-
-function clearSubtitle(_frame) {
-    /*
-    Tone.Transport.scheduleOnce(function(time){
-        if (subtitleText) scene.remove(subtitleText);
-    }, getLoopFrame(_frame));
-    */
-}
-
 function getLoopFrame(_frame) {
     return ((layers[getLongestLayer()].loopCounter * (layers[getLongestLayer()].frames.length - 1)) + (_frame + subsFrameOffset)) * frameInterval;
 }
@@ -538,67 +321,25 @@ function showReading() {
     render(0);
 }
 
-function scheduleSubtitles() {
-    doSubtitle(1);
-    doSubtitle(20);
-    doSubtitle(52);
-    clearSubtitle(67);
-    doSubtitle(71);
-    clearSubtitle(93);
-    /*
-    doSubtitle(100);
-    doSubtitle(133);
-    doSubtitle(170);
-    doSubtitle(191);
-    doSubtitle(232);
-    doSubtitle(254);
-    doSubtitle(302);
-    clearSubtitle(333);
-    doSubtitle(347);
-    clearSubtitle(377);
-    doSubtitle(391);
-    doSubtitle(429);
-    doSubtitle(449);
-    doSubtitle(463);
-    doSubtitle(487);
-    clearSubtitle(533);
-    doSubtitle(538);
-    doSubtitle(545);
-    clearSubtitle(555);
-    doSubtitle(557);
-    doSubtitle(574);
-    clearSubtitle(600);
-    doSubtitle(607);
-    doSubtitle(646);
-    doSubtitle(672);
-    doSubtitle(698);
-    doSubtitle(721);
-    doSubtitle(746);
-    doSubtitle(763);
-    doSubtitle(801);
-    doSubtitle(822);
-    */
-}
-
 function roundVal(value, decimals) {
     return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
 } 
 
 function tempStrokeToJson() {
     try {
-        var color = defaultColor;
-        var sb = [];
+        let color = defaultColor;
+        let sb = [];
         sb.push("{");
         sb.push("\"timestamp\": " + new Date().getTime() + ",");
         sb.push("\"index\": " + layers[layers.length-1].counter + ",");
         sb.push("\"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "],");
         sb.push("\"points\": [");
-        for (var j=0; j<tempStroke.geometry.attributes.position.array.length; j += 6 ) { 
-            var x = tempStroke.geometry.attributes.position.array[j];
-            var y = tempStroke.geometry.attributes.position.array[j+1];
-            var z = tempStroke.geometry.attributes.position.array[j+2];
+        for (let j=0; j<tempStroke.geometry.attributes.position.array.length; j += 6 ) { 
+            let x = tempStroke.geometry.attributes.position.array[j];
+            let y = tempStroke.geometry.attributes.position.array[j+1];
+            let z = tempStroke.geometry.attributes.position.array[j+2];
 
-            var point = cleanPoint(x, y, z);
+            let point = cleanPoint(x, y, z);
 
             sb.push("{\"co\": [" + point.x + ", " + point.y + ", " + point.z + "]");                  
             if (j >= tempStroke.geometry.attributes.position.array.length - 6) {
@@ -618,7 +359,7 @@ function tempStrokeToJson() {
 
 // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
-var dropZone;
+let dropZone;
 
 // Show the copy icon when dragging over.  Seems to only work for chrome.
 function onDragOver(e) {
@@ -632,10 +373,10 @@ function onDrop(e) {
 
     e.stopPropagation();
     e.preventDefault();
-    var files = e.dataTransfer.files; // Array of all files
-    for (var i=0, file; file=files[i]; i++) {
-        var reader = new FileReader();
-        var droppedFileName = files[i].name;
+    let files = e.dataTransfer.files; // Array of all files
+    for (let i=0, file; file=files[i]; i++) {
+        let reader = new FileReader();
+        let droppedFileName = files[i].name;
                 
         pauseAnimation = true;
         clearFrame();
@@ -650,14 +391,14 @@ function onDrop(e) {
             reader.readAsText(file, 'UTF-8');
         } else {            
             reader.onload = function(e2) {
-                var zip = new JSZip();
+                let zip = new JSZip();
                 zip.loadAsync(e2.target.result).then(function() {
-                    //var fileNameOrig = droppedFileName.split('\\').pop().split('/').pop();
-                    //var fileName = fileNameOrig.split('.')[0] + ".json";
+                    //let fileNameOrig = droppedFileName.split('\\').pop().split('/').pop();
+                    //let fileName = fileNameOrig.split('.')[0] + ".json";
                     //zip.file(fileName).async("string").then(function(response) {
 
                     // https://github.com/Stuk/jszip/issues/375
-                    var entries = Object.keys(zip.files).map(function (name) {
+                    let entries = Object.keys(zip.files).map(function (name) {
                       return zip.files[name];
                     });
 
@@ -677,7 +418,7 @@ function onDrop(e) {
 // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
 function createMtl(color, opacity, lineWidth) {
-    var mtl = new THREE.MeshLineMaterial({
+    let mtl = new THREE.MeshLineMaterial({
         useMap: 1,
         map: texture,
         transparent: true,
@@ -699,9 +440,9 @@ function createMtl(color, opacity, lineWidth) {
 }
 
 function createUniqueMtl(color) {
-    var mtlIndex = -1;
-    for (var i=0; i<palette.length; i++) {
-        var paletteColor = [palette[i].uniforms.color.value.r, palette[i].uniforms.color.value.g, palette[i].uniforms.color.value.b];
+    let mtlIndex = -1;
+    for (let i=0; i<palette.length; i++) {
+        let paletteColor = [palette[i].uniforms.color.value.r, palette[i].uniforms.color.value.g, palette[i].uniforms.color.value.b];
         if (compareColor(color, paletteColor, 5)) {
             mtlIndex = i;
             if (latkDebug) console.log("Found palette match at index " + i);
@@ -709,7 +450,7 @@ function createUniqueMtl(color) {
         }
     }
     if (mtlIndex === -1) {
-        var mtl = createMtl(color, defaultOpacity, defaultLineWidth/1.5);
+        let mtl = createMtl(color, defaultOpacity, defaultLineWidth/1.5);
         palette.push(mtl);
         if (latkDebug) console.log("Creating new color, " + palette.length + " total colors");
         return palette[palette.length-1];
@@ -720,12 +461,12 @@ function createUniqueMtl(color) {
 }
 
 function compareColor(c1, c2, numPlaces) {
-    var r1 = roundVal(c1[0], numPlaces);
-    var r2 = roundVal(c2[0], numPlaces);
-    var g1 = roundVal(c1[1], numPlaces);
-    var g2 = roundVal(c2[1], numPlaces);
-    var b1 = roundVal(c1[2], numPlaces);
-    var b2 = roundVal(c2[2], numPlaces);
+    let r1 = roundVal(c1[0], numPlaces);
+    let r2 = roundVal(c2[0], numPlaces);
+    let g1 = roundVal(c1[1], numPlaces);
+    let g2 = roundVal(c2[1], numPlaces);
+    let b1 = roundVal(c1[2], numPlaces);
+    let b2 = roundVal(c2[2], numPlaces);
     if (r1 === r2 && g1 === g2 && b1 === b2) {
         return true;
     } else {
@@ -777,7 +518,7 @@ function onTouchMove(event) {
 
 function updateTouchPos(event) {
     if (event.targetTouches.length > 0) {
-        var touch = event.targetTouches[0];
+        let touch = event.targetTouches[0];
         mouse3D = new THREE.Vector3((touch.pageX / window.innerWidth) * 2 - 1, -(touch.pageY / window.innerHeight) * 2 + 1, 0.5);
         mouse3D.unproject(camera);   
         //if (debug) console.log(mouse3D);    
@@ -795,7 +536,7 @@ function beginStroke(x, y, z) {
 }
 
 function updateStroke(x, y, z) {
-    var p = new THREE.Vector3(x, y, z);
+    let p = new THREE.Vector3(x, y, z);
 
     if (p.distanceTo(tempPoints[tempPoints.length-1]) > minDistance) {
         clearTempStroke();
@@ -807,7 +548,7 @@ function updateStroke(x, y, z) {
 function endStroke() {  // TODO draw on new layer
     //if (isDrawing) {
 	isDrawing = false;
-    var last = layers.length-1;
+    let last = layers.length-1;
     layers[last].frames[layers[last].counter].push(tempStroke);
     //~
     socket.emit("clientStrokeToServer", tempStrokeToJson());
@@ -824,7 +565,7 @@ function addTempPoints(x, y, z) {
     tempPoints.push(new THREE.Vector3(x, y, z));
     tempStrokeGeometry = new THREE.Geometry();
     tempStrokeGeometry.dynamic = true;
-    for (var i=0; i<tempPoints.length; i++) {
+    for (let i=0; i<tempPoints.length; i++) {
         tempStrokeGeometry.vertices.push(tempPoints[i]);
     }
     tempStrokeGeometry.verticesNeedUpdate = true;
@@ -833,7 +574,7 @@ function addTempPoints(x, y, z) {
 
 function createTempStroke(x, y , z) {
     addTempPoints(x, y, z);
-    var line = new THREE.MeshLine();
+    let line = new THREE.MeshLine();
     line.setGeometry(tempStrokeGeometry);
     tempStroke = new THREE.Mesh(line.geometry, createUniqueMtl(defaultColor));
     tempStroke.name = "stroke" + strokeCounter;
@@ -844,10 +585,10 @@ function createTempStroke(x, y , z) {
 
 function getMagentaButton(points) {
     try {
-        var p1 = points[0];
-        var p2 = points[points.length-1];
-        var angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
-        var button = parseInt(angle * (4.0/180.0) + 4);
+        let p1 = points[0];
+        let p2 = points[points.length-1];
+        let angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+        let button = parseInt(angle * (4.0/180.0) + 4);
         console.log("Trigger button " + button);
         buttonUp(button);
         buttonDown(button, false);
@@ -858,7 +599,7 @@ function getMagentaButton(points) {
 
 function refreshFrame(index) {
 	if (layers[index].frames[layers[index].counter]) {
-	    for (var i=0; i<layers[index].frames[layers[index].counter].length; i++) {
+	    for (let i=0; i<layers[index].frames[layers[index].counter].length; i++) {
 	        scene.add(layers[index].frames[layers[index].counter][i]);
 	    }
 	    socket.emit("clientRequestFrame", { num: layers[index].counter });
@@ -866,41 +607,13 @@ function refreshFrame(index) {
 }
 
 function refreshFrameLast() {  // TODO draw on new layer
-    var last = layers.length - 1;
+    let last = layers.length - 1;
     scene.add(layers[last].frames[layers[last].counter][layers[last].frames[layers[last].counter].length-1]);
 }
 
 function clearFrame() {
-    /*
-    for (var i=scene.children.length; i>=0; i--) {
-        if (scene.children[i] !== camera && scene.children[i] !== subtitleText  && scene.children[i] !== room) {
-            scene.remove(scene.children[i]);
-        }
-    }*/
     clearScene(scene);
 }
-
-function clearScene(obj) {
-    while (obj.children.length > 0) { 
-        clearScene(obj.children[0]);
-        obj.remove(obj.children[0]);
-    }
-    
-    if (obj.geometry) obj.geometry.dispose();
-
-    if (obj.material) { 
-        // in case of map, bumpMap, normalMap, envMap ...
-        Object.keys(obj.material).forEach(prop => {
-            if (!obj.material[prop]) {
-                return;         
-            }
-            if (obj.material[prop] !== null && typeof obj.material[prop].dispose === 'function') {
-                obj.material[prop].dispose();
-            }                                                  
-        });
-        obj.material.dispose();
-    }
-}   
 
 function clearTempStroke() {
     try {
@@ -915,7 +628,7 @@ function redrawFrame(index) {
 }
 
 function frameMain() {
-    for (var h=0; h<layers.length; h++) {
+    for (let h=0; h<layers.length; h++) {
         redrawFrame(h);
         layers[h].previousFrame = layers[h].counter;
         layers[h].counter++;
@@ -932,7 +645,7 @@ function frameMain() {
 }
 
 function frameForward() {
-    for (var h=0; h<layers.length; h++) {        
+    for (let h=0; h<layers.length; h++) {        
         layers[h].counter++;
         if (layers[h].counter >= layers[h].frames.length - 1) layers[h].counter = 0;
         redrawFrame(h);
@@ -940,7 +653,7 @@ function frameForward() {
 }
 
 function frameBack() {
-    for (var h=0; h<layers.length; h++) {        
+    for (let h=0; h<layers.length; h++) {        
         layers[h].counter--;
         if (layers[h].counter <= 0) layers[h].counter = layers[h].frames.length - 1;
         redrawFrame(h);
@@ -948,18 +661,18 @@ function frameBack() {
 }
 
 function getLongestLayer() {
-    var returns = 0;
-    for (var h=0; h<layers.length; h++) {
+    let returns = 0;
+    for (let h=0; h<layers.length; h++) {
         if (layers[h].frames.length > returns) returns = h;
     }
     return returns;
 }
 
 function getPoints(stroke){
-    var returns = [];
+    let returns = [];
     try {
-        for (var i=0; i<stroke.geometry.attributes.position.array.length; i += 6) { 
-            var point = new THREE.Vector3(stroke.geometry.attributes.position.array[i], stroke.geometry.attributes.position.array[i+1], stroke.geometry.attributes.position.array[i+2]);
+        for (let i=0; i<stroke.geometry.attributes.position.array.length; i += 6) { 
+            let point = new THREE.Vector3(stroke.geometry.attributes.position.array[i], stroke.geometry.attributes.position.array[i+1], stroke.geometry.attributes.position.array[i+2]);
             returns.push(point);
         }
     } catch (e) {
@@ -968,31 +681,7 @@ function getPoints(stroke){
     return returns;
 }
 
-function visibilityChanged() {
-    /*
-    if (document.hidden || document.mozHidden || document.msHidden || document.webkitHidden) {
-        hidden = true;
-        Tone.Transport.stop();
-        console.log("hidden");
-    } else {
-        hidden = false;
-        Tone.Transport.start();
-        counter = 0;
-        subsCounter = 0;
-        loopCounter = 0;
-        scheduleSubtitles();
-        console.log("not hidden");
-    }
-    */
-}
-
 function latkStart() {
-    /*
-    player = new Tone.Player({
-        "url": soundPath
-    }).toMaster();
-    */
-    // ~ ~ ~ ~ ~ ~ 
     document.addEventListener("visibilitychange", visibilityChanged);
 
     document.addEventListener("mousedown", onMouseDown);
@@ -1034,14 +723,14 @@ function latkStart() {
                 throw err; // or handle err
             }
 
-            var zip = new JSZip();
+            let zip = new JSZip();
             zip.loadAsync(data).then(function () {
-                //var fileNameOrig = animationPath.split('\\').pop().split('/').pop();
-                //var fileName = fileNameOrig.split('.')[0] + ".json";
+                //let fileNameOrig = animationPath.split('\\').pop().split('/').pop();
+                //let fileName = fileNameOrig.split('.')[0] + ".json";
                 //zip.file(0).async("string").then(function(response) {
 
                 // https://github.com/Stuk/jszip/issues/375
-                var entries = Object.keys(zip.files).map(function (name) {
+                let entries = Object.keys(zip.files).map(function (name) {
                   return zip.files[name];
                 });
            
@@ -1066,96 +755,3 @@ function latkStart() {
     }
 }    
 
-class Stroke {
-
-    constructor(x, y, z) {
-        this.points = [];
-        this.smoothReps = 10;
-        this.splitReps = 2;
-        this.geometry;
-        this.mesh;
-   	    this.addPoints(x, y, z);
-        this.createStroke();
-    }
-
-	rebuildGeometry() {
-	    this.geometry = new THREE.Geometry();
-	    this.geometry.dynamic = true;
-	    for (var i=0; i<this.points.length; i++) {
-	        this.geometry.vertices.push(this.points[i]);
-	    }
-	    this.geometry.verticesNeedUpdate = true;
-	    this.geometry.__dirtyVertices = true; 
-	}
-
-	addPoints(x, y, z) {
-	    this.points.push(new THREE.Vector3(x, y, z));
-	    this.rebuildGeometry();
-	}
-
-	clearStroke() {
-	    try {
-	        scene.remove(this.mesh);
-	    } catch (e) { }       
-	}
-
-	createStroke() {
-	    var line = new THREE.MeshLine();
-	    line.setGeometry(this.geometry);
-	    this.mesh = new THREE.Mesh(line.geometry, createUniqueMtl([0.667, 0.667, 1]));
-	    this.mesh.name = "stroke" + strokeCounter;
-	    scene.add(this.mesh);
-	}
-
-	updateMesh(x, y, z) {
-        this.clearStroke();
-	    this.addPoints(x, y, z);
-        this.createStroke();
-	}
-
-	refreshMesh() {
-        this.clearStroke();
-        this.rebuildGeometry();
-        this.createStroke();   
-	}
-
-    smooth() {
-        var weight = 18;
-        var scale = 1.0 / (weight + 2);
-        var nPointsMinusTwo = this.points.length - 2;
-        var lower, upper, center;
-
-        for (var i = 1; i < nPointsMinusTwo; i++) {
-            lower = this.points[i-1];
-            center = this.points[i];
-            upper = this.points[i+1];
-
-            center.x = (lower.x + weight * center.x + upper.x) * scale;
-            center.y = (lower.y + weight * center.y + upper.y) * scale;
-            center.z = (lower.z + weight * center.z + upper.z) * scale;
-            this.points[i] = center;
-        }
-    }
-
-    split() {
-        for (var i = 1; i < this.points.length; i+=2) {
-            var x = (this.points[i].x + this.points[i-1].x) / 2;
-            var y = (this.points[i].y + this.points[i-1].y) / 2;
-            var z = (this.points[i].z + this.points[i-1].z) / 2;
-            var p = new THREE.Vector3(x, y, z);
-            this.points.splice(i, 0, p);
-        }
-    }
-
-    refine() {
-        for (var i=0; i<this.splitReps; i++){
-            this.split();   
-            this.smooth();  
-        }
-        for (var i=0; i<this.smoothReps - this.splitReps; i++){
-            this.smooth();      
-        }
-		this.refreshMesh();   
-    }
-
-}

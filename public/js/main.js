@@ -93,17 +93,8 @@ let time = 0;
 let pTime = 0;
 let pauseAnimation = false;
 let mouse3D = new THREE.Vector3(0, 0, 0);
-// ~ ~ ~ 
-let subtitleText, readingText;
-let firstTextUse = true;
-let texture;
 
-// http://threejs.org/examples/webgl_materials_blending_custom.html
-let blendSrc = [ "ZeroFactor", "OneFactor", "SrcAlphaFactor", "OneMinusSrcAlphaFactor", "DstAlphaFactor", "OneMinusDstAlphaFactor", "DstColorFactor", "OneMinusDstColorFactor", "SrcAlphaSaturateFactor" ];
-let blendDst = [ "ZeroFactor", "OneFactor", "SrcColorFactor", "OneMinusSrcColorFactor", "SrcAlphaFactor", "OneMinusSrcAlphaFactor", "DstAlphaFactor", "OneMinusDstAlphaFactor" ];
-let blending = "CustomBlending";
-
-let line_mtl = new THREE.MeshLineMaterial();
+let line_mtl = new THREE.LineBasicMaterial();
 
 let text_mtl = new THREE.MeshBasicMaterial({ 
 	color: 0xffff00,
@@ -145,8 +136,6 @@ let c2b2_blocking = false;
 let c2b3_blocking = false;
 
 function animate(timestamp) {
-    if (viveMode) updateControllers();
-
     if (armFrameForward) {
         armFrameForward = false;
         isPlaying = false;
@@ -418,7 +407,7 @@ function onDrop(e) {
 // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
 function createMtl(color, opacity, lineWidth) {
-    let mtl = new THREE.MeshLineMaterial({
+    let mtl = new THREE.LineBasicMaterial({
         useMap: 1,
         map: texture,
         transparent: true,
@@ -682,8 +671,6 @@ function getPoints(stroke){
 }
 
 function latkStart() {
-    document.addEventListener("visibilitychange", visibilityChanged);
-
     document.addEventListener("mousedown", onMouseDown);
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("mouseup", onMouseUp);
@@ -708,10 +695,8 @@ function latkStart() {
     dropZone = document.getElementsByTagName("body")[0];
     dropZone.addEventListener('dragover', onDragOver);
     dropZone.addEventListener('drop', onDrop);
-    // ~ ~ ~ ~ ~ ~ 
 
-    init();
-    if (!viveMode) showReading();
+    // ~ ~ ~ ~ ~ ~ 
 
     if (animationPath.split(".")[animationPath.split(".").length-1] === "json") {
         loadJSON(animationPath, function(response) {
@@ -754,4 +739,6 @@ function latkStart() {
         console.log("No frame query detected.");        
     }
 }    
+
+latkStart();
 

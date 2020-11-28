@@ -65,7 +65,6 @@ function render(timestamp) {
     updatePlayer();
 }
 
-let layers = [];
 let soundPath = "../sounds/avlt.ogg";
 let animationPath = "../animations/jellyfish.json";
 let brushPath = "../images/brush_vive.png";
@@ -135,86 +134,90 @@ let c2b1_blocking = false;
 let c2b2_blocking = false;
 let c2b3_blocking = false;
 
+let latk;
+
 function animate(timestamp) {
-    if (armFrameForward) {
-        armFrameForward = false;
-        isPlaying = false;
-        frameForward();
-        if (latkDebug) console.log("ff: " + counter);
-    }
-    if (armFrameBack) {
-        armFrameBack = false;
-        isPlaying = false;
-        frameBack();
-        if (latkDebug) console.log("rew: " + counter);
-    }
-    if (armTogglePause) {
-        isPlaying = !isPlaying;
-        if (latkDebug) console.log("playing: " + isPlaying);
-        armTogglePause = false;
-    }
+	if (latk.ready) {
+	    if (armFrameForward) {
+	        armFrameForward = false;
+	        isPlaying = false;
+	        frameForward();
+	        if (latkDebug) console.log("ff: " + counter);
+	    }
+	    if (armFrameBack) {
+	        armFrameBack = false;
+	        isPlaying = false;
+	        frameBack();
+	        if (latkDebug) console.log("rew: " + counter);
+	    }
+	    if (armTogglePause) {
+	        isPlaying = !isPlaying;
+	        if (latkDebug) console.log("playing: " + isPlaying);
+	        armTogglePause = false;
+	    }
 
-    if (isPlaying) {
-        if (!useAudioSync && !hidden) {
-            pTime = time;
-            time = new Date().getTime() / 1000;
-            frameDelta += time - pTime;
-        } else if (useAudioSync && !hidden) {
-            /*
-            if (subtitleText) {
-                subtitleText.lookAt(camera);
-                subtitleText.rotation.set(0, -45, 0);
-            }
-            */
-        }
+	    if (isPlaying) {
+	        if (!useAudioSync && !hidden) {
+	            pTime = time;
+	            time = new Date().getTime() / 1000;
+	            frameDelta += time - pTime;
+	        } else if (useAudioSync && !hidden) {
+	            /*
+	            if (subtitleText) {
+	                subtitleText.lookAt(camera);
+	                subtitleText.rotation.set(0, -45, 0);
+	            }
+	            */
+	        }
 
-        if (frameDelta >= frameInterval) {
-            frameDelta = 0;
+	        if (frameDelta >= frameInterval) {
+	            frameDelta = 0;
 
-            frameMain();
-        }
+	            frameMain();
+	        }
 
-        if (isDrawing) {
-            let last = layers.length - 1;
-            let drawTrailLength = 3;
+	        if (isDrawing) {
+	            let last = latk.layers.length - 1;
+	            let drawTrailLength = 3;
 
-            if (drawWhilePlaying && frameDelta === 0 && layers[last].frames.length > 1 && layers[last].frames[layers[last].previousFrame].length > 0) {
-                let lastStroke = layers[last].frames[layers[last].previousFrame][layers[last].frames[layers[last].previousFrame].length - 1];
-                let points = getPoints(lastStroke);
-                let startIdx = parseInt(points.length - drawTrailLength);
-                if (startIdx < 0) startIdx = 0;
-                for (let pts = startIdx; pts < points.length-1; pts++) {
-                    createTempStroke(points[pts].x, points[pts].y, points[pts].z);
-                }
-                layers[last].frames[layers[last].counter].push(tempStroke);
-                //~
-                endStroke();
+	            if (drawWhilePlaying && frameDelta === 0 && latk.layers[last].frames.length > 1 && latk.layers[last].frames[latk.layers[last].previousFrame].length > 0) {
+	                let lastStroke = latk.layers[last].frames[latk.layers[last].previousFrame][latk.layers[last].frames[latk.layers[last].previousFrame].length - 1];
+	                let points = getPoints(lastStroke);
+	                let startIdx = parseInt(points.length - drawTrailLength);
+	                if (startIdx < 0) startIdx = 0;
+	                for (let pts = startIdx; pts < points.length-1; pts++) {
+	                    createTempStroke(points[pts].x, points[pts].y, points[pts].z);
+	                }
+	                latk.layers[last].frames[latk.layers[last].counter].push(tempStroke);
+	                //~
+	                endStroke();
 
-                beginStroke(mouse3D.x, mouse3D.y, mouse3D.z);
-            }
-        }
-    }
+	                beginStroke(mouse3D.x, mouse3D.y, mouse3D.z);
+	            }
+	        }
+	    }
 
-    if (useAudioSync && !hidden) {
-        if (subtitleText) {
-            subtitleText.lookAt(camera);
-            subtitleText.rotation.set(0, -45, 0);
-        }
-    }
-        
-    if (armSaveJson) {
-        armSaveJson = false;
-        isPlaying = false;
-        writeJson();
-    }   
-    
-    if (viveMode) {
-        effect.requestAnimationFrame( animate );
-        render();
-    } else {
-        render(timestamp);
-        requestAnimationFrame(animate);         
-    }
+	    if (useAudioSync && !hidden) {
+	        if (subtitleText) {
+	            subtitleText.lookAt(camera);
+	            subtitleText.rotation.set(0, -45, 0);
+	        }
+	    }
+	        
+	    if (armSaveJson) {
+	        armSaveJson = false;
+	        isPlaying = false;
+	        writeJson();
+	    }   
+	    
+	    if (viveMode) {
+	        effect.requestAnimationFrame( animate );
+	        render();
+	    } else {
+	        render(timestamp);
+	        requestAnimationFrame(animate);         
+	    }
+	}
 }
 
 // http://stackoverflow.com/questions/11119753/how-to-rotate-a-object-on-axis-world-three-js
@@ -302,7 +305,7 @@ function createTextAlt(_text, x, y, z) {
 }
 
 function getLoopFrame(_frame) {
-    return ((layers[getLongestLayer()].loopCounter * (layers[getLongestLayer()].frames.length - 1)) + (_frame + subsFrameOffset)) * frameInterval;
+    return ((latk.layers[getLongestLayer()].loopCounter * (latk.layers[getLongestLayer()].frames.length - 1)) + (_frame + subsFrameOffset)) * frameInterval;
 }
 
 function showReading() {
@@ -320,7 +323,7 @@ function tempStrokeToJson() {
         let sb = [];
         sb.push("{");
         sb.push("\"timestamp\": " + new Date().getTime() + ",");
-        sb.push("\"index\": " + layers[layers.length-1].counter + ",");
+        sb.push("\"index\": " + latk.layers[latk.layers.length-1].counter + ",");
         sb.push("\"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "],");
         sb.push("\"points\": [");
         for (let j=0; j<tempStroke.geometry.attributes.position.array.length; j += 6 ) { 
@@ -370,7 +373,7 @@ function onDrop(e) {
         pauseAnimation = true;
         clearFrame();
         subsCounter = 0;
-        layers = [];
+        latk.layers = [];
 
         if (droppedFileName.split(".")[droppedFileName.split(".").length-1] === "json") {
             reader.onload = function(e2) {
@@ -537,14 +540,14 @@ function updateStroke(x, y, z) {
 function endStroke() {  // TODO draw on new layer
     //if (isDrawing) {
 	isDrawing = false;
-    let last = layers.length-1;
-    layers[last].frames[layers[last].counter].push(tempStroke);
+    let last = latk.layers.length-1;
+    latk.layers[last].frames[latk.layers[last].counter].push(tempStroke);
     //~
     socket.emit("clientStrokeToServer", tempStrokeToJson());
     //~
     clearTempStroke();
     refreshFrameLast();
-    if (latkDebug) console.log("End " + layers[last].frames[layers[last].counter][layers[last].frames[layers[last].counter].length-1].name + ".");
+    if (latkDebug) console.log("End " + latk.layers[last].frames[latk.layers[last].counter][latk.layers[last].frames[latk.layers[last].counter].length-1].name + ".");
     strokeCounter++;
 	//}
     getMagentaButton(tempPoints);
@@ -587,17 +590,17 @@ function getMagentaButton(points) {
 }
 
 function refreshFrame(index) {
-	if (layers[index].frames[layers[index].counter]) {
-	    for (let i=0; i<layers[index].frames[layers[index].counter].length; i++) {
-	        scene.add(layers[index].frames[layers[index].counter][i]);
+	if (latk.layers[index].frames[latk.layers[index].counter]) {
+	    for (let i=0; i<latk.layers[index].frames[latk.layers[index].counter].length; i++) {
+	        scene.add(latk.layers[index].frames[latk.layers[index].counter][i]);
 	    }
-	    socket.emit("clientRequestFrame", { num: layers[index].counter });
+	    socket.emit("clientRequestFrame", { num: latk.layers[index].counter });
 	}
 }
 
 function refreshFrameLast() {  // TODO draw on new layer
-    let last = layers.length - 1;
-    scene.add(layers[last].frames[layers[last].counter][layers[last].frames[layers[last].counter].length-1]);
+    let last = latk.layers.length - 1;
+    scene.add(latk.layers[last].frames[latk.layers[last].counter][latk.layers[last].frames[latk.layers[last].counter].length-1]);
 }
 
 function clearFrame() {
@@ -617,13 +620,13 @@ function redrawFrame(index) {
 }
 
 function frameMain() {
-    for (let h=0; h<layers.length; h++) {
+    for (let h=0; h<latk.layers.length; h++) {
         redrawFrame(h);
-        layers[h].previousFrame = layers[h].counter;
-        layers[h].counter++;
-        if (layers[h].counter >= layers[h].frames.length - 1) {
-            layers[h].counter = 0;
-            layers[h].loopCounter++;
+        latk.layers[h].previousFrame = latk.layers[h].counter;
+        latk.layers[h].counter++;
+        if (latk.layers[h].counter >= latk.layers[h].frames.length - 1) {
+            latk.layers[h].counter = 0;
+            latk.layers[h].loopCounter++;
             
             if (h == getLongestLayer()) {
                 subsCounter = 0;
@@ -634,25 +637,25 @@ function frameMain() {
 }
 
 function frameForward() {
-    for (let h=0; h<layers.length; h++) {        
-        layers[h].counter++;
-        if (layers[h].counter >= layers[h].frames.length - 1) layers[h].counter = 0;
+    for (let h=0; h<latk.layers.length; h++) {        
+        latk.layers[h].counter++;
+        if (latk.layers[h].counter >= latk.layers[h].frames.length - 1) latk.layers[h].counter = 0;
         redrawFrame(h);
     }
 }
 
 function frameBack() {
-    for (let h=0; h<layers.length; h++) {        
-        layers[h].counter--;
-        if (layers[h].counter <= 0) layers[h].counter = layers[h].frames.length - 1;
+    for (let h=0; h<latk.layers.length; h++) {        
+        latk.layers[h].counter--;
+        if (latk.layers[h].counter <= 0) latk.layers[h].counter = latk.layers[h].frames.length - 1;
         redrawFrame(h);
     }
 }
 
 function getLongestLayer() {
     let returns = 0;
-    for (let h=0; h<layers.length; h++) {
-        if (layers[h].frames.length > returns) returns = h;
+    for (let h=0; h<latk.layers.length; h++) {
+        if (latk.layers[h].frames.length > returns) returns = h;
     }
     return returns;
 }
@@ -698,45 +701,15 @@ function latkStart() {
 
     // ~ ~ ~ ~ ~ ~ 
 
-    if (animationPath.split(".")[animationPath.split(".").length-1] === "json") {
-        loadJSON(animationPath, function(response) {
-            jsonToGp(JSON.parse(response).grease_pencil[0]);
-        });
-    } else {
-        JSZipUtils.getBinaryContent(animationPath, function(err, data) {
-            if (err) {
-                throw err; // or handle err
-            }
+    latk = Latk.read(animationPath);
 
-            let zip = new JSZip();
-            zip.loadAsync(data).then(function () {
-                //let fileNameOrig = animationPath.split('\\').pop().split('/').pop();
-                //let fileName = fileNameOrig.split('.')[0] + ".json";
-                //zip.file(0).async("string").then(function(response) {
-
-                // https://github.com/Stuk/jszip/issues/375
-                let entries = Object.keys(zip.files).map(function (name) {
-                  return zip.files[name];
-                });
-           
-                zip.file(entries[0].name).async("string").then(function(response) {
-                    jsonToGp(JSON.parse(response).grease_pencil[0]);
-                });
-            });
-        });
-    }
-
-    if (util.checkQueryInUrl("frame")) {
+    if (Util.checkQueryInUrl("frame")) {
         console.log("Frame query detected.");
 
-        loadJSON("../animations/test.json", function(response) {
-            jsonToGp(JSON.parse(response).grease_pencil[0]);
-            setTimeout(function() {
-                util.saveImage();
-            }, 2000);
-        });
-    } else {
-        console.log("No frame query detected.");        
+        latk = Latk.read("../animations/test.json");
+        setTimeout(function() {
+            Util.saveImage();
+        }, 2000);
     }
 }    
 

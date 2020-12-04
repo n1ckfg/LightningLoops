@@ -351,82 +351,9 @@ function tempStrokeToJson() {
 
 // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
-let dropZone;
-
-// Show the copy icon when dragging over.  Seems to only work for chrome.
-function onDragOver(e) {
-    e.stopPropagation();
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';    
-}
-
-function onDrop(e) {
-    //showReading();
-
-    e.stopPropagation();
-    e.preventDefault();
-    let files = e.dataTransfer.files; // Array of all files
-    for (let i=0, file; file=files[i]; i++) {
-        let reader = new FileReader();
-        let droppedFileName = files[i].name;
-                
-        pauseAnimation = true;
-        clearFrame();
-        subsCounter = 0;
-        latk.layers = [];
-
-        if (droppedFileName.split(".")[droppedFileName.split(".").length-1] === "json") {
-            reader.onload = function(e2) {
-                jsonToGp(JSON.parse(e2.target.result.replace("NaN", "0.0")).grease_pencil[0]);
-            }
-        
-            reader.readAsText(file, 'UTF-8');
-        } else {            
-            reader.onload = function(e2) {
-                let zip = new JSZip();
-                zip.loadAsync(e2.target.result).then(function() {
-                    //let fileNameOrig = droppedFileName.split('\\').pop().split('/').pop();
-                    //let fileName = fileNameOrig.split('.')[0] + ".json";
-                    //zip.file(fileName).async("string").then(function(response) {
-
-                    // https://github.com/Stuk/jszip/issues/375
-                    let entries = Object.keys(zip.files).map(function (name) {
-                      return zip.files[name];
-                    });
-
-                    zip.file(entries[0].name).async("string").then(function(response) {
-                        jsonToGp(JSON.parse(response.replace("NaN", "0.0")).grease_pencil[0]);
-                    });
-                });
-            }
-
-            reader.readAsBinaryString(file);
-        }
-
-        pauseAnimation = false; 
-    }      
-}
-
-// ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
-
-function createMtl(color, opacity, lineWidth) {
+function createMtl(color) {
     let mtl = new THREE.LineBasicMaterial({
-        useMap: 1,
-        map: texture,
-        transparent: true,
         color: new THREE.Color(color[0],color[1],color[2]),
-        //sizeAttenuation: false,
-        opacity: opacity, 
-        lineWidth: lineWidth,
-        depthWrite: false,
-        depthTest: false,
-        blending: THREE.AdditiveBlending
-        /*
-        blending: THREE[blending],
-        blendSrc: THREE[blendSrc[4]],
-        blendDst: THREE[blendDst[1]],
-        blendEquation: THREE.AddEquation
-        */
     });
     return mtl;
 }
@@ -442,7 +369,7 @@ function createUniqueMtl(color) {
         }
     }
     if (mtlIndex === -1) {
-        let mtl = createMtl(color, defaultOpacity, defaultLineWidth/1.5);
+        let mtl = createMtl(color);//, defaultOpacity, defaultLineWidth/1.5);
         palette.push(mtl);
         if (latkDebug) console.log("Creating new color, " + palette.length + " total colors");
         return palette[palette.length-1];
@@ -555,20 +482,13 @@ function endStroke() {  // TODO draw on new layer
 
 function addTempPoints(x, y, z) {
     tempPoints.push(new THREE.Vector3(x, y, z));
-    tempStrokeGeometry = new THREE.Geometry();
-    tempStrokeGeometry.dynamic = true;
-    for (let i=0; i<tempPoints.length; i++) {
-        tempStrokeGeometry.vertices.push(tempPoints[i]);
-    }
-    tempStrokeGeometry.verticesNeedUpdate = true;
-    tempStrokeGeometry.__dirtyVertices = true; 
+    tempStrokeGeometry = new THREE.BufferGeometry();
+    tempStrokeGeometry.setFromPoints(tempPoints);
 }
 
 function createTempStroke(x, y , z) {
     addTempPoints(x, y, z);
-    let line = new THREE.MeshLine();
-    line.setGeometry(tempStrokeGeometry);
-    tempStroke = new THREE.Mesh(line.geometry, createUniqueMtl(defaultColor));
+    let tempStroke = new THREE.Line(tempStrokeGeometry, createMtl(defaultColor));        
     tempStroke.name = "stroke" + strokeCounter;
     scene.add(tempStroke);
 }
@@ -701,7 +621,7 @@ function latkStart() {
 
     // ~ ~ ~ ~ ~ ~ 
 
-    latk = Latk.read(animationPath);
+    latk = Latk.read("../animations/jellyfish.latk");
 
     if (Util.checkQueryInUrl("frame")) {
         console.log("Frame query detected.");

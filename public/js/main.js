@@ -56,20 +56,6 @@ let armFrameForward = false;
 let armFrameBack = false;
 let armTogglePause = false;
 
-setupPlayer();
-
-function render(timestamp) {
-    let delta = Math.min(timestamp - lastRender, 500);
-    lastRender = timestamp;
-
-    updatePlayer();
-}
-
-let soundPath = "../sounds/avlt.ogg";
-let animationPath = "../animations/jellyfish.json";
-let brushPath = "../images/brush_vive.png";
-//let player; // Tone.js
-let viveMode = false;
 let hidden = false;
 let drawWhilePlaying = true;
 let lightningArtistData;
@@ -94,12 +80,6 @@ let pauseAnimation = false;
 let mouse3D = new THREE.Vector3(0, 0, 0);
 
 let line_mtl = new THREE.LineBasicMaterial();
-
-let text_mtl = new THREE.MeshBasicMaterial({ 
-	color: 0xffff00,
-	depthTest: false,
-	depthWrite: true 
-});
 
 let latkDebug = false;
 
@@ -136,9 +116,51 @@ let c2b3_blocking = false;
 
 let latk;
 
-function animate(timestamp) {
-	if (latk.ready) {
-	    if (armFrameForward) {
+document.addEventListener("mousedown", onMouseDown);
+document.addEventListener("mousemove", onMouseMove);
+document.addEventListener("mouseup", onMouseUp);
+
+document.addEventListener("touchstart", onTouchStart);
+document.addEventListener("touchmove", onTouchMove);
+document.addEventListener("touchend", onTouchEnd);
+
+document.addEventListener("keydown", function(event) {
+    if (event.altKey && !altKeyBlock) {
+        altKeyBlock = true;
+        console.log(altKeyBlock);
+    }
+});
+document.addEventListener("keyup", function(event) {
+    if (altKeyBlock) {
+        altKeyBlock = false;
+        console.log(altKeyBlock);
+    }
+});
+
+function setup() {
+    latk = Latk.read("../animations/jellyfish.latk");
+
+    /*
+    if (Util.checkQueryInUrl("frame")) {
+        console.log("Frame query detected.");
+
+        latk = Latk.read("../animations/test.json");
+        setTimeout(function() {
+            Util.saveImage();
+        }, 2000);
+    }
+    */
+
+    setupPlayer();
+
+    draw();
+}    
+
+function draw() {
+	if (latk.ready) {        
+        updatePlayer();
+	
+        if (armFrameForward) {
 	        armFrameForward = false;
 	        isPlaying = false;
 	        frameForward();
@@ -161,13 +183,6 @@ function animate(timestamp) {
 	            pTime = time;
 	            time = new Date().getTime() / 1000;
 	            frameDelta += time - pTime;
-	        } else if (useAudioSync && !hidden) {
-	            /*
-	            if (subtitleText) {
-	                subtitleText.lookAt(camera);
-	                subtitleText.rotation.set(0, -45, 0);
-	            }
-	            */
 	        }
 
 	        if (frameDelta >= frameInterval) {
@@ -196,34 +211,17 @@ function animate(timestamp) {
 	            }
 	        }
 	    }
-
-	    if (useAudioSync && !hidden) {
-	        if (subtitleText) {
-	            subtitleText.lookAt(camera);
-	            subtitleText.rotation.set(0, -45, 0);
-	        }
-	    }
-	        
+       
 	    if (armSaveJson) {
 	        armSaveJson = false;
-	        isPlaying = false;
+	        isPlaying = false;s
 	        writeJson();
 	    }   
-	    
-	    if (viveMode) {
-	        effect.requestAnimationFrame( animate );
-	        render();
-	    } else {
-	        render(timestamp);
-	        requestAnimationFrame(animate);         
-	    }
 	}
-}
 
-// http://stackoverflow.com/questions/11119753/how-to-rotate-a-object-on-axis-world-three-js
-// http://stackoverflow.com/questions/11060734/how-to-rotate-a-3d-object-on-axis-three-js
-// example:
-// rotateAroundWorldAxis(cube, new THREE.Vector3(1,0,0), 30 * Math.PI/180);     
+    composer.render();
+    requestAnimationFrame(draw);         
+}
 
 function rotateAroundObjectAxis(object, axis, radians) {
     let rotObjectMatrix = new THREE.Matrix4();
@@ -240,77 +238,8 @@ function rotateAroundWorldAxis(object, axis, radians) {
     object.rotation.setFromRotationMatrix(object.matrix);
 }
 
-function createText(_text, x, y, z) {
-    let textGeo = new THREE.TextGeometry(_text, {
-        size: 200,
-        height: 1,
-        curveSegments: 12,
-
-        font: "helvetiker",
-        weight: "bold",
-        style: "normal",
-
-        bevelThickness: 2,
-        bevelSize: 5,
-        bevelEnabled: false
-    });
-
-    textGeo.computeBoundingBox();
-    let centerOffset = -0.5 * (textGeo.boundingBox.max.x - textGeo.boundingBox.min.x);
-
-    let textMesh = new THREE.Mesh(textGeo, text_mtl);
-    textMesh.castShadow = false;
-    textMesh.receiveShadow = false;
-
-    textMesh.position.set(centerOffset + x, y, z);
-
-    scene.add(textMesh);
-    textMesh.parent = camera;
-    textMesh.lookAt(camera);
-    return textMesh;
-}
-
-function createTextAlt(_text, x, y, z) {
-    let loader = new THREE.FontLoader();
-
-    loader.load("./fonts/helvetiker_bold.typeface.json", function (font) {
-        let textGeo = new THREE.TextGeometry(_text, {
-            size: 200,
-            height: 1,
-            curveSegments: 12,
-
-            font: "helvetiker",
-            weight: "bold",
-            style: "normal",
-
-            bevelThickness: 2,
-            bevelSize: 5,
-            bevelEnabled: false
-        });
-
-        textGeo.computeBoundingBox();
-        let centerOffset = -0.5 * (textGeo.boundingBox.max.x - textGeo.boundingBox.min.x);
-
-        let textMesh = new THREE.Mesh(textGeo, text_mtl);
-        textMesh.castShadow = false;
-        textMesh.receiveShadow = false;
-
-        textMesh.position.set(centerOffset + x, y, z);
-
-        scene.add(textMesh);
-        textMesh.parent = camera;
-        textMesh.lookAt(camera);
-        return textMesh;
-    });
-}
-
 function getLoopFrame(_frame) {
     return ((latk.layers[getLongestLayer()].loopCounter * (latk.layers[getLongestLayer()].frames.length - 1)) + (_frame + subsFrameOffset)) * frameInterval;
-}
-
-function showReading() {
-    readingText = createText("READING...", 0, 0, -2000);//1300, -1200, -2800);
-    render(0);
 }
 
 function roundVal(value, decimals) {
@@ -593,45 +522,4 @@ function getPoints(stroke){
     return returns;
 }
 
-function latkStart() {
-    document.addEventListener("mousedown", onMouseDown);
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
-
-    document.addEventListener("touchstart", onTouchStart);
-    document.addEventListener("touchmove", onTouchMove);
-    document.addEventListener("touchend", onTouchEnd);
-
-    document.addEventListener("keydown", function(event) {
-    	if (event.altKey && !altKeyBlock) {
-    		altKeyBlock = true;
-    		console.log(altKeyBlock);
-    	}
-    });
-    document.addEventListener("keyup", function(event) {
-    	if (altKeyBlock) {
-    		altKeyBlock = false;
-    		console.log(altKeyBlock);
-    	}
-    });
-
-    dropZone = document.getElementsByTagName("body")[0];
-    dropZone.addEventListener('dragover', onDragOver);
-    dropZone.addEventListener('drop', onDrop);
-
-    // ~ ~ ~ ~ ~ ~ 
-
-    latk = Latk.read("../animations/jellyfish.latk");
-
-    if (Util.checkQueryInUrl("frame")) {
-        console.log("Frame query detected.");
-
-        latk = Latk.read("../animations/test.json");
-        setTimeout(function() {
-            Util.saveImage();
-        }, 2000);
-    }
-}    
-
-latkStart();
-
+setup();

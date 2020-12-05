@@ -15,8 +15,11 @@ const CONSTANTS = {
  ************************/
 class Player {
   constructor() {
-    //this.player = new mm.SoundFontPlayer('https://storage.googleapis.com/magentadata/js/soundfonts/sgm_plus');
-    this.player = new mm.SoundFontPlayer('./sounds/sgm_plus');
+    //let url = 'https://vr.fox-gieg.com/sounds/sgm_plus';
+    //let url = 'https://vr.fox-gieg.com/rkhive/rk-download/banks/sgm_plus';
+    let url = 'https://storage.googleapis.com/magentadata/js/soundfonts/sgm_plus';
+    //let url = './sounds/sgm_plus';
+    this.player = new mm.SoundFontPlayer(url);
     this.loadAllSamples();
   }
   

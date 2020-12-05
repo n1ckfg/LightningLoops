@@ -31,9 +31,10 @@ scene.background = new THREE.Color("#000000");
 
 const room = new THREE.Mesh(
     new THREE.BoxGeometry(6, 6, 6, 10, 10, 10),
-    new THREE.MeshBasicMaterial({ color: 0x202020, wireframe: true })
+    new THREE.MeshBasicMaterial({ color: 0x050505, wireframe: true })
 );
 room.position.y = 0;
+const preserveList = [ room ];
 scene.add(room);
 
 let now = 0;
@@ -151,14 +152,14 @@ function setup() {
     }
     */
 
-    setupPlayer();
+    setupWasd();
 
     draw();
 }    
 
 function draw() {
 	if (latk.ready) {        
-        updatePlayer();
+        updateWasd();
 	
         if (armFrameForward) {
 	        armFrameForward = false;
@@ -453,7 +454,7 @@ function refreshFrameLast() {  // TODO draw on new layer
 }
 
 function clearFrame() {
-    clearScene(scene);
+    clearScene(preserveList);
 }
 
 function clearTempStroke() {

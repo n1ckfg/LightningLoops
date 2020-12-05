@@ -117,27 +117,6 @@ let c2b3_blocking = false;
 
 let latk;
 
-document.addEventListener("mousedown", onMouseDown);
-document.addEventListener("mousemove", onMouseMove);
-document.addEventListener("mouseup", onMouseUp);
-
-document.addEventListener("touchstart", onTouchStart);
-document.addEventListener("touchmove", onTouchMove);
-document.addEventListener("touchend", onTouchEnd);
-
-document.addEventListener("keydown", function(event) {
-    if (event.altKey && !altKeyBlock) {
-        altKeyBlock = true;
-        console.log(altKeyBlock);
-    }
-});
-document.addEventListener("keyup", function(event) {
-    if (altKeyBlock) {
-        altKeyBlock = false;
-        console.log(altKeyBlock);
-    }
-});
-
 function setup() {
     latk = Latk.read("../animations/jellyfish.latk");
 
@@ -153,6 +132,7 @@ function setup() {
     */
 
     setupWasd();
+    setupMouse();
 
     draw();
 }    
@@ -320,57 +300,6 @@ function compareColor(c1, c2, numPlaces) {
         return true;
     } else {
         return false;
-    }
-}
-
-function onMouseDown(event) {
-    clicked = true;  
-    updateMousePos(event);
-    if (!altKeyBlock) beginStroke(mouse3D.x, mouse3D.y, mouse3D.z);
-}
-
-function onMouseUp(event) {
-    clicked = false;
-    endStroke();
-}
-
-function onMouseMove(event) {
-    if (isDrawing) {
-        updateMousePos(event);
-        updateStroke(mouse3D.x, mouse3D.y, mouse3D.z);
-    }
-}
-
-function updateMousePos(event) {
-    mouse3D = new THREE.Vector3((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
-    mouse3D.unproject(camera);   
-    if (latkDebug) console.log(mouse3D);
-}
-
-function onTouchStart(event) {
-    clicked = true;  
-    updateTouchPos(event);
-    beginStroke(mouse3D.x, mouse3D.y, mouse3D.z);
-}
-
-function onTouchEnd(event) {
-    clicked = false;
-    endStroke();
-}
-
-function onTouchMove(event) {
-    if (isDrawing) {
-        updateTouchPos(event);
-        updateStroke(mouse3D.x, mouse3D.y, mouse3D.z);
-    }
-}
-
-function updateTouchPos(event) {
-    if (event.targetTouches.length > 0) {
-        let touch = event.targetTouches[0];
-        mouse3D = new THREE.Vector3((touch.pageX / window.innerWidth) * 2 - 1, -(touch.pageY / window.innerHeight) * 2 + 1, 0.5);
-        mouse3D.unproject(camera);   
-        //if (debug) console.log(mouse3D);    
     }
 }
 

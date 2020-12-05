@@ -19,6 +19,11 @@ function setupWasd() {
         if (Util.getKeyCode(event) === 'd') isWalkingRight = true;
         if (Util.getKeyCode(event) === 'q') isFlyingDown = true;
         if (Util.getKeyCode(event) === 'e') isFlyingUp = true;
+
+        if (event.altKey && !altKeyBlock) {
+            altKeyBlock = true;
+            console.log(altKeyBlock);
+        }
     });
 
     window.addEventListener("keyup", function(event) {
@@ -28,6 +33,11 @@ function setupWasd() {
         if (Util.getKeyCode(event) === 'd') isWalkingRight = false;
         if (Util.getKeyCode(event) === 'q') isFlyingDown = false;
         if (Util.getKeyCode(event) === 'e') isFlyingUp = false;
+
+        if (altKeyBlock) {
+            altKeyBlock = false;
+            console.log(altKeyBlock);
+        }
     });
 }
 

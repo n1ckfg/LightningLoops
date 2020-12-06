@@ -31,7 +31,7 @@ scene.background = new THREE.Color("#000000");
 
 const room = new THREE.Mesh(
     new THREE.BoxGeometry(6, 6, 6, 10, 10, 10),
-    new THREE.MeshBasicMaterial({ color: new THREE.Color(0.15, 0.05, 0.05), wireframe: true })
+    new THREE.MeshBasicMaterial({ color: new THREE.Color(0.12, 0.03, 0.03), wireframe: true })
 );
 room.position.y = 0;
 scene.add(room);
@@ -43,7 +43,7 @@ let now = 0;
 
 const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
 bloomPass.threshold = 0; //0;
-bloomPass.strength = 6; //1.5;
+bloomPass.strength = 10; //1.5;
 bloomPass.radius = 0.8; //0.8
 
 const renderPass = new THREE.RenderPass(scene, camera);
@@ -98,9 +98,9 @@ function createMtl(color) {
     return mtl;
 }
 
-const localColor = [0.667, 0.667, 1];
+const localColor = [0.2, 0.2, 1];
 const localMtl = createMtl(localColor);
-const remoteColor = [1, 0.5, 0.25];
+const remoteColor = [1, 0.25, 0.25];
 const remoteMtl = createMtl(remoteColor);
 
 let bigLocalGeoBuffer = new THREE.BufferGeometry();
@@ -119,9 +119,12 @@ let localTempVec3Array = [];
 let remoteTempVec3Array = [];
 
 function setup() {
-    latk = new Latk(true);//Latk.read("../animations/jellyfish.latk");
-    for (let i=0; i<12; i++) {
-        latk.getLastLayer().frames.push(new LatkFrame());
+    latk = new Latk();//Latk.read("../animations/jellyfish.latk");
+    for (let h=0; h<2; h++) {
+        latk.layers.push(new LatkLayer());
+        for (let i=0; i<12; i++) {
+            latk.layers[h].frames.push(new LatkFrame());
+        }
     }
 
     setupWasd();
@@ -167,31 +170,33 @@ function draw() {
         }
 
         if (isDrawing) {
-            let drawTrailLength = 30;
-
             if (drawWhilePlaying && frameDelta === 0) {
-                createStroke(localTempVec3Array);
+                createStroke(localTempVec3Array, 0);
                 localTempVec3Array = [];
             }
         }
     }
-   
+
+    refreshRemoteFrame(1);
+
     if (armSaveJson) {
         armSaveJson = false;
         isPlaying = false;
         writeJson();
-    }   
+    }  
 
-    for(let layer of latk.layers) {
-        for (let stroke of layer.getCurrentFrame().strokes) {
-            bigRemotePoints = bigRemotePoints.concat(convertLatkPointToLineSegments(stroke.points));
-        }
+    bigLocalPoints = convertVec3ToLineSegments(localTempVec3Array);
+
+    for (let stroke of latk.layers[0].getCurrentFrame().strokes) {
+        bigLocalPoints = bigLocalPoints.concat(convertLatkPointToLineSegments(stroke.points));
     }
 
-    bigLocalPoints = bigLocalPoints.concat(convertVec3ToLineSegments(localTempVec3Array));
+    for (let stroke of latk.layers[1].getCurrentFrame().strokes) {
+        bigRemotePoints = bigRemotePoints.concat(convertLatkPointToLineSegments(stroke.points));
+    }
 
     bigLocalGeoBuffer.setFromPoints(bigLocalPoints);
-    bigRemoteGeoBuffer.setFromPoints(bigRemotePoints);
+    bigRemoteGeoBuffer.setFromPoints(bigRemotePoints); 
 
     composer.render();
     requestAnimationFrame(draw);     
@@ -236,37 +241,34 @@ function roundVal(value, decimals) {
 } 
 
 function tempStrokeToJson() {
-    /*
-    try {
-        let color = localColor;
-        let sb = [];
-        sb.push("{");
-        sb.push("\"timestamp\": " + new Date().getTime() + ",");
-        sb.push("\"index\": " + latk.layers[latk.layers.length-1].counter + ",");
-        sb.push("\"color\": [" + color[0] + ", " + color[1] + ", " + color[2]+ "],");
-        sb.push("\"points\": [");
-        for (let j=0; j<tempStroke.geometry.attributes.position.array.length; j += 6 ) { 
-            let x = tempStroke.geometry.attributes.position.array[j];
-            let y = tempStroke.geometry.attributes.position.array[j+1];
-            let z = tempStroke.geometry.attributes.position.array[j+2];
+    //try {
+    let layer = latk.getLastLayer();
 
-            let point = cleanPoint(x, y, z);
+    let sb = [];
+    sb.push("{");
+    sb.push("\"timestamp\": " + new Date().getTime() + ",");
+    sb.push("\"index\": " + layer.counter + ",");
+    sb.push("\"color\": [" + localColor[0] + ", " + localColor[1] + ", " + localColor[2]+ "],");
+    sb.push("\"points\": [");
+    for (let i=0; i<localTempVec3Array.length; i++) { 
+        let x = localTempVec3Array[i].x;
+        let y = localTempVec3Array[i].y;
+        let z = localTempVec3Array[i].z;
 
-            sb.push("{\"co\": [" + point.x + ", " + point.y + ", " + point.z + "]");                  
-            if (j >= tempStroke.geometry.attributes.position.array.length - 6) {
-                sb[sb.length-1] += "}";
-            } else {
-                sb[sb.length-1] += "},";
-            }
+        sb.push("{\"co\": [" + x + ", " + y + ", " + z + "]");                  
+        if (i >= localTempVec3Array.length - 1) {
+            sb[sb.length-1] += "}";
+        } else {
+            sb[sb.length-1] += "},";
         }
-        sb.push("]");
-        sb.push("}");
-
-        return JSON.parse(sb.join(""));
-    } catch (e) {
-        console.log("Something went wrong sending a stroke.")
     }
-    */
+    sb.push("]");
+    sb.push("}");
+
+    return JSON.parse(sb.join(""));
+    //} catch (e) {
+        //console.log("Something went wrong sending a stroke.")
+    //}
 }
 
 // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
@@ -291,7 +293,7 @@ function updateStroke(x, y, z) {
 function endStroke() {  // TODO draw on new layer
     //if (isDrawing) {
 	isDrawing = false;
-    createStroke(localTempVec3Array);
+    createStroke(localTempVec3Array, 0);
     //~
     socket.emit("clientStrokeToServer", tempStrokeToJson());
     //~
@@ -300,8 +302,8 @@ function endStroke() {  // TODO draw on new layer
     getMagentaButton(localTempVec3Array);
 }
 
-function createStroke(vec3Array) {
-    latk.layers[0].getCurrentFrame().strokes.push(new LatkStroke(convertVec3ToLatkArray(vec3Array)));
+function createStroke(vec3Array, index) {
+    latk.layers[index].getCurrentFrame().strokes.push(new LatkStroke(convertVec3ToLatkArray(vec3Array)));
 }
 // ~ ~ ~ 
 
@@ -319,13 +321,13 @@ function getMagentaButton(points) {
     }
 }
 
-function refreshFrame(index) {
-	if (latk.layers[index].frames[latk.layers[index].counter]) {
-	    for (let i=0; i<latk.layers[index].frames[latk.layers[index].counter].length; i++) {
-	        scene.add(latk.layers[index].frames[latk.layers[index].counter][i]);
-	    }
-	    socket.emit("clientRequestFrame", { num: latk.layers[index].counter });
-	}
+function refreshRemoteFrame(index) {
+	//if (latk.layers[index].frames[latk.layers[index].counter]) {
+	    //for (let i=0; i<latk.layers[index].frames[latk.layers[index].counter].length; i++) {
+	        //scene.add(latk.layers[index].frames[latk.layers[index].counter][i]);
+	    //}
+	socket.emit("clientRequestFrame", { num: latk.layers[index].counter });
+	//}
 }
 
 function frameMotor() {

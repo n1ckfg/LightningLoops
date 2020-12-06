@@ -57,9 +57,7 @@ let armFrameForward = false;
 let armFrameBack = false;
 let armTogglePause = false;
 
-let hidden = false;
 let drawWhilePlaying = true;
-let lightningArtistData;
 let clicked = false;
 
 let laScale = 10;
@@ -70,8 +68,6 @@ let useScaleAndOffset = true;
 let globalScale = new THREE.Vector3(0.1, 0.1, 0.1);
 let globalOffset = new THREE.Vector3(0, 0, 0);
 
-let subsCounter = 0;
-let subsFrameOffset = 44;
 let fps = 12.0;
 let frameInterval = (1.0/fps);// * 1000;
 let frameDelta = 0;
@@ -104,8 +100,6 @@ let roundValues = true;
 let numPlaces = 7;
 let altKeyBlock = false;
 
-let useAudioSync = false;
-
 let c1b0_blocking = false;
 let c1b1_blocking = false;
 let c1b2_blocking = false;
@@ -115,13 +109,12 @@ let c2b1_blocking = false;
 let c2b2_blocking = false;
 let c2b3_blocking = false;
 
-let latk;
+let latk, layer;
 let firstRun = true;
 
 function setup() {
-    latk = new Latk();
-    latk.ready = true;
-
+    latk = new Latk(true);
+    layer = latk.getLastLayer();
     /*
     if (Util.checkQueryInUrl("frame")) {
         console.log("Frame query detected.");
@@ -148,6 +141,7 @@ function draw() {
                 latk.layers[last].frames.push(new LatkFrame());
             }
             isPlaying = true;
+            console.log("frames: " + latk.getLastLayer().frames.length);
             firstRun = false;
         }     
 
@@ -172,11 +166,9 @@ function draw() {
 	    }
 
 	    if (isPlaying) {
-	        if (!useAudioSync && !hidden) {
-	            pTime = time;
-	            time = new Date().getTime() / 1000;
-	            frameDelta += time - pTime;
-	        }
+            pTime = time;
+            time = new Date().getTime() / 1000;
+            frameDelta += time - pTime;
 
 	        if (frameDelta >= frameInterval) {
 	            frameDelta = 0;
@@ -229,10 +221,6 @@ function rotateAroundWorldAxis(object, axis, radians) {
     rotWorldMatrix.multiply(object.matrix);                // pre-multiply
     object.matrix = rotWorldMatrix;
     object.rotation.setFromRotationMatrix(object.matrix);
-}
-
-function getLoopFrame(_frame) {
-    return ((latk.layers[getLongestLayer()].loopCounter * (latk.layers[getLongestLayer()].frames.length - 1)) + (_frame + subsFrameOffset)) * frameInterval;
 }
 
 function roundVal(value, decimals) {
@@ -341,7 +329,7 @@ function endStroke() {  // TODO draw on new layer
     let last = latk.layers.length-1;
     latk.layers[last].frames[latk.layers[last].counter].strokes.push(tempStroke);
     //~
-    socket.emit("clientStrokeToServer", tempStrokeToJson());
+    //socket.emit("clientStrokeToServer", tempStrokeToJson());
     //~
     clearTempStroke();
     refreshFrameLast();
@@ -390,8 +378,7 @@ function refreshFrame(index) {
 }
 
 function refreshFrameLast() {  // TODO draw on new layer
-    let last = latk.layers.length - 1;
-    let strokes = latk.layers[last].frames[latk.layers[last].frames.length-1].strokes;
+    let strokes = latk.getLastLayer().getLastFrame().strokes;
     for (let stroke of strokes) {
         createStroke(stroke);
     }
@@ -439,14 +426,6 @@ function frameBack() {
         if (latk.layers[h].counter <= 0) latk.layers[h].counter = latk.layers[h].frames.length - 1;
         redrawFrame(h);
     }
-}
-
-function getLongestLayer() {
-    let returns = 0;
-    for (let h=0; h<latk.layers.length; h++) {
-        if (latk.layers[h].frames.length > returns) returns = h;
-    }
-    return returns;
 }
 
 function getPoints(stroke){

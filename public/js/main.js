@@ -220,22 +220,20 @@ function vec3ToLatkPoint(vec3) {
 
 function convertLatkPointToLineSegments(latkPointArray) {
     let returns = [];
-    for (let i=0; i<latkPointArray.length; i++) {
-        let vec3 = latkPointToVec3(latkPointArray[i]);
-        if (i > 0) returns.push(vec3);
-        returns.push(vec3);
+    for (let i=1; i<latkPointArray.length; i++) {
+        returns.push(latkPointToVec3(latkPointArray[i-1]));
+        returns.push(latkPointToVec3(latkPointArray[i]));
     }
     return returns;
 }
 
 function convertVec3ToLineSegments(vec3Array) {
     let returns = [];
-    for (let i=0; i<vec3Array.length; i++) {
-        let vec3 = vec3Array[i];
-        if (i>0) returns.push(vec3);
-        returns.push(vec3);
+    for (let i=1; i<vec3Array.length; i++) {
+        returns.push(vec3Array[i-1]);
+        returns.push(vec3Array[i]);
     }
-    return returns;    
+    return returns; 
 }
 
 function convertVec3ToLatkArray(vec3Array) {

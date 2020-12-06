@@ -116,9 +116,11 @@ let c2b2_blocking = false;
 let c2b3_blocking = false;
 
 let latk;
+let firstRun = true;
 
 function setup() {
-    latk = Latk.read("../animations/jellyfish.latk");
+    latk = new Latk();
+    latk.ready = true;
 
     /*
     if (Util.checkQueryInUrl("frame")) {
@@ -138,7 +140,17 @@ function setup() {
 }    
 
 function draw() {
-	if (latk.ready) {        
+	if (latk.ready) {   
+        if (firstRun) {
+            latk.layers.push(new LatkLayer());  
+            let last = latk.layers.length-1;
+            for (let i=0; i<12; i++) {
+                latk.layers[last].frames.push(new LatkFrame());
+            }
+            isPlaying = true;
+            firstRun = false;
+        }     
+
         updateWasd();
 	
         if (armFrameForward) {
@@ -182,9 +194,9 @@ function draw() {
 	                let startIdx = parseInt(points.length - drawTrailLength);
 	                if (startIdx < 0) startIdx = 0;
 	                for (let pts = startIdx; pts < points.length-1; pts++) {
-	                    createTempStroke(points[pts].x, points[pts].y, points[pts].z);
+	                    createStroke(points[pts].x, points[pts].y, points[pts].z);
 	                }
-	                latk.layers[last].frames[latk.layers[last].counter].push(tempStroke);
+	                latk.layers[last].frames[latk.layers[last].counter].strokes.push(tempStroke);
 	                //~
 	                endStroke();
 
@@ -309,7 +321,7 @@ function beginStroke(x, y, z) {
     //isPlaying = false;
     tempPoints = [];
     //clearTempStroke();
-    createTempStroke(x, y, z);
+    createStroke(x, y, z);
     if (latkDebug) console.log("Begin " + tempStroke.name + ".");
 }
 
@@ -318,7 +330,7 @@ function updateStroke(x, y, z) {
 
     if (p.distanceTo(tempPoints[tempPoints.length-1]) > minDistance) {
         clearTempStroke();
-        createTempStroke(x, y, z);
+        createStroke(x, y, z);
         if (latkDebug) console.log("Update " + tempStroke.name + ": " + tempStrokeGeometry.vertices.length + " points."); 
     }
 }
@@ -327,7 +339,7 @@ function endStroke() {  // TODO draw on new layer
     //if (isDrawing) {
 	isDrawing = false;
     let last = latk.layers.length-1;
-    latk.layers[last].frames[latk.layers[last].counter].push(tempStroke);
+    latk.layers[last].frames[latk.layers[last].counter].strokes.push(tempStroke);
     //~
     socket.emit("clientStrokeToServer", tempStrokeToJson());
     //~
@@ -345,7 +357,7 @@ function addTempPoints(x, y, z) {
     tempStrokeGeometry.setFromPoints(tempPoints);
 }
 
-function createTempStroke(x, y , z) {
+function createStroke(x, y , z) {
     addTempPoints(x, y, z);
     let tempStroke = new THREE.Line(tempStrokeGeometry, createMtl(defaultColor));        
     tempStroke.name = "stroke" + strokeCounter;
@@ -379,7 +391,10 @@ function refreshFrame(index) {
 
 function refreshFrameLast() {  // TODO draw on new layer
     let last = latk.layers.length - 1;
-    scene.add(latk.layers[last].frames[latk.layers[last].counter][latk.layers[last].frames[latk.layers[last].counter].length-1]);
+    let strokes = latk.layers[last].frames[latk.layers[last].frames.length-1].strokes;
+    for (let stroke of strokes) {
+        createStroke(stroke);
+    }
 }
 
 function clearFrame() {
@@ -406,11 +421,6 @@ function frameMain() {
         if (latk.layers[h].counter >= latk.layers[h].frames.length - 1) {
             latk.layers[h].counter = 0;
             latk.layers[h].loopCounter++;
-            
-            if (h == getLongestLayer()) {
-                subsCounter = 0;
-                scheduleSubtitles();
-            }
         }
     }
 }

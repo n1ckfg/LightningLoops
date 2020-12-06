@@ -130,10 +130,10 @@ function setup() {
 function draw() {
     bigLocalPoints = [];
     bigRemotePoints = [];
+    if (!isDrawing) localTempVec3Array = [];
 
     updateWasd();
 
-    /*
     if (armFrameForward) {
         armFrameForward = false;
         isPlaying = false;
@@ -151,7 +151,6 @@ function draw() {
         console.log("playing: " + isPlaying);
         armTogglePause = false;
     }
-    */
 
     if (isPlaying) {
         pTime = time;
@@ -164,36 +163,21 @@ function draw() {
             frameMotor();
         }
 
-        /*
         if (isDrawing) {
-            let last = latk.layers.length - 1;
-            let drawTrailLength = 3;
+            let drawTrailLength = 30;
 
-            if (drawWhilePlaying && frameDelta === 0 && latk.layers[last].frames.length > 1 && latk.layers[last].frames[latk.layers[last].previousFrame].length > 0) {
-                let lastStroke = latk.layers[last].frames[latk.layers[last].previousFrame][latk.layers[last].frames[latk.layers[last].previousFrame].length - 1];
-                let points = getPoints(lastStroke);
-                let startIdx = parseInt(points.length - drawTrailLength);
-                if (startIdx < 0) startIdx = 0;
-                for (let pts = startIdx; pts < points.length-1; pts++) {
-                    createStroke(points[pts].x, points[pts].y, points[pts].z);
-                }
-                latk.layers[last].frames[latk.layers[last].counter].strokes.push(tempStroke);
-                //~
-                endStroke();
-
-                beginStroke(mouse3D.x, mouse3D.y, mouse3D.z);
+            if (drawWhilePlaying && frameDelta === 0) {
+                createStroke(localTempVec3Array);
+                localTempVec3Array = [];
             }
         }
-        */
     }
    
-    /*
     if (armSaveJson) {
         armSaveJson = false;
         isPlaying = false;
         writeJson();
     }   
-    */
 
     for(let layer of latk.layers) {
         for (let stroke of layer.getCurrentFrame().strokes) {
@@ -304,7 +288,7 @@ function updateStroke(x, y, z) {
 function endStroke() {  // TODO draw on new layer
     //if (isDrawing) {
 	isDrawing = false;
-    latk.getLastLayer().getCurrentFrame().strokes.push(new LatkStroke(convertVec3ToLatkArray(localTempVec3Array)));
+    createStroke(localTempVec3Array);
     //~
     //socket.emit("clientStrokeToServer", tempStrokeToJson());
     //~
@@ -313,6 +297,9 @@ function endStroke() {  // TODO draw on new layer
     getMagentaButton(localTempVec3Array);
 }
 
+function createStroke(vec3Array) {
+    latk.layers[0].getCurrentFrame().strokes.push(new LatkStroke(convertVec3ToLatkArray(vec3Array)));
+}
 // ~ ~ ~ 
 
 function getMagentaButton(points) {

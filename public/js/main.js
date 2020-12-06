@@ -31,7 +31,7 @@ scene.background = new THREE.Color("#000000");
 
 const room = new THREE.Mesh(
     new THREE.BoxGeometry(6, 6, 6, 10, 10, 10),
-    new THREE.MeshBasicMaterial({ color: 0xf50505, wireframe: true })
+    new THREE.MeshBasicMaterial({ color: new THREE.Color(0.15, 0.05, 0.05), wireframe: true })
 );
 room.position.y = 0;
 scene.add(room);
@@ -119,7 +119,10 @@ let localTempVec3Array = [];
 let remoteTempVec3Array = [];
 
 function setup() {
-    latk = Latk.read("../animations/jellyfish.latk");
+    latk = new Latk(true);//Latk.read("../animations/jellyfish.latk");
+    for (let i=0; i<12; i++) {
+        latk.getLastLayer().frames.push(new LatkFrame());
+    }
 
     setupWasd();
     setupMouse();

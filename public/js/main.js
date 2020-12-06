@@ -235,8 +235,8 @@ function roundVal(value, decimals) {
     return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
 } 
 
-/*
 function tempStrokeToJson() {
+    /*
     try {
         let color = localColor;
         let sb = [];
@@ -266,8 +266,8 @@ function tempStrokeToJson() {
     } catch (e) {
         console.log("Something went wrong sending a stroke.")
     }
+    */
 }
-*/
 
 // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
@@ -293,7 +293,7 @@ function endStroke() {  // TODO draw on new layer
 	isDrawing = false;
     createStroke(localTempVec3Array);
     //~
-    //socket.emit("clientStrokeToServer", tempStrokeToJson());
+    socket.emit("clientStrokeToServer", tempStrokeToJson());
     //~
     console.log("End stroke.");
 	//}

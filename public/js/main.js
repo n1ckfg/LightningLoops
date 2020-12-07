@@ -120,11 +120,11 @@ let localTempVec3Array = [];
 let remoteTempVec3Array = [];
 
 function setup() {
-    latk = new Latk();//Latk.read("../animations/jellyfish.latk");
+    latk = new LatkThree();//Latk.read("../animations/jellyfish.latk");
     for (let h=0; h<2; h++) {
-        latk.layers.push(new LatkLayer());
+        latk.layers.push(new LatkLayerThree());
         for (let i=0; i<12; i++) {
-            latk.layers[h].frames.push(new LatkFrame());
+            latk.layers[h].frames.push(new LatkFrameThree());
         }
     }
 
@@ -215,7 +215,7 @@ function latkPointToVec3(latkPoint) {
 }
 
 function vec3ToLatkPoint(vec3) {
-    return new LatkPoint([vec3.x, vec3.y, vec3.z]);
+    return new LatkPointThree([vec3.x, vec3.y, vec3.z]);
 }
 
 function convertLatkPointToLineSegments(latkPointArray) {
@@ -311,7 +311,7 @@ function endStroke() {  // TODO draw on new layer
 }
 
 function createStroke(vec3Array, index) {
-    latk.layers[index].getCurrentFrame().strokes.push(new LatkStroke(convertVec3ToLatkArray(vec3Array)));
+    latk.layers[index].getCurrentFrame().strokes.push(new LatkStrokeThree(convertVec3ToLatkArray(vec3Array)));
 }
 // ~ ~ ~ 
 

@@ -311,7 +311,13 @@ function endStroke() {  // TODO draw on new layer
 }
 
 function createStroke(vec3Array, index) {
-    latk.layers[index].getCurrentFrame().strokes.push(new LatkStroke(convertVec3ToLatkArray(vec3Array)));
+    if (index == 0) {
+        latk.layers[index].getCurrentFrame().strokes.push(new LatkStroke(convertVec3ToLatkArray(vec3Array)));
+    } else {
+        let stroke = new LatkStrokeMorph(convertVec3ToLatkArray(vec3Array));
+        stroke.doTurtle();
+        latk.layers[index].getCurrentFrame().strokes.push(stroke);        
+    }
 }
 // ~ ~ ~ 
 

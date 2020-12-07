@@ -314,9 +314,13 @@ function createStroke(vec3Array, index) {
     if (index == 0) {
         latk.layers[index].getCurrentFrame().strokes.push(new LatkStroke(convertVec3ToLatkArray(vec3Array)));
     } else {
-        let stroke = new LatkStrokeMorph(convertVec3ToLatkArray(vec3Array));
-        stroke.doTurtle();
-        latk.layers[index].getCurrentFrame().strokes.push(stroke);        
+        if (Math.random() < vec3Array.length/1000.0) {
+            let stroke = new LatkStrokeMorph(convertVec3ToLatkArray(vec3Array));
+            stroke.doTurtle();
+            latk.layers[index].getCurrentFrame().strokes.push(stroke);     
+        } else {
+            latk.layers[index].getCurrentFrame().strokes.push(new LatkStroke(convertVec3ToLatkArray(vec3Array)));            
+        }   
     }
 }
 // ~ ~ ~ 

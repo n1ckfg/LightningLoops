@@ -6,23 +6,22 @@ class LatkStrokeMorph extends LatkStroke {
     constructor(points, color, fill_color) {
         super(points, color, fill_color);
 
-        this.numCmds = 60;
-		this.globalSpeedFactor = 4;
-		this.globalScale = new THREE.Vector3(50, -50, 50);
+        this.numCmds = 30;
+		this.globalSpeedFactor = 1;
+		//this.globalScale = new THREE.Vector3(50, -50, 50);
 		//this.globalOffset = new THREE.Vector3(-20, 60, -350); 
-		this.globalSpread = 7;
+		//this.globalSpread = 7;
 		this.now = 0;
-		this.maxComplexity = this.numCmds*3;
+		this.maxComplexity = 30;
         this.lexicon = "FfXxYyZz<>(.".split("");
         this.cmds = this.createCmds(this.numCmds);
 		this.turtleStep = 0.5;
-		this.size = 35;
 		this.axisX = new THREE.Vector3(1, 0, 0);
 		this.axisY = new THREE.Vector3(0, 1, 0);
 		this.axisZ = new THREE.Vector3(0, 0, 1);
 		this.angleChange = 1.25;
-		this.timeShift = Math.random() * 0.2;
-		this.pos = new THREE.Vector3(0,0,0);
+		this.timeShift = Math.random() * 0.1;
+		//this.pos = new THREE.Vector3(0,0,0);
     }
 
 	createCmds(size) {
@@ -30,6 +29,7 @@ class LatkStrokeMorph extends LatkStroke {
 		for (let i=0; i<size; i++) {
 			geno.push(this.lexicon[parseInt(Math.random() * this.lexicon.length)]);	
 		}
+		this.maxComplexity = size;
 		return geno;
 	}
 
@@ -83,17 +83,26 @@ class LatkStrokeMorph extends LatkStroke {
 				let morelines = this.turtledraw(t1, cmds.slice(i+1));
 				lines = lines.concat(morelines);
 			}
-		}
 
-		if (lines.length > this.maxComplexity) lines.length = this.maxComplexity;
+			if (lines.length > this.maxComplexity) {
+				lines.length = this.maxComplexity;
+				break;
+			}
+		}
 
 		return lines;
 	}
 
 
 	doTurtle() {
-		let pos = this.points[0].co;
-		let turtle = new Turtle(new THREE.Vector3(pos[0], pos[1], pos[2]), new THREE.Vector3(0, 0.1, 0), Math.PI/4);
+		let pos = this.points[parseInt(Math.random() * this.points.length-1)].co;
+		let dx = Math.random() * 0.2 - 0.1;
+		let dy = Math.random() * 0.2 - 0.1;
+		let dz = Math.random() * 0.2 - 0.1;
+		let turtle = new Turtle(new THREE.Vector3(pos[0], pos[1], pos[2]), new THREE.Vector3(dx, dy, dz), Math.PI/4);
+
+		this.numCmds = parseInt(this.points.length/2);
+		this.cmds = this.createCmds(this.numCmds);
 
 		let turtlePoints = this.turtledraw(turtle, this.cmds);	
 

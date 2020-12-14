@@ -74,7 +74,7 @@ if (!debug) {
 
 // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
-const strokeLifetime = 5000;
+const strokeLifetime = 10000;
 
 class Frame {
     constructor() {

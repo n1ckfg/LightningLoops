@@ -74,7 +74,7 @@ if (!debug) {
 
 // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
-let strokeLifetime = 10000;
+const strokeLifetime = 5000;
 
 class Frame {
     constructor() {
@@ -120,6 +120,7 @@ class Layer {
 let layer = new Layer();
 
 setInterval(function() {
+    /*
     let time = new Date().getTime();
 
     for (let i=0; i<layer.frames.length; i++) {
@@ -129,6 +130,11 @@ setInterval(function() {
                 console.log("X Removing frame " + i + ", stroke " + j + ".");
             }
         }
+    }
+    */
+    for (let i=0; i<layer.frames.length; i++) {
+        layer.frames[i].strokes.shift();
+        console.log("X Removing oldest stroke from frame " + i + ".");
     }
 }, strokeLifetime);
 

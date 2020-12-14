@@ -119,6 +119,8 @@ scene.add(bigRemoteLine);
 let localTempVec3Array = [];
 let remoteTempVec3Array = [];
 
+const strokeLife = 0.01;
+
 function setup() {
     latk = new Latk();//Latk.read("../animations/jellyfish.latk");
     for (let h=0; h<2; h++) {
@@ -186,6 +188,14 @@ function draw() {
     }
 
     refreshRemoteFrame(1);
+
+    if (Math.random() < strokeLife) {
+        for (let i=0; i<latk.layers.length; i++) {
+            for (let j=0; j<latk.layers[i].frames.length; j++) {
+                latk.layers[i].frames[j].strokes.shift();
+            }
+        }
+    }
 
     if (armSaveJson) {
         armSaveJson = false;

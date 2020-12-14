@@ -10,4 +10,4 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 cd $DIR
 
-nodemon app.js
+node app.js

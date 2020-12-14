@@ -22,6 +22,7 @@ class LatkStrokeMorph extends LatkStroke {
 		this.angleChange = 1.25;
 		this.timeShift = Math.random() * 0.1;
 		//this.pos = new THREE.Vector3(0,0,0);
+		this.timestamp = new Date().getTime();
     }
 
 	createCmds(size) {

@@ -20,6 +20,10 @@ function setupWasd() {
         if (Util.getKeyCode(event) === 'q') isFlyingDown = true;
         if (Util.getKeyCode(event) === 'e') isFlyingUp = true;
 
+        if (Util.getKeyCode(event) === 'j') armFrameBack = true;
+        if (Util.getKeyCode(event) === 'k' || Util.getKeyCode(event) === ' ') armTogglePause = true;
+        if (Util.getKeyCode(event) === 'l') armFrameForward = true;
+
         if (event.altKey && !altKeyBlock) {
             altKeyBlock = true;
             console.log(altKeyBlock);
@@ -33,6 +37,10 @@ function setupWasd() {
         if (Util.getKeyCode(event) === 'd') isWalkingRight = false;
         if (Util.getKeyCode(event) === 'q') isFlyingDown = false;
         if (Util.getKeyCode(event) === 'e') isFlyingUp = false;
+
+        if (Util.getKeyCode(event) === 'j') armFrameBack = false;
+        if (Util.getKeyCode(event) === 'k' || Util.getKeyCode(event) === ' ') armTogglePause = false;
+        if (Util.getKeyCode(event) === 'l') armFrameForward = false;
 
         if (altKeyBlock) {
             altKeyBlock = false;

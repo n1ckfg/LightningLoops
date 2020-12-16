@@ -143,25 +143,23 @@ function draw() {
 
     updateWasd();
 
-    /*
     if (armFrameForward) {
         armFrameForward = false;
         isPlaying = false;
         frameForward();
-        console.log("ff: " + counter);
+        console.log("ff");
     }
     if (armFrameBack) {
         armFrameBack = false;
         isPlaying = false;
         frameBack();
-        console.log("rew: " + counter);
+        console.log("rew");
     }
     if (armTogglePause) {
         isPlaying = !isPlaying;
         console.log("playing: " + isPlaying);
         armTogglePause = false;
     }
-    */
 
     if (isPlaying) {
         pTime = time;
@@ -173,21 +171,9 @@ function draw() {
 
             frameMotor();
         }
-
-        /*
-        if (isDrawing) {
-            if (drawWhilePlaying && frameDelta === 0) {
-                if (Math.random() < 0.05) {
-                    createStroke(localTempVec3Array, 0);
-                    socket.emit("clientStrokeToServer", tempStrokeToJson());
-                    localTempVec3Array = [];
-                }
-            }
-        }
-        */
+        
+        refreshRemoteFrame();
     }
-
-    refreshRemoteFrame(1);
 
     if (Math.random() < strokeLife) {
         for (let i=0; i<latk.layers.length; i++) {
@@ -197,24 +183,13 @@ function draw() {
         }
     }
 
+    refreshLocalFrame();
+
     if (armSaveJson) {
         armSaveJson = false;
         isPlaying = false;
         writeJson();
     }  
-
-    bigLocalPoints = convertVec3ToLineSegments(localTempVec3Array);
-
-    for (let stroke of latk.layers[0].getCurrentFrame().strokes) {
-        bigLocalPoints = bigLocalPoints.concat(convertLatkPointToLineSegments(stroke.points));
-    }
-
-    for (let stroke of latk.layers[1].getCurrentFrame().strokes) {
-        bigRemotePoints = bigRemotePoints.concat(convertLatkPointToLineSegments(stroke.points));
-    }
-
-    bigLocalGeoBuffer.setFromPoints(bigLocalPoints);
-    bigRemoteGeoBuffer.setFromPoints(bigRemotePoints); 
 
     composer.render();
     requestAnimationFrame(draw);     
@@ -349,13 +324,24 @@ function getMagentaButton(points) {
     }
 }
 
-function refreshRemoteFrame(index) {
-	//if (latk.layers[index].frames[latk.layers[index].counter]) {
-	    //for (let i=0; i<latk.layers[index].frames[latk.layers[index].counter].length; i++) {
-	        //scene.add(latk.layers[index].frames[latk.layers[index].counter][i]);
-	    //}
-	socket.emit("clientRequestFrame", { num: latk.layers[index].counter });
-	//}
+function refreshRemoteFrame() {
+	socket.emit("clientRequestFrame", { num: latk.layers[1].counter });
+
+    for (let stroke of latk.layers[1].getCurrentFrame().strokes) {
+        bigRemotePoints = bigRemotePoints.concat(convertLatkPointToLineSegments(stroke.points));
+    }
+
+    bigRemoteGeoBuffer.setFromPoints(bigRemotePoints); 
+}
+
+function refreshLocalFrame() {
+    bigLocalPoints = convertVec3ToLineSegments(localTempVec3Array);
+    
+    for (let stroke of latk.layers[0].getCurrentFrame().strokes) {
+        bigLocalPoints = bigLocalPoints.concat(convertLatkPointToLineSegments(stroke.points));
+    }
+
+    bigLocalGeoBuffer.setFromPoints(bigLocalPoints);
 }
 
 function frameMotor() {
@@ -374,16 +360,16 @@ function frameForward() {
     for (let h=0; h<latk.layers.length; h++) {        
         latk.layers[h].counter++;
         if (latk.layers[h].counter >= latk.layers[h].frames.length - 1) latk.layers[h].counter = 0;
-        //redrawFrame(h);
     }
+    refreshRemoteFrame();
 }
 
 function frameBack() {
     for (let h=0; h<latk.layers.length; h++) {        
         latk.layers[h].counter--;
         if (latk.layers[h].counter <= 0) latk.layers[h].counter = latk.layers[h].frames.length - 1;
-        //redrawFrame(h);
     }
+    refreshRemoteFrame();
 }
 
 setup();

@@ -68,9 +68,9 @@ const onWebhook = (req, res) => {
   let sig  = `sha1=${hmac.update(JSON.stringify(req.body)).digest("hex")}`;
 
   if (req.headers["x-github-event"] === "push" && sig === req.headers["x-hub-signature"]) {
-    cmd.run("chmod 777 ./redeploy.sh"); 
+    cmd.run("chmod 777 ./git.sh"); 
 
-    cmd.get("./redeploy.sh", (err, data) => {  
+    cmd.get("./git.sh", (err, data) => {  
       if (data) {
         console.log(data);
       }

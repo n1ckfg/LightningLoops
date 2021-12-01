@@ -68,15 +68,15 @@ const onWebhook = (req, res) => {
   let sig  = `sha1=${hmac.update(JSON.stringify(req.body)).digest("hex")}`;
 
   if (req.headers["x-github-event"] === "push" && sig === req.headers["x-hub-signature"]) {
-    cmd.run("chmod +x ./git.sh"); 
-    cmd.run("./git.sh");
+    cmd.run("chmod +x ./redeploy.sh"); 
+    cmd.run("./redeploy.sh");
     cmd.run("refresh");
   }
 
   return res.sendStatus(200);
 }
 
-app.post("/git", onWebhook);
+app.post("/redeploy", onWebhook);
 
 app.get("/", function(req, res) {
     res.sendFile(__dirname + "/public/index.html");

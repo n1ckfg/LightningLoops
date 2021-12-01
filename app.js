@@ -76,7 +76,7 @@ const onWebhook = (req, res) => {
   return res.sendStatus(200);
 }
 
-app.post("/redeploy", onWebhook);
+app.post("/git", onWebhook);
 
 app.get("/", function(req, res) {
     res.sendFile(__dirname + "/public/index.html");

@@ -29,7 +29,7 @@ const fogDensity = 0.00375;
 scene.fog = new THREE.FogExp2(fogColor, fogDensity);
 scene.background = new THREE.Color("#000000");  
 
-const roomColor = [0.92, 0.03, 0.03];
+const roomColor = [0.05, 0.03, 0.03];
 const room = new THREE.Mesh(
     new THREE.BoxGeometry(6, 6, 6, 10, 10, 10),
     new THREE.MeshBasicMaterial({ color: new THREE.Color(roomColor[0], roomColor[1], roomColor[2]), wireframe: true })

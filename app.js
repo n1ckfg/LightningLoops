@@ -3,6 +3,10 @@
 const express = require("express");
 const app = express();
 
+const cmd = require("node-cmd");
+const crypto = require("crypto"); 
+const bodyParser = require("body-parser");
+
 const fs = require("fs");
 const dotenv = require("dotenv").config();
 const debug = process.env.DEBUG === "true";
@@ -55,6 +59,33 @@ if (!debug) {
 // ~ ~ ~ ~
     
 app.use(express.static("public")); 
+
+// https://opensourcelibs.com/lib/glitchub
+app.use(bodyParser.json());
+
+const onWebhook = (req, res) => {
+  let hmac = crypto.createHmac("sha1", process.env.SECRET);
+  let sig  = `sha1=${hmac.update(JSON.stringify(req.body)).digest("hex")}`;
+
+  if (req.headers["x-github-event"] === "push" && sig === req.headers["x-hub-signature"]) {
+    cmd.run("chmod 777 ./redeploy.sh"); 
+
+    cmd.get("./redeploy.sh", (err, data) => {  
+      if (data) {
+        console.log(data);
+      }
+      if (err) {
+        console.log(err);
+      }
+    })
+
+    cmd.run("refresh");
+  }
+
+  return res.sendStatus(200);
+}
+
+app.post("/git", onWebhook);
 
 app.get("/", function(req, res) {
     res.sendFile(__dirname + "/public/index.html");

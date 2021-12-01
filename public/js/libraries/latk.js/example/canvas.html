@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Example</title>
+		<style>
+			body {
+				background: black;
+				margin: 0px;
+			}
+
+			#canvas1{ 
+				width: 960px;
+				height: 540px;
+				border: 1px solid white;
+			}
+		</style>
+		<script src="../latk.js"></script>
+	</head>
+
+	<body>
+		<canvas id="canvas1"></canvas>
+
+		<script>
+			let canvas = document.getElementById("canvas1");
+      		let ctx = canvas.getContext("2d");
+
+			let latk = Latk.read("latk_logo.latk");
+
+			let counter = 0;
+			setInterval(function() {
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				
+				if (latk.ready) {
+					for (let layer of latk.layers) {
+						for (let stroke of layer.frames[counter].strokes) {
+							ctx.strokeStyle = "rgb(" + (stroke.color[0]*255) + "," + (stroke.color[1]*255) + "," + (stroke.color[2]*255) +")";
+							ctx.beginPath();
+							for (let point of stroke.points) {
+								let x = point.co[2] * canvas.height + canvas.width/2.75;
+								let y = point.co[1] * -canvas.height + canvas.height/1.75;
+								ctx.lineTo(x, y);
+							}
+							ctx.stroke();
+						}
+					}
+
+					counter++;
+					if (counter > latk.layers[0].frames.length-1) counter = 0;
+				}
+			}, 1/12*1000);
+		</script>
+	</body>
+
+</html>

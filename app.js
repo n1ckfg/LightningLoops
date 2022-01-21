@@ -9,7 +9,7 @@ const bodyParser = require("body-parser");
 
 const fs = require("fs");
 const dotenv = require("dotenv").config();
-const debug = process.env.DEBUG === "true";
+const debug = process.env.DEBUG || "true";
 
 let options;
 if (!debug) {
@@ -26,9 +26,9 @@ const https = require("https").createServer(options, app);
 let io, http;
 const ping_interval = 1000 * 5;
 const ping_timeout = 1000 * 10;
-const port_http = process.env.PORT_HTTP;
-const port_https = process.env.PORT_HTTPS;
-const port_ws = process.env.PORT_WS;
+const port_http = process.env.PORT_HTTP || 8080;
+const port_https = process.env.PORT_HTTPS || 443;
+const port_ws = process.env.PORT_WS || 4321;
 
 const WebSocket = require("ws");
 const ws = new WebSocket.Server({ port: port_ws, pingInterval: ping_interval, pingTimeout: ping_timeout }, function() {

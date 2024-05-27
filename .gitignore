@@ -1,3 +1,5 @@
+.DS_Store
+
 public/uploads/*
 public/sounds/sgm_plus/*
 public/demo/*

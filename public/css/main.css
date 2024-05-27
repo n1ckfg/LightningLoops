@@ -8,6 +8,11 @@ body {
   overflow: hidden;
 }
 
+canvas { 
+    display: block; 
+    touch-action: none;
+}
+
 #dropZone {
 	width: 100px; 
 	height: 100px; 

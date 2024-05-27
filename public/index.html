@@ -43,14 +43,14 @@ Bigger strokes create more randomness.
 
 			const renderer = new THREE.WebGLRenderer({ antialiasing: false, alpha: false, preserveDrawingBuffer: true });
 			renderer.setSize(window.innerWidth, window.innerHeight);
-			renderer.setPixelRatio(window.devicePixelRatio);
+			//renderer.setPixelRatio(window.devicePixelRatio);
 			renderer.setClearColor(0x000000);
 
-			const exposure = 1.2;
-			renderer.toneMapping = THREE.ReinhardToneMapping;
+			const exposure = 1.1;
+			renderer.toneMapping = THREE.LinearToneMapping;
 			renderer.toneMappingExposure = Math.pow(exposure, 4.0);
 
-			renderer.autoClear = false;
+			//renderer.autoClear = false;
 			document.body.appendChild(renderer.domElement);
 
 			const cameraFov = 60;
@@ -64,9 +64,9 @@ Bigger strokes create more randomness.
 			const clock = new THREE.Clock();
 
 			const scene = new THREE.Scene();
-			const fogColor = 0x000000;
-			const fogDensity = 0.00375;
-			scene.fog = new THREE.FogExp2(fogColor, fogDensity);
+			//const fogColor = 0x000000;
+			//const fogDensity = 0.00375;
+			//scene.fog = new THREE.FogExp2(fogColor, fogDensity);
 			scene.background = new THREE.Color("#000000");  
 
 			//const roomColor = [0.05, 0.03, 0.03];
@@ -84,8 +84,8 @@ Bigger strokes create more randomness.
 			let now = 0;
 
 			const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-			bloomPass.threshold = 0; //0;
-			bloomPass.strength = 10; //1.5;
+			bloomPass.threshold = 0.0; //0;
+			bloomPass.strength = 15.0; //1.5;
 			bloomPass.radius = 0.8; //0.8
 
 			const renderPass = new THREE.RenderPass(scene, camera);

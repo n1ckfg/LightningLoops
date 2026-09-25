@@ -6,7 +6,7 @@
         "dotenv": "^8.0.0",
         "express": "4.10.2",
         "node-cmd": "^5.0.0",
-        "socket.io": "1.2.0"
+        "socket.io": "2.5.1"
     },
     "main": "app.js",
     "scripts": {
